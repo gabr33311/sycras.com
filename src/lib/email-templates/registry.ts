@@ -7,6 +7,7 @@ import { template as dataExport } from "./data-export";
 import { template as ownerNudge } from "./owner-nudge";
 import { template as errorSummary } from "./error-summary";
 import { template as ownerAlert } from "./owner-alert";
+import { trialEnded, trialEnding, trialWeek } from "./trial-emails";
 import type { ComponentType } from "react";
 
 /** Values passed to a template: plain strings (names, dates, times). */
@@ -39,6 +40,9 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   "owner-nudge": ownerNudge,
   "error-summary": errorSummary,
   "owner-alert": ownerAlert,
+  "trial-week": trialWeek,
+  "trial-ending": trialEnding,
+  "trial-ended": trialEnded,
   // Add templates here as they are created, e.g.:
   // 'welcome': welcomeTemplate,
 };

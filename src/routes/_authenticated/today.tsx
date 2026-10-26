@@ -7,17 +7,20 @@ import {
   BellRing,
   Check,
   ChevronRight,
+  Crown,
   Eye,
   EyeOff,
   Loader2,
   Sparkles,
   UserX,
+  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { ErrorState, LoadingRows, PageHeader, StatusBadge } from "@/components/ui-bits";
 import { Button } from "@/components/ui/button";
 import { useMyBusiness } from "@/hooks/use-business";
+import { useSubscription } from "@/hooks/use-subscription";
 import { HIDDEN_MONEY, useMoneyHidden } from "@/hooks/use-money-hidden";
 import { useAppointmentSheet } from "@/lib/appointment-sheet-context";
 import { invalidateAppointmentData, setAppointmentStatus } from "@/lib/appointment-status";
@@ -149,6 +152,8 @@ function TodayPage() {
         {formatDateLong(new Date(now).toISOString(), tz)}
       </p>
 
+      <TrialEnding />
+
       {isLoading || !business ? (
         <LoadingRows rows={4} />
       ) : isError ? (
@@ -216,6 +221,54 @@ function TodayPage() {
         </div>
       )}
     </AppShell>
+  );
+}
+
+/** Shown only in the last 5 days of the free trial; closing it hides it until tomorrow. */
+function TrialEnding() {
+  const { t } = usePrefs();
+  const { access } = useSubscription();
+  const today = new Date().toISOString().slice(0, 10);
+  const [closedOn, setClosedOn] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem("sycras-trial-card-closed");
+    } catch {
+      return null;
+    }
+  });
+  if (!access || access.state !== "trial" || access.trialDaysLeft > 5 || closedOn === today)
+    return null;
+  const close = () => {
+    setClosedOn(today);
+    try {
+      localStorage.setItem("sycras-trial-card-closed", today);
+    } catch {
+      // Not remembered in private mode: it shows again next time.
+    }
+  };
+  return (
+    <div className="mx-auto mb-4 flex max-w-3xl items-center gap-3 rounded-2xl border border-brand/30 bg-brand/5 p-3.5 pl-4 lg:max-w-none">
+      <Crown className="size-5 shrink-0 text-brand-ink" />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-bold">
+          {access.trialDaysLeft <= 1
+            ? t("trial.card.lastDay")
+            : t("trial.card.title").replace("{n}", String(access.trialDaysLeft))}
+        </p>
+        <p className="text-xs text-muted-foreground">{t("trial.card.body")}</p>
+      </div>
+      <Button asChild size="sm">
+        <Link to="/plans">{t("trial.card.cta")}</Link>
+      </Button>
+      <button
+        type="button"
+        onClick={close}
+        aria-label={t("trial.card.close")}
+        className="flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+      >
+        <X className="size-4" />
+      </button>
+    </div>
   );
 }
 

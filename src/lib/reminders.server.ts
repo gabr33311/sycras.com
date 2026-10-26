@@ -160,6 +160,7 @@ export async function sendDueReminders(): Promise<{ sent: number; skipped: numbe
   const reviews = await sendDueReviews(db, sendTemplateEmail);
   // Not part of the count: help for new owners and the weekly error report.
   await sendOwnerNudges(db, sendTemplateEmail).catch((e) => console.error("[nudge] failed", e));
+  await sendTrialEmails(db, sendTemplateEmail).catch((e) => console.error("[trial] failed", e));
   await sendWeeklyErrorSummary(db, sendTemplateEmail).catch((e) =>
     console.error("[errors] summary failed", e),
   );
@@ -347,6 +348,61 @@ async function sendOwnerNudges(db: Db, send: Send): Promise<void> {
       },
       idempotencyKey: `owner-nudge-${biz.id}`,
     });
+  }
+}
+
+/**
+ * The free month, told by email: day 7 (how it is going), day 25 (5 days left) and
+ * day 30 (it ended). Never to someone already paying; each one once per business.
+ */
+async function sendTrialEmails(db: Db, send: Send): Promise<void> {
+  const origin = appOrigin();
+  const STAGES = [
+    { day: 7, template: "trial-week" },
+    { day: 25, template: "trial-ending" },
+    { day: 30, template: "trial-ended" },
+  ] as const;
+  for (const stage of STAGES) {
+    const at = Date.now() - stage.day * 86_400_000;
+    const { data: due } = await db
+      .from("businesses")
+      .select("id, name, slug, created_by")
+      .eq("is_demo", false)
+      .is("deleted_at", null)
+      .gte("created_at", new Date(at - WINDOW_MS).toISOString())
+      .lt("created_at", new Date(at).toISOString())
+      .limit(100);
+    for (const biz of due ?? []) {
+      const { data: sub } = await db
+        .from("subscriptions")
+        .select("plan, status")
+        .eq("business_id", biz.id)
+        .maybeSingle();
+      const paying =
+        (sub?.plan === "pro" || sub?.plan === "business") &&
+        ["active", "trialing", "past_due"].includes(sub.status);
+      if (paying) continue;
+      const { data: owner } = await db.auth.admin.getUserById(biz.created_by);
+      const to = owner.user?.email;
+      if (!to) continue;
+      let bookings: string | undefined;
+      if (stage.template === "trial-week") {
+        const { count } = await db
+          .from("appointments")
+          .select("id", { count: "exact", head: true })
+          .eq("business_id", biz.id);
+        bookings = String(count ?? 0);
+      }
+      await send(stage.template, to, {
+        templateData: {
+          businessName: biz.name,
+          bookings,
+          plansUrl: origin ? `${origin}/plans` : undefined,
+          pageUrl: origin ? `${origin}/${biz.slug}` : undefined,
+        },
+        idempotencyKey: `${stage.template}-${biz.id}`,
+      });
+    }
   }
 }
 

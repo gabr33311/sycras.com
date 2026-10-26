@@ -163,6 +163,12 @@ export const onboardingDict: Record<BaseLang, Record<string, string>> = {
     "ob.done.go": "Ir para o painel",
     "ob.done.view": "Ver a minha página",
     "ob.done.trial": "Tens 30 dias grátis do SYCRAS Pro. Sem cartão.",
+    "ob.done.trialTitle": "30 dias do SYCRAS Pro grátis",
+    "ob.done.trialBody":
+      "Sem cartão. Depois, 19 € por mês ou 180 € por ano (−20%), e nada é cobrado sem decidires. Lembretes automáticos, bloqueio de clientes e estatísticas completas ficam para quem subscreve.",
+    "ob.done.start": "Começar os 30 dias grátis",
+    "ob.done.subscribe": "Subscrever já",
+    "ob.done.subscribeNote": "Se subscreveres já, a primeira cobrança só acontece quando acabarem os 30 dias grátis.",
     "onb.continue": "Continuar",
     "onb.create": "Criar a minha página",
 
@@ -447,6 +453,12 @@ export const onboardingDict: Record<BaseLang, Record<string, string>> = {
     "ob.done.go": "Go to the dashboard",
     "ob.done.view": "View my page",
     "ob.done.trial": "You have 30 days of SYCRAS Pro for free. No card needed.",
+    "ob.done.trialTitle": "30 days of SYCRAS Pro for free",
+    "ob.done.trialBody":
+      "No card needed. Then €19 a month or €180 a year (−20%), and nothing is charged unless you decide. Automatic reminders, blocking clients and full stats are for subscribers.",
+    "ob.done.start": "Start the 30 free days",
+    "ob.done.subscribe": "Subscribe now",
+    "ob.done.subscribeNote": "If you subscribe now, the first charge only happens when the 30 free days end.",
     "onb.continue": "Continue",
     "onb.create": "Create my page",
 

@@ -8,6 +8,7 @@ import {
   CircleCheck,
   CircleX,
   Copy,
+  Crown,
   ExternalLink,
   ImagePlus,
   Loader2,
@@ -361,7 +362,14 @@ function Onboarding() {
     }
   }
 
-  if (createdSlug) return <Done slug={createdSlug} onGo={() => navigate({ to: "/today" })} />;
+  if (createdSlug)
+    return (
+      <Done
+        slug={createdSlug}
+        onGo={() => navigate({ to: "/today" })}
+        onSubscribe={() => navigate({ to: "/plans" })}
+      />
+    );
 
   const titles: Record<StepKey, [string, string]> = {
     business: [t("ob.s.business"), t("ob.s.business.sub")],
@@ -1046,8 +1054,19 @@ function ChoiceCard({
   );
 }
 
-/** The finish line: the page is live, here's the link. */
-function Done({ slug, onGo }: { slug: string; onGo: () => void }) {
+/**
+ * The finish line: the page is live, here's the link. Also where the owner learns about the
+ * free month of Pro and its price, once, with the option (never the push) to subscribe now.
+ */
+function Done({
+  slug,
+  onGo,
+  onSubscribe,
+}: {
+  slug: string;
+  onGo: () => void;
+  onSubscribe: () => void;
+}) {
   const { t } = usePrefs();
   const url = typeof window !== "undefined" ? `${window.location.origin}/${slug}` : `/${slug}`;
   return (
@@ -1073,17 +1092,28 @@ function Done({ slug, onGo }: { slug: string; onGo: () => void }) {
             <Copy /> {t("today.copy")}
           </Button>
         </div>
+        <div className="mt-6 rounded-2xl border border-brand/30 bg-brand/5 p-4 text-left">
+          <p className="flex items-center gap-2 text-sm font-bold">
+            <Crown className="size-4 text-brand-ink" /> {t("ob.done.trialTitle")}
+          </p>
+          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+            {t("ob.done.trialBody")}
+          </p>
+        </div>
         <div className="mt-5 flex flex-col gap-2">
           <Button size="lg" onClick={onGo}>
-            {t("ob.done.go")} <ArrowRight />
+            {t("ob.done.start")} <ArrowRight />
           </Button>
+          <Button variant="outline" onClick={onSubscribe}>
+            <Crown /> {t("ob.done.subscribe")}
+          </Button>
+          <p className="text-xs text-muted-foreground">{t("ob.done.subscribeNote")}</p>
           <Button variant="ghost" asChild>
             <a href={`/${slug}`} target="_blank" rel="noreferrer">
               <ExternalLink /> {t("ob.done.view")}
             </a>
           </Button>
         </div>
-        <p className="mt-5 text-xs text-muted-foreground">{t("ob.done.trial")}</p>
       </section>
     </div>
   );
