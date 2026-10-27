@@ -413,6 +413,7 @@ export type Database = {
           cancellation_hours: number
           city: string | null
           cover_url: string | null
+          gallery: string[]
           created_at: string
           created_by: string
           currency: string
@@ -455,6 +456,7 @@ export type Database = {
           cancellation_hours?: number
           city?: string | null
           cover_url?: string | null
+          gallery?: string[]
           created_at?: string
           created_by: string
           currency?: string
@@ -497,6 +499,7 @@ export type Database = {
           cancellation_hours?: number
           city?: string | null
           cover_url?: string | null
+          gallery?: string[]
           created_at?: string
           created_by?: string
           currency?: string

@@ -43,6 +43,7 @@ import {
   Navigation,
   Phone,
   Users,
+  X,
 } from "lucide-react";
 
 export const Route = createFileRoute("/$slug")({
@@ -1055,6 +1056,7 @@ function BusinessHero({
           </span>
         </a>
       )}
+      {business.gallery.length > 0 && <ShopPhotos photos={business.gallery} name={business.name} />}
       {contacts && (business.phone || insta || mapHref) && (
         <div className="mt-4 flex flex-wrap gap-2">
           {business.phone && (
@@ -1134,6 +1136,93 @@ function ShopMapTiles({ lat, lng, dark }: { lat: number; lng: number; dark: bool
       <span className="absolute right-1.5 top-1.5 rounded bg-black/45 px-1.5 py-0.5 text-[9px] font-medium text-white/85">
         {satellite ? "Esri, Maxar, Earthstar Geographics" : "© OpenStreetMap"}
       </span>
+    </>
+  );
+}
+
+/** Photos of the shop: a strip of thumbnails, each one opens full screen (arrows, swipe-free). */
+function ShopPhotos({ photos, name }: { photos: string[]; name: string }) {
+  const { t } = usePrefs();
+  const [open, setOpen] = useState<number | null>(null);
+  useEffect(() => {
+    if (open === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(null);
+      if (e.key === "ArrowRight") setOpen((i) => (i === null ? i : (i + 1) % photos.length));
+      if (e.key === "ArrowLeft")
+        setOpen((i) => (i === null ? i : (i - 1 + photos.length) % photos.length));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, photos.length]);
+  return (
+    <>
+      <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] lg:grid lg:grid-cols-4 lg:overflow-visible">
+        {photos.map((src, i) => (
+          <button
+            key={src}
+            type="button"
+            onClick={() => setOpen(i)}
+            aria-label={`${t("bk.photos.open")} ${i + 1}`}
+            className="aspect-square w-24 shrink-0 overflow-hidden rounded-xl border border-border bg-muted transition-transform active:scale-[0.97] sm:w-28 lg:w-auto"
+          >
+            <img src={src} alt="" loading="lazy" className="size-full object-cover" />
+          </button>
+        ))}
+      </div>
+      {open !== null && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={name}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          onClick={() => setOpen(null)}
+        >
+          <img
+            src={photos[open]}
+            alt=""
+            className="max-h-full max-w-full rounded-xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            type="button"
+            onClick={() => setOpen(null)}
+            aria-label={t("bk.photos.close")}
+            className="absolute right-4 top-[calc(1rem+var(--sat,0px))] flex size-11 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25"
+          >
+            <X className="size-5" />
+          </button>
+          {photos.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpen((open - 1 + photos.length) % photos.length);
+                }}
+                aria-label={t("bk.photos.prev")}
+                className="absolute left-3 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25"
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpen((open + 1) % photos.length);
+                }}
+                aria-label={t("bk.photos.next")}
+                className="absolute right-3 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25"
+              >
+                <ChevronRight className="size-5" />
+              </button>
+              <p className="absolute bottom-[calc(1rem+var(--sab,0px))] left-1/2 -translate-x-1/2 rounded-full bg-white/15 px-3 py-1 text-xs font-bold text-white tabular-nums">
+                {open + 1} / {photos.length}
+              </p>
+            </>
+          )}
+        </div>
+      )}
     </>
   );
 }

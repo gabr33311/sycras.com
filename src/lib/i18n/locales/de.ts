@@ -504,6 +504,10 @@ export const de: Record<string, string> = {
   "bk.retry": "Erneut versuchen",
   "bk.pickOtherDay": "Anderen Tag wählen",
   "bk.pickDayHint": "Wähle einen Tag, um die freien Zeiten zu sehen.",
+  "bk.photos.open": "Foto ansehen",
+  "bk.photos.close": "Schließen",
+  "bk.photos.prev": "Vorheriges Foto",
+  "bk.photos.next": "Nächstes Foto",
   "bk.tk.err.generic":
     "Etwas ist schiefgelaufen. Prüfe deine Internetverbindung und versuche es erneut.",
   "bk.tk.bookAgain": "Neuen Termin buchen",

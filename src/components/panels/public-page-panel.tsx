@@ -14,6 +14,7 @@ import { ImagePlus, Trash2 } from "lucide-react";
 import { SaveBar } from "@/components/save-bar";
 import { PagePreview } from "@/components/page-preview";
 import { ImageCropDialog } from "@/components/image-crop-dialog";
+import { GalleryEditor } from "@/components/gallery-editor";
 
 type ImageKind = "logo" | "cover";
 
@@ -158,6 +159,9 @@ export function PublicPagePanel() {
           />
         </div>
       </section>
+
+      {/* Photos of the shop, shown on the booking page. */}
+      {business && <GalleryEditor businessId={business.id} paths={business.gallery ?? []} />}
 
       <section className="surface space-y-5 p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">

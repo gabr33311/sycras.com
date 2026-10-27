@@ -22,6 +22,8 @@ export type PublicBusiness = {
   instagram: string | null;
   logo_url: string | null;
   cover_url: string | null;
+  /** Photos of the shop (signed URLs). */
+  gallery: string[];
   brand_color: string;
   timezone: string;
   currency: string;
@@ -162,9 +164,18 @@ export async function loadPublicBusiness(slug: string): Promise<{
     db.from("staff_services").select("staff_id, service_id").eq("business_id", business.id),
   ]);
 
-  const [logo_url, cover_url] = await Promise.all([
+  // Read on its own and never fatal: the page still works on a database without the column.
+  const { data: photos } = await db
+    .from("businesses")
+    .select("gallery")
+    .eq("id", business.id)
+    .maybeSingle();
+  const [logo_url, cover_url, gallery] = await Promise.all([
     signedImage(business.logo_url),
     signedImage(business.cover_url),
+    Promise.all(
+      ((photos as { gallery?: string[] } | null)?.gallery ?? []).slice(0, 12).map(signedImage),
+    ),
   ]);
 
   // Calendar availability: open weekdays + business-wide blocks (vacations).
@@ -201,6 +212,7 @@ export async function loadPublicBusiness(slug: string): Promise<{
       ...business,
       logo_url,
       cover_url,
+      gallery: gallery.filter((u): u is string => !!u),
       map: shopMap(business),
       phone: showContacts ? business.phone : null,
       email: showContacts ? business.email : null,
