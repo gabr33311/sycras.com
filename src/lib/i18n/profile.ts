@@ -418,6 +418,10 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "sub.pro.desc": "Mais controlo, automação e informação para negócios em crescimento.",
     "sub.pro.price": "19 €",
     "trial.card.title": "Faltam {n} dias do teu Pro grátis",
+    "sub.trialHero.label": "Teste grátis do SYCRAS Pro",
+    "sub.trialHero.daysLeft": "dias grátis",
+    "sub.trialHero.after":
+      "Quando acabar, a tua página deixa de aceitar marcações até subscreveres. Se subscreveres já, só pagas a partir de {date}.",
     "trial.card.lastDay": "Hoje é o último dia do teu Pro grátis",
     "trial.card.body": "Continua por 19 €/mês ou 180 €/ano. Sem subscrição, a página deixa de receber marcações.",
     "trial.card.cta": "Ver planos",
@@ -855,6 +859,10 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "sub.pro.desc": "More control, automation and insight for growing businesses.",
     "sub.pro.price": "€19",
     "trial.card.title": "{n} days left of your free Pro",
+    "sub.trialHero.label": "SYCRAS Pro free trial",
+    "sub.trialHero.daysLeft": "free days",
+    "sub.trialHero.after":
+      "When it ends, your page stops taking bookings until you subscribe. If you subscribe now, you only pay from {date}.",
     "trial.card.lastDay": "Today is the last day of your free Pro",
     "trial.card.body": "Keep going for €19/month or €180/year. Without a subscription, your page stops taking bookings.",
     "trial.card.cta": "See plans",

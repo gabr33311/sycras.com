@@ -24,6 +24,7 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { openBillingPortal, startCheckout } from "@/lib/billing.functions";
 import { formatDateLong } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { TRIAL_DAYS } from "@/lib/subscription";
 import { usePrefs } from "@/lib/prefs";
 
 export const Route = createFileRoute("/_authenticated/plans")({
@@ -276,6 +277,39 @@ function StatusCard({
 }) {
   const { t } = usePrefs();
   const date = (d: Date | null) => (d ? formatDateLong(d.toISOString(), tz) : "");
+  // The free month, impossible to miss: days left, a bar, the end date and what happens then.
+  if (access.state === "trial") {
+    const used = Math.min(1, Math.max(0, 1 - access.trialDaysLeft / TRIAL_DAYS));
+    return (
+      <section className="surface overflow-hidden border-brand/40 p-0">
+        <div className="flex items-end justify-between gap-3 px-5 pt-5">
+          <div>
+            <p className="flex items-center gap-1.5 text-xs font-bold tracking-wide text-brand-ink uppercase">
+              <Clock3 className="size-3.5" /> {t("sub.trialHero.label")}
+            </p>
+            <p className="mt-1 font-display text-4xl font-bold leading-none tracking-tight tabular-nums">
+              {access.trialDaysLeft}
+              <span className="ml-1.5 text-lg font-semibold text-muted-foreground">
+                {t("sub.trialHero.daysLeft")}
+              </span>
+            </p>
+          </div>
+          <p className="pb-1 text-right text-sm text-muted-foreground">
+            {t("sub.status.trialEnds").replace("{date}", date(access.trialEndsAt))}
+          </p>
+        </div>
+        <div className="mx-5 mt-4 h-2 overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-brand"
+            style={{ width: `${Math.max(4, used * 100)}%` }}
+          />
+        </div>
+        <p className="mt-4 border-t border-border bg-muted/40 px-5 py-3.5 text-sm text-muted-foreground">
+          {t("sub.trialHero.after").replace("{date}", date(access.trialEndsAt))}
+        </p>
+      </section>
+    );
+  }
   const { icon, title, body, tone } =
     access.state === "active"
       ? {
@@ -293,19 +327,12 @@ function StatusCard({
             body: t("sub.status.pastDueBody"),
             tone: "bad" as const,
           }
-        : access.state === "trial"
-          ? {
-              icon: <Clock3 className="size-5" />,
-              title: t("sub.status.trial").replace("{n}", String(access.trialDaysLeft)),
-              body: t("sub.status.trialEnds").replace("{date}", date(access.trialEndsAt)),
-              tone: "brand" as const,
-            }
-          : {
-              icon: <Lock className="size-5" />,
-              title: t("sub.status.blocked"),
-              body: t("sub.status.blockedBody"),
-              tone: "bad" as const,
-            };
+        : {
+            icon: <Lock className="size-5" />,
+            title: t("sub.status.blocked"),
+            body: t("sub.status.blockedBody"),
+            tone: "bad" as const,
+          };
   return (
     <section className="surface flex items-center gap-3.5 p-4">
       <span
@@ -313,7 +340,6 @@ function StatusCard({
           "flex size-11 shrink-0 items-center justify-center rounded-xl",
           tone === "ok" && "bg-st-confirmed/15 text-st-confirmed-fg",
           tone === "bad" && "bg-st-noshow/15 text-st-noshow-fg",
-          tone === "brand" && "bg-brand/15 text-brand-ink",
         )}
       >
         {icon}
