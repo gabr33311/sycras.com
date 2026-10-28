@@ -1109,8 +1109,8 @@ function ChoiceCard({
 }
 
 /**
- * The finish line: the page is live, here's the link. Also where the owner learns about the
- * free month of Pro and its price, once, with the option (never the push) to subscribe now.
+ * The finish line: the page is live, and the free month is made clear. The main button is
+ * to subscribe; "not now" (keep the free days) appears a second later, always readable.
  */
 function Done({
   slug,
@@ -1123,18 +1123,29 @@ function Done({
 }) {
   const { t } = usePrefs();
   const url = typeof window !== "undefined" ? `${window.location.origin}/${slug}` : `/${slug}`;
+  const [showSkip, setShowSkip] = useState(false);
+  useEffect(() => {
+    const id = window.setTimeout(() => setShowSkip(true), 1000);
+    return () => window.clearTimeout(id);
+  }, []);
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background px-5 py-10">
-      <section className="surface animate-enter w-full max-w-md p-7 text-center">
-        <span className="animate-icon-pop mx-auto flex size-16 items-center justify-center rounded-full bg-brand text-brand-foreground">
-          <Check className="size-8" strokeWidth={3} />
-        </span>
-        <h1 className="mt-5 font-display text-[28px] font-bold leading-tight tracking-tight">
-          {t("ob.done.title")}
-        </h1>
-        <p className="mt-2 text-[15px] text-muted-foreground">{t("ob.done.body")}</p>
-        <div className="mt-6 flex items-center gap-2 rounded-xl border border-border bg-muted/50 p-1.5 pl-3.5">
-          <span className="min-w-0 flex-1 truncate text-left text-sm font-semibold">{url}</span>
+      <section className="surface animate-enter w-full max-w-md overflow-hidden p-0">
+        <div className="flex items-center gap-3 border-b border-border px-6 py-4">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground">
+            <Check className="size-5" strokeWidth={3} />
+          </span>
+          <div className="min-w-0 flex-1 text-left">
+            <p className="text-sm font-bold">{t("ob.done.title")}</p>
+            <a
+              href={`/${slug}`}
+              target="_blank"
+              rel="noreferrer"
+              className="block truncate text-xs font-semibold text-brand-ink hover:underline"
+            >
+              {url.replace(/^https?:\/\//, "")}
+            </a>
+          </div>
           <Button
             size="sm"
             variant="outline"
@@ -1146,27 +1157,52 @@ function Done({
             <Copy /> {t("today.copy")}
           </Button>
         </div>
-        <div className="mt-6 rounded-2xl border border-brand/30 bg-brand/5 p-4 text-left">
-          <p className="flex items-center gap-2 text-sm font-bold">
-            <Crown className="size-4 text-brand-ink" /> {t("ob.done.trialTitle")}
-          </p>
-          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-            {t("ob.done.trialBody")}
-          </p>
-        </div>
-        <div className="mt-5 flex flex-col gap-2">
-          <Button size="lg" onClick={onGo}>
-            {t("ob.done.start")} <ArrowRight />
-          </Button>
-          <Button variant="outline" onClick={onSubscribe}>
-            <Crown /> {t("ob.done.subscribe")}
-          </Button>
-          <p className="text-xs text-muted-foreground">{t("ob.done.subscribeNote")}</p>
-          <Button variant="ghost" asChild>
-            <a href={`/${slug}`} target="_blank" rel="noreferrer">
-              <ExternalLink /> {t("ob.done.view")}
-            </a>
-          </Button>
+
+        <div className="px-6 pt-7 pb-6 text-center">
+          <span className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-brand/10 text-brand-ink">
+            <Crown className="size-7" />
+          </span>
+          <h1 className="mt-4 font-display text-[26px] font-bold leading-tight tracking-tight">
+            {t("ob.pay.title")}
+          </h1>
+          <p className="mt-2 text-[15px] text-muted-foreground">{t("ob.pay.body")}</p>
+
+          <div className="mt-5 rounded-2xl border border-border bg-muted/40 p-4 text-left">
+            <p className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
+              {t("ob.pay.extras")}
+            </p>
+            <ul className="mt-2.5 space-y-2">
+              {(["sub.only.reminders", "sub.only.block", "sub.only.stats"] as const).map((k) => (
+                <li key={k} className="flex items-start gap-2.5 text-sm font-medium">
+                  <Check className="mt-0.5 size-4 shrink-0 text-brand-ink" strokeWidth={3} />
+                  {t(k)}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3.5 border-t border-border pt-3 text-sm">
+              <span className="font-bold">{t("ob.pay.price")}</span>{" "}
+              <span className="text-muted-foreground">{t("ob.pay.priceYear")}</span>
+            </p>
+          </div>
+
+          <div className="mt-5 flex flex-col gap-2">
+            <Button size="lg" onClick={onSubscribe}>
+              <Crown /> {t("ob.pay.subscribe")}
+            </Button>
+            <p className="text-xs text-muted-foreground">{t("ob.done.subscribeNote")}</p>
+            <div className={showSkip ? "animate-enter" : "invisible"} aria-hidden={!showSkip}>
+              <Button
+                variant="outline"
+                size="lg"
+                className="mt-1 w-full"
+                onClick={onGo}
+                disabled={!showSkip}
+              >
+                {t("ob.pay.skip")}
+              </Button>
+            </div>
+          </div>
+          <p className="mt-4 text-xs text-muted-foreground">{t("ob.pay.noCard")}</p>
         </div>
       </section>
     </div>
