@@ -225,98 +225,165 @@ function Onboarding() {
     setCropping({ kind, file: f });
   }
 
+  /** The old way (6 requests), only while the database lacks create_business_setup. */
+  async function createStepByStep(): Promise<{ id: string; slug: string } | null> {
+    if (!user) return null;
+    const ranges = lunch
+      ? [
+          { start_time: start, end_time: lunchStart },
+          { start_time: lunchEnd, end_time: end },
+        ]
+      : [{ start_time: start, end_time: end }];
+    const { data: business, error: bizError } = await supabase
+      .from("businesses")
+      .insert({
+        name: name.trim(),
+        slug: slug.trim().toLowerCase(),
+        business_type: type,
+        description: description.trim() || null,
+        city: city.trim() || null,
+        address: address.trim() || null,
+        phone: phone.trim() || null,
+        instagram: instagram.trim().replace(/^@/, "") || null,
+        brand_color: brand,
+        cancellation_hours: cancelHours,
+        created_by: user.id,
+        onboarding_completed: true,
+      })
+      .select("id, slug")
+      .single();
+    if (bizError) {
+      if (bizError.code === "23505") {
+        setStepIdx(0);
+        setError(t("onb.err.slugTaken"));
+        return null;
+      }
+      throw bizError;
+    }
+
+    const { error: memberError } = await supabase
+      .from("business_members")
+      .insert({ business_id: business.id, user_id: user.id, role: "owner" });
+    if (memberError) throw memberError;
+
+    const [{ data: svcRows, error: svcError }, { data: staffRows, error: staffError }] =
+      await Promise.all([
+        supabase
+          .from("services")
+          .insert(
+            validServices.map((s, i) => ({
+              business_id: business.id,
+              name: s.name.trim(),
+              duration_minutes: s.duration,
+              price_cents: Math.max(0, Math.round(s.price * 100)),
+              requires_confirmation: !autoConfirm,
+              sort_order: i,
+            })),
+          )
+          .select("id"),
+        supabase
+          .from("staff")
+          .insert(
+            teamNames.map((n, i) => ({
+              business_id: business.id,
+              name: n,
+              user_id: i === 0 ? user.id : null,
+              sort_order: i,
+            })),
+          )
+          .select("id"),
+      ]);
+    if (svcError) throw svcError;
+    if (staffError) throw staffError;
+
+    // Everyone does every service; the week is shared by the whole team.
+    const links = (staffRows ?? []).flatMap((st) =>
+      (svcRows ?? []).map((sv) => ({
+        staff_id: st.id,
+        service_id: sv.id,
+        business_id: business.id,
+      })),
+    );
+    const hourRows = openDays.flatMap((weekday) =>
+      ranges.map((r) => ({ business_id: business.id, staff_id: null, weekday, ...r })),
+    );
+    const [{ error: linksError }, { error: hoursError }] = await Promise.all([
+      links.length
+        ? supabase.from("staff_services").insert(links)
+        : Promise.resolve({ error: null }),
+      supabase.from("working_hours").insert(hourRows),
+    ]);
+    if (linksError) throw linksError;
+    if (hoursError) throw hoursError;
+    if (autoComplete) {
+      await supabase.from("businesses").update({ auto_complete: true }).eq("id", business.id);
+    }
+    if (location) {
+      await supabase
+        .from("businesses")
+        .update({ latitude: location.lat, longitude: location.lng })
+        .eq("id", business.id);
+    }
+    await supabase.from("subscriptions").insert({ business_id: business.id, plan: "free" });
+    return business;
+  }
+
   async function finish() {
     if (!user) return;
     setBusy(true);
     setError(null);
     try {
-      const { data: business, error: bizError } = await supabase
-        .from("businesses")
-        .insert({
-          name: name.trim(),
-          slug: slug.trim().toLowerCase(),
-          business_type: type,
-          description: description.trim() || null,
-          city: city.trim() || null,
-          address: address.trim() || null,
-          phone: phone.trim() || null,
-          instagram: instagram.trim().replace(/^@/, "") || null,
-          brand_color: brand,
-          cancellation_hours: cancelHours,
-          created_by: user.id,
-          onboarding_completed: true,
-        })
-        .select("id, slug")
-        .single();
-      if (bizError) {
-        if (bizError.code === "23505") {
-          setStepIdx(0);
-          setError(t("onb.err.slugTaken"));
-          return;
-        }
-        throw bizError;
-      }
-
-      const { error: memberError } = await supabase
-        .from("business_members")
-        .insert({ business_id: business.id, user_id: user.id, role: "owner" });
-      if (memberError) throw memberError;
-
-      const [{ data: svcRows, error: svcError }, { data: staffRows, error: staffError }] =
-        await Promise.all([
-          supabase
-            .from("services")
-            .insert(
-              validServices.map((s, i) => ({
-                business_id: business.id,
-                name: s.name.trim(),
-                duration_minutes: s.duration,
-                price_cents: Math.max(0, Math.round(s.price * 100)),
-                requires_confirmation: !autoConfirm,
-                sort_order: i,
-              })),
-            )
-            .select("id"),
-          supabase
-            .from("staff")
-            .insert(
-              teamNames.map((n, i) => ({
-                business_id: business.id,
-                name: n,
-                user_id: i === 0 ? user.id : null,
-                sort_order: i,
-              })),
-            )
-            .select("id"),
-        ]);
-      if (svcError) throw svcError;
-      if (staffError) throw staffError;
-
-      // Everyone does every service; the week is shared by the whole team.
-      const links = (staffRows ?? []).flatMap((st) =>
-        (svcRows ?? []).map((sv) => ({
-          staff_id: st.id,
-          service_id: sv.id,
-          business_id: business.id,
-        })),
-      );
       const ranges = lunch
         ? [
             { start_time: start, end_time: lunchStart },
             { start_time: lunchEnd, end_time: end },
           ]
         : [{ start_time: start, end_time: end }];
-      const hourRows = openDays.flatMap((weekday) =>
-        ranges.map((r) => ({ business_id: business.id, staff_id: null, weekday, ...r })),
+      // Everything in one go on the server: all or nothing, so a failure never leaves a
+      // half-made business behind (and the same link can be tried again).
+      const { data: created, error: setupError } = await supabase.rpc(
+        "create_business_setup" as never,
+        {
+          p: {
+            name: name.trim(),
+            slug: slug.trim().toLowerCase(),
+            business_type: type,
+            description: description.trim(),
+            city: city.trim(),
+            address: address.trim(),
+            phone: phone.trim(),
+            instagram: instagram.trim().replace(/^@/, ""),
+            brand_color: brand,
+            cancellation_hours: cancelHours,
+            auto_complete: autoComplete,
+            latitude: location?.lat ?? null,
+            longitude: location?.lng ?? null,
+            requires_confirmation: !autoConfirm,
+            services: validServices.map((s) => ({
+              name: s.name.trim(),
+              duration_minutes: s.duration,
+              price_cents: Math.max(0, Math.round(s.price * 100)),
+            })),
+            team: teamNames,
+            hours: openDays.flatMap((weekday) => ranges.map((r) => ({ weekday, ...r }))),
+          },
+        } as never,
       );
-      const [{ error: linksError }, { error: hoursError }] = await Promise.all([
-        links.length
-          ? supabase.from("staff_services").insert(links)
-          : Promise.resolve({ error: null }),
-        supabase.from("working_hours").insert(hourRows),
-      ]);
-      if (linksError) throw linksError;
-      if (hoursError) throw hoursError;
+      let business: { id: string; slug: string };
+      if (setupError?.code === "23505") {
+        setStepIdx(0);
+        setError(t("onb.err.slugTaken"));
+        return;
+      }
+      if (setupError && setupError.code !== "PGRST202") throw setupError;
+      if (!setupError) {
+        business = created as unknown as { id: string; slug: string };
+      } else {
+        // Database without the function yet: the old step-by-step way.
+        const made = await createStepByStep();
+        if (!made) return;
+        business = made;
+      }
 
       // Extras that must never block the account: saved one by one.
       let imageFailed = false;
@@ -339,19 +406,6 @@ function Onboarding() {
         }
       }
       if (imageFailed) toast.error(t("ob.err.image"));
-      if (autoComplete) {
-        await supabase.from("businesses").update({ auto_complete: true }).eq("id", business.id);
-      }
-      if (location) {
-        await supabase
-          .from("businesses")
-          .update({ latitude: location.lat, longitude: location.lng })
-          .eq("id", business.id);
-      }
-
-      // The free trial is counted from today; the plan row is created now.
-      await supabase.from("subscriptions").insert({ business_id: business.id, plan: "free" });
-
       window.localStorage.setItem("active_business", business.id);
       setCreatedSlug(business.slug);
     } catch (err) {
