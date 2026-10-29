@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   ArrowRight,
-  BarChart3,
   BellRing,
   Check,
   ChevronRight,
@@ -34,7 +33,7 @@ import {
   currentLocale,
 } from "@/lib/format";
 import { usePrefs } from "@/lib/prefs";
-import { addDays, todayIn, weekdayOf, zonedToUtc } from "@/lib/time";
+import { todayIn, zonedToUtc } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/today")({
@@ -186,9 +185,6 @@ function TodayPage() {
               />
 
               <NeedsYou items={needs} tz={tz} onOpen={openAppointment} />
-
-              {/* The way into the statistics, in plain sight. */}
-              <WeekCard tz={tz} currency={currency} />
             </div>
 
             {day.length > 0 && (
@@ -349,59 +345,6 @@ function DayPill({
         </span>
       </Link>
     </div>
-  );
-}
-
-/** This week (Monday to Sunday) in one line: bookings and money. Opens the statistics. */
-function WeekCard({ tz, currency }: { tz: string; currency: string }) {
-  const { t } = usePrefs();
-  const { business } = useMyBusiness();
-  const [hidden] = useMoneyHidden();
-  const today = todayIn(tz);
-  const monday = addDays(today, -((weekdayOf(today) + 6) % 7));
-  const { data } = useQuery({
-    queryKey: ["dashboard-week", business?.id, monday],
-    enabled: !!business,
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { data: rows } = await supabase
-        .from("appointments")
-        .select("status, price_cents")
-        .eq("business_id", business!.id)
-        .in("status", ["pending", "confirmed", "completed"])
-        .gte("starts_at", zonedToUtc(monday, 0, tz).toISOString())
-        .lt("starts_at", zonedToUtc(addDays(monday, 7), 0, tz).toISOString());
-      const list = rows ?? [];
-      return {
-        n: list.length,
-        money: list
-          .filter((r) => r.status !== "pending")
-          .reduce((s, r) => s + (r.price_cents ?? 0), 0),
-      };
-    },
-  });
-  if (!data) return null;
-  return (
-    <Link
-      to="/analytics"
-      className="surface flex items-center gap-3 p-4 transition-colors hover:bg-muted/50 active:bg-muted"
-    >
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
-        <BarChart3 className="size-[18px]" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-bold">{t("today.week")}</span>
-        <span className="block truncate text-xs font-semibold text-muted-foreground">
-          {t("today.weekBody")
-            .replace("{n}", String(data.n))
-            .replace("{revenue}", hidden ? HIDDEN_MONEY : formatPrice(data.money, currency))}
-        </span>
-      </span>
-      <span className="shrink-0 text-xs font-bold text-muted-foreground">
-        {t("today.seeStats")}
-      </span>
-      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-    </Link>
   );
 }
 
