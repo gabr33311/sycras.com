@@ -1052,4 +1052,6 @@ export const ptBR: Record<string, string> = {
   "mg.nextOff": "Próxima folga: {date}",
   "mg.priceRange": "De {from} a {to}",
   "mg.cancelUpTo": "Cancelam até {h}h antes",
+  "mg.team.soloLong": "Só você atendendo",
+  "mg.team.more": "{names} e mais {n}",
 };

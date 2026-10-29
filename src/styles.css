@@ -696,6 +696,8 @@
    drifts, a metallic border whose highlight travels round, a soft light that crosses the card
    without pause and a glow that breathes. All loops are seamless (the gradients start and end
    on the same tone), so the movement never jumps. Reduced motion stills it (rule below). */
+/* The gold glides across and back (never wraps): angled gradients would show a seam where
+   the image repeats, so the image only ever moves within its own width. */
 @keyframes gold-drift {
   from {
     background-position:
@@ -704,8 +706,8 @@
   }
   to {
     background-position:
-      200% 50%,
-      200% 50%;
+      100% 50%,
+      100% 50%;
   }
 }
 
@@ -714,7 +716,7 @@
     background-position: 0% 50%;
   }
   to {
-    background-position: 200% 50%;
+    background-position: 100% 50%;
   }
 }
 
@@ -768,8 +770,9 @@
   background-size:
     200% 100%,
     200% 100%;
+  background-repeat: no-repeat;
   animation:
-    gold-drift 7s linear infinite,
+    gold-drift 7s ease-in-out infinite alternate,
     gold-glow 3.6s ease-in-out infinite;
 
   &::after {
@@ -808,8 +811,9 @@
     #a8811f 100%
   );
   background-size: 200% 100%;
+  background-repeat: no-repeat;
   color: #4a3608;
-  animation: gold-drift-one 6s linear infinite;
+  animation: gold-drift-one 6s ease-in-out infinite alternate;
 }
 
 /* Gold text that never stops shining (only for "SYCRAS Pro"). */
@@ -826,10 +830,11 @@
     #9a7420 100%
   );
   background-size: 200% 100%;
+  background-repeat: no-repeat;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: gold-drift-one 5s linear infinite;
+  animation: gold-drift-one 5s ease-in-out infinite alternate;
 }
 
 /* A gold progress bar (days of the free month), with light running along it. */
@@ -843,7 +848,8 @@
     #a8811f 100%
   );
   background-size: 200% 100%;
-  animation: gold-drift-one 2.8s linear infinite;
+  background-repeat: no-repeat;
+  animation: gold-drift-one 2.8s ease-in-out infinite alternate;
 }
 
 @utility monochrome-media {

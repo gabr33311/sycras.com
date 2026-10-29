@@ -600,7 +600,12 @@ function useManageSummary(): Partial<Record<SectionId, RowStatus>> {
           .from("services")
           .select("is_active, requires_confirmation, price_cents")
           .eq("business_id", id),
-        supabase.from("staff").select("id").eq("business_id", id).eq("is_active", true),
+        supabase
+          .from("staff")
+          .select("name")
+          .eq("business_id", id)
+          .eq("is_active", true)
+          .order("sort_order"),
         supabase
           .from("working_hours")
           .select("weekday, start_time, end_time")
@@ -620,6 +625,7 @@ function useManageSummary(): Partial<Record<SectionId, RowStatus>> {
       return {
         services: services.data ?? [],
         staff: staff.data?.length ?? 0,
+        staffNames: (staff.data ?? []).map((s) => s.name.split(" ")[0] ?? s.name),
         hours: hours.data ?? [],
         nextOff: nextOff?.starts_at ?? null,
       };
@@ -650,8 +656,18 @@ function useManageSummary(): Partial<Record<SectionId, RowStatus>> {
       }
     : { text: t("mg.services.none"), warn: true };
   // Services and team together: one line, or one line each when there is room.
+  // Who serves, by name ("Rui e Tiago"); alone, said in full.
+  const names = data.staffNames;
   const teamLine =
-    data.staff <= 1 ? t("mg.team.solo") : t("mg.team.many").replace("{n}", String(data.staff));
+    data.staff <= 1
+      ? t("mg.team.soloLong")
+      : names.length > 3
+        ? t("mg.team.more")
+            .replace("{names}", names.slice(0, 2).join(", "))
+            .replace("{n}", String(names.length - 2))
+        : new Intl.ListFormat(currentLocale(), { style: "long", type: "conjunction" }).format(
+            names,
+          );
   // Prices from the cheapest to the dearest service, as a third detail.
   const prices = active.map((s) => s.price_cents ?? 0).sort((a, b) => a - b);
   const priceLine = !prices.length

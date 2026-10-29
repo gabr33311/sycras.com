@@ -523,6 +523,8 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "mg.nextOff": "Próxima folga: {date}",
     "mg.priceRange": "De {from} a {to}",
     "mg.cancelUpTo": "Cancelam até {h}h antes",
+    "mg.team.soloLong": "Só tu a atender",
+    "mg.team.more": "{names} e mais {n}",
   },
   en: {
     "pf.head.title": "Profile — SYCRAS",
@@ -1042,5 +1044,7 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "mg.nextOff": "Next day off: {date}",
     "mg.priceRange": "From {from} to {to}",
     "mg.cancelUpTo": "Cancel up to {h}h before",
+    "mg.team.soloLong": "Just you serving clients",
+    "mg.team.more": "{names} and {n} more",
   },
 };

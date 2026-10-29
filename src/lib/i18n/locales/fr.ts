@@ -1066,4 +1066,6 @@ export const fr: Record<string, string> = {
   "mg.nextOff": "Prochain congé : {date}",
   "mg.priceRange": "De {from} à {to}",
   "mg.cancelUpTo": "Annulation jusqu'à {h} h avant",
+  "mg.team.soloLong": "Vous seul recevez les clients",
+  "mg.team.more": "{names} et {n} autres",
 };
