@@ -4,7 +4,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { effectiveBrand } from "@/lib/brand";
 import { usePrefs } from "@/lib/prefs";
-import { useEffect, useState, type ComponentType } from "react";
+import { useEffect, useRef, useState, type ComponentType } from "react";
+import { useSubscription } from "@/hooks/use-subscription";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/ui-bits";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -27,7 +28,8 @@ import {
   ArrowLeft,
   ArrowUpRight,
   BellRing,
-  Building2,
+  Crown,
+  Pencil,
   ChevronRight,
   Clock,
   Palette,
@@ -72,18 +74,11 @@ export const Route = createFileRoute("/_authenticated/profile")({
 type Row = { id: SectionId; icon: ComponentType<{ className?: string }> };
 
 /**
- * The menu: only how the business is set up, as one list on every screen size.
- * Each row opens one setting directly (no squares, no tabs to discover).
- * Daily things live where they are used; account and plan sit behind the gear.
+ * The menu. The business itself (details, page look, link) is one card on top;
+ * below, the setup in themed pairs, then the plan. On phones it all fits the
+ * screen: the tiles stretch to fill what is left, with no scroll.
  */
 const GROUPS: { title: string; rows: Row[] }[] = [
-  {
-    title: "pf.group.business",
-    rows: [
-      { id: "info", icon: Building2 },
-      { id: "page", icon: Palette },
-    ],
-  },
   {
     title: "pf.group.offer",
     rows: [
@@ -107,6 +102,9 @@ const GROUPS: { title: string; rows: Row[] }[] = [
   },
 ];
 
+/** Gold only here: the one premium element on the screen. */
+const GOLD = "#c9a227";
+
 function ProfilePage() {
   const { t } = usePrefs();
   const navigate = useNavigate();
@@ -124,11 +122,155 @@ function ProfilePage() {
   const { business } = useMyBusiness();
   const logoUrl = useLogoUrl(business?.logo_url);
   const summary = useManageSummary();
+  const { access } = useSubscription();
   const qc = useQueryClient();
   // Back on the menu after editing something: refresh the live states.
   useEffect(() => {
     if (!section) void qc.invalidateQueries({ queryKey: ["manage-summary"] });
   }, [section, qc]);
+
+  // Phones: the grid takes exactly the height left above the dock.
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [gridH, setGridH] = useState<number | null>(null);
+  useEffect(() => {
+    if (!isPhone || section) return;
+    const el = gridRef.current;
+    if (!el) return;
+    const fit = () => {
+      const main = el.closest("main");
+      const bottom = main ? parseFloat(getComputedStyle(main).paddingBottom) || 0 : 0;
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      setGridH(Math.max(260, Math.floor(window.innerHeight - top - bottom)));
+    };
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, [isPhone, section, business]);
+  // Short screens: icon beside the name; tall ones: icon on top, text at the bottom.
+  const roomy = gridH !== null && (gridH - 3 * 8) / 4 >= 100;
+
+  const tile = (row: Row, phone: boolean) => {
+    const status = summary[row.id];
+    const active = !phone && shown === row.id;
+    const text = (
+      <span
+        className={cn(
+          "mt-0.5 flex min-w-0 items-center gap-1 text-[11px] font-semibold leading-snug md:mt-1 md:text-xs",
+          status?.warn ? "text-st-pending-fg" : "text-muted-foreground",
+        )}
+      >
+        {status?.warn && (
+          <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-st-pending" />
+        )}
+        <span className="truncate">{status?.text ?? desc(row.id)}</span>
+      </span>
+    );
+    const name = phone && row.id === "rules" ? t("pf.s.rules.short") : label(row.id);
+    if (phone)
+      return (
+        <button
+          key={row.id}
+          type="button"
+          onClick={() => setSection(row.id)}
+          className={cn(
+            "surface flex min-h-0 min-w-0 flex-col p-3 text-left transition-[background-color,transform] duration-150 active:scale-[0.97] active:bg-muted",
+            roomy ? "justify-between" : "justify-center",
+          )}
+        >
+          {roomy ? (
+            <span className="flex size-9 items-center justify-center rounded-xl bg-muted text-foreground">
+              <row.icon className="size-[18px]" />
+            </span>
+          ) : null}
+          <span className="block w-full min-w-0">
+            <span className="flex items-center gap-1.5">
+              {!roomy && <row.icon className="size-4 shrink-0 text-muted-foreground" />}
+              <span className="truncate text-sm font-bold leading-tight">{name}</span>
+            </span>
+            {text}
+          </span>
+        </button>
+      );
+    return (
+      <button
+        key={row.id}
+        type="button"
+        onClick={() => setSection(row.id)}
+        aria-current={active ? "page" : undefined}
+        className={cn(
+          "group flex min-h-[4rem] w-full items-center gap-3.5 px-4 py-3 text-left transition-[background-color,transform] duration-150 hover:bg-muted/50 active:scale-[0.985] active:bg-muted",
+          active && "bg-muted",
+        )}
+      >
+        <span
+          className={cn(
+            "flex size-10 shrink-0 items-center justify-center rounded-xl transition-colors",
+            active ? "bg-brand text-brand-foreground" : "bg-muted text-foreground",
+          )}
+        >
+          <row.icon className="size-[18px]" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[15px] font-bold leading-tight">{label(row.id)}</span>
+          {text}
+        </span>
+      </button>
+    );
+  };
+
+  // The plan, in words that match its state.
+  const pro = access
+    ? access.state === "active"
+      ? {
+          title: t("pf.pro.active"),
+          sub: access.periodEnd
+            ? t("pf.pro.renews").replace(
+                "{date}",
+                new Intl.DateTimeFormat(undefined, { day: "numeric", month: "long" }).format(
+                  access.periodEnd,
+                ),
+              )
+            : t("pf.pro.all"),
+          warn: false,
+        }
+      : access.state === "past_due"
+        ? { title: t("pf.pro.pastDue"), sub: t("pf.pro.pastDue.sub"), warn: true }
+        : access.state === "trial"
+          ? {
+              title: t("pf.pro.trial"),
+              sub: t(access.trialDaysLeft === 1 ? "pf.pro.trial.one" : "pf.pro.trial.many").replace(
+                "{n}",
+                String(access.trialDaysLeft),
+              ),
+              warn: false,
+            }
+          : { title: t("pf.pro.ended"), sub: t("pf.pro.ended.sub"), warn: true }
+    : null;
+  const proCard = pro && (
+    <button
+      type="button"
+      onClick={() => void navigate({ to: "/plans" })}
+      className="surface col-span-2 flex min-h-0 w-full items-center gap-3 p-3 text-left transition-[background-color,transform] duration-150 active:scale-[0.98] active:bg-muted md:p-4"
+      style={{ borderColor: pro.warn ? "var(--destructive)" : `${GOLD}8c` }}
+    >
+      <span
+        className="flex size-10 shrink-0 items-center justify-center rounded-xl"
+        style={{ backgroundColor: `${GOLD}24` }}
+      >
+        <Crown className="size-5" style={{ color: GOLD }} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-bold leading-tight">{pro.title}</span>
+        <span className="mt-0.5 line-clamp-2 text-xs font-semibold text-muted-foreground">
+          {pro.sub}
+        </span>
+      </span>
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground" strokeWidth={2.5} />
+    </button>
+  );
+
+  const pageStatus = summary.page;
+  const infoStatus = summary.info;
 
   return (
     <AppShell>
@@ -159,11 +301,11 @@ function ProfilePage() {
 
       <div className="md:grid md:grid-cols-[280px_minmax(0,1fr)] md:items-start md:gap-8 lg:grid-cols-[300px_minmax(0,1fr)]">
         <div
-          className={cn("space-y-3 md:sticky md:top-24 md:space-y-5", section && "hidden md:block")}
+          className={cn("space-y-2 md:sticky md:top-24 md:space-y-5", section && "hidden md:block")}
         >
-          {/* The business: full name, its link, and the two things done with it. */}
+          {/* The business in one card: who, where, its page, and what to do with it. */}
           {business && (
-            <div className="surface p-4">
+            <div className="surface p-3.5">
               <div className="flex items-center gap-3">
                 {logoUrl ? (
                   <img
@@ -177,73 +319,95 @@ function ProfilePage() {
                   </span>
                 )}
                 <span className="min-w-0 flex-1">
-                  <span className="line-clamp-2 font-display text-base font-bold leading-tight">
+                  <span className="line-clamp-1 font-display text-base font-bold leading-tight">
                     {business.name}
                   </span>
-                  <span className="mt-0.5 block break-all text-xs font-semibold text-brand-ink">
+                  <span className="mt-0.5 block truncate text-xs font-semibold text-brand-ink">
                     sycras.com/{business.slug}
+                  </span>
+                  <span className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] font-semibold">
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "size-1.5 shrink-0 rounded-full",
+                        pageStatus?.warn ? "bg-st-pending" : "bg-st-confirmed",
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        "shrink-0",
+                        pageStatus?.warn ? "text-st-pending-fg" : "text-muted-foreground",
+                      )}
+                    >
+                      {pageStatus?.text}
+                    </span>
+                    {infoStatus && (
+                      <span
+                        className={cn(
+                          "truncate",
+                          infoStatus.warn ? "text-st-pending-fg" : "text-muted-foreground",
+                        )}
+                      >
+                        · {infoStatus.text}
+                      </span>
+                    )}
                   </span>
                 </span>
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <Button variant="outline" size="sm" onClick={() => setShareOpen(true)}>
+              {/* Four actions, each named: edit details, page look, share, open. */}
+              <div className="mt-3 grid grid-cols-4 gap-1.5">
+                {(
+                  [
+                    ["info", Pencil, t("pf.biz.edit")],
+                    ["page", Palette, t("pf.biz.look")],
+                  ] as const
+                ).map(([id, Icon, text]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setSection(id)}
+                    aria-current={!isPhone && shown === id ? "page" : undefined}
+                    className={cn(
+                      "flex h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-xl bg-muted px-1 text-[11px] font-bold transition-[background-color,transform] active:scale-95",
+                      !isPhone && shown === id && "ring-2 ring-brand",
+                    )}
+                  >
+                    <Icon className="size-4" />
+                    <span className="max-w-full truncate">{text}</span>
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setShareOpen(true)}
+                  className="flex h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-xl bg-muted px-1 text-[11px] font-bold transition-[background-color,transform] active:scale-95"
+                >
                   <Share2 className="size-4" />
-                  {t("pf.s.share")}
-                </Button>
-                <Button asChild size="sm">
-                  <a href={`/${business.slug}`} target="_blank" rel="noreferrer">
-                    <ArrowUpRight className="size-4" />
-                    {t("pf.manage.viewPage")}
-                  </a>
-                </Button>
+                  <span className="max-w-full truncate">{t("pf.s.share")}</span>
+                </button>
+                <a
+                  href={`/${business.slug}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-xl bg-primary px-1 text-[11px] font-bold text-primary-foreground transition-transform active:scale-95"
+                >
+                  <ArrowUpRight className="size-4" />
+                  <span className="max-w-full truncate md:hidden">{t("pf.biz.open")}</span>
+                  <span className="hidden max-w-full truncate md:inline">
+                    {t("pf.biz.openShort")}
+                  </span>
+                </a>
               </div>
             </div>
           )}
 
-          {/* Phones: the eight settings in a grid that fits the screen (no scroll);
-              each row of two is one theme. */}
-          <div className="grid grid-cols-2 gap-2 md:hidden">
-            {GROUPS.flatMap((group) => group.rows).map((row) => {
-              const status = summary[row.id];
-              return (
-                <button
-                  key={row.id}
-                  type="button"
-                  onClick={() => setSection(row.id)}
-                  className="surface min-w-0 px-3 py-2.5 text-left transition-[background-color,transform] duration-150 active:scale-[0.97] active:bg-muted"
-                >
-                  <span className="block w-full min-w-0">
-                    <span className="flex items-center gap-1.5">
-                      <row.icon className="size-4 shrink-0 text-muted-foreground" />
-                      <span className="truncate text-[13px] font-bold leading-tight">
-                        {row.id === "rules" ? t("pf.s.rules.short") : label(row.id)}
-                      </span>
-                    </span>
-                    <span
-                      className={cn(
-                        "mt-0.5 flex items-center gap-1 text-[11px] font-semibold leading-snug",
-                        status?.warn ? "text-st-pending-fg" : "text-muted-foreground",
-                      )}
-                    >
-                      {status?.dot && (
-                        <span
-                          aria-hidden
-                          className="size-2 shrink-0 rounded-full ring-1 ring-black/10"
-                          style={{ backgroundColor: status.dot }}
-                        />
-                      )}
-                      {status?.warn && (
-                        <span
-                          aria-hidden
-                          className="size-1.5 shrink-0 rounded-full bg-st-pending"
-                        />
-                      )}
-                      <span className="truncate">{status?.text ?? desc(row.id)}</span>
-                    </span>
-                  </span>
-                </button>
-              );
-            })}
+          {/* Phones: three themed pairs and the plan, stretched to fill the screen. */}
+          <div
+            ref={gridRef}
+            className="grid grid-cols-2 grid-rows-4 gap-2 md:hidden"
+            style={gridH ? { height: gridH } : undefined}
+          >
+            {GROUPS.flatMap((group) => group.rows).map((row) => tile(row, true))}
+            {proCard}
           </div>
 
           {GROUPS.map((group) => (
@@ -252,65 +416,11 @@ function ProfilePage() {
                 {t(group.title)}
               </h2>
               <nav className="surface divide-y divide-border overflow-hidden p-0">
-                {group.rows.map((row) => {
-                  const status = summary[row.id];
-                  const active = !isPhone && shown === row.id;
-                  return (
-                    <button
-                      key={row.id}
-                      type="button"
-                      onClick={() => setSection(row.id)}
-                      aria-current={active ? "page" : undefined}
-                      className={cn(
-                        "group flex min-h-[4rem] w-full items-center gap-3.5 px-4 py-3 text-left transition-[background-color,transform] duration-150 hover:bg-muted/50 active:scale-[0.985] active:bg-muted",
-                        active && "bg-muted",
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          "flex size-10 shrink-0 items-center justify-center rounded-xl transition-colors",
-                          active ? "bg-brand text-brand-foreground" : "bg-muted text-foreground",
-                        )}
-                      >
-                        <row.icon className="size-[18px]" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[15px] font-bold leading-tight">
-                          {label(row.id)}
-                        </span>
-                        {/* The live state of each setting; amber when something is missing. */}
-                        <span
-                          className={cn(
-                            "mt-1 flex items-center gap-1.5 text-xs font-semibold leading-snug",
-                            status?.warn ? "text-st-pending-fg" : "text-muted-foreground",
-                          )}
-                        >
-                          {status?.dot && (
-                            <span
-                              aria-hidden
-                              className="size-2.5 shrink-0 rounded-full ring-1 ring-black/10"
-                              style={{ backgroundColor: status.dot }}
-                            />
-                          )}
-                          {status?.warn && (
-                            <span
-                              aria-hidden
-                              className="size-1.5 shrink-0 rounded-full bg-st-pending"
-                            />
-                          )}
-                          <span className="truncate">{status?.text ?? desc(row.id)}</span>
-                        </span>
-                      </span>
-                      <ChevronRight
-                        className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 md:hidden"
-                        strokeWidth={2.5}
-                      />
-                    </button>
-                  );
-                })}
+                {group.rows.map((row) => tile(row, false))}
               </nav>
             </section>
           ))}
+          <div className="hidden md:block">{proCard}</div>
         </div>
 
         <div key={shown} className={cn("animate-enter min-w-0", !section && "hidden md:block")}>
