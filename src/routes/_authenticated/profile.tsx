@@ -196,48 +196,58 @@ function ProfilePage() {
           onClick={() => setSection(row.id)}
           className={cn(
             "surface flex min-h-0 min-w-0 flex-col p-3.5 text-left transition-[background-color,transform] duration-150 active:scale-[0.97] active:bg-muted",
-            roomy ? "justify-between" : "justify-center",
+            "justify-center",
             size === "l" && "px-4",
           )}
         >
           {roomy ? (
             <>
-              {/* The name first, larger and centred; the details right under it, on the left. */}
-              <span className="block w-full min-w-0">
+              {/* The name large and centred; under it the icon in a soft circle, a thin rule
+                  and the details beside it, all centred in the tile. */}
+              <span
+                className={cn(
+                  "block text-center font-display font-bold leading-tight text-balance",
+                  size === "l" ? "text-xl" : tight ? "text-base" : "text-lg",
+                )}
+              >
+                {name}
+              </span>
+              {/* The icon, large, in the middle with the two lines: beside them on wide tiles,
+                  above them on narrow ones (so the text never gets squeezed). */}
+              <span
+                className={cn(
+                  "flex w-full items-center",
+                  wide ? "mt-4 gap-3" : tight ? "mt-2 gap-2" : "mt-3 gap-2.5",
+                )}
+              >
                 <span
                   className={cn(
-                    "block text-center font-display font-bold leading-tight text-balance",
-                    size === "l" ? "text-lg" : tight ? "text-[15px]" : "text-[17px]",
+                    "flex shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand-ink",
+                    size === "l" && wide ? "size-16" : tight ? "size-9" : "size-12",
                   )}
                 >
-                  {name}
+                  <row.icon
+                    className={size === "l" && wide ? "size-8" : tight ? "size-[18px]" : "size-6"}
+                  />
                 </span>
-                <span className="mt-1.5 block">
-                  {shown.map((line, i) => (
-                    <span
-                      key={line}
-                      className={cn(
-                        tight ? "block truncate" : "line-clamp-2 block",
-                        size === "l" && wide ? "text-sm leading-6" : "text-xs leading-[1.35rem]",
-                        i === 0
-                          ? "font-bold text-foreground"
-                          : "font-semibold text-muted-foreground",
-                        status?.warn && i === 0 && "text-st-pending-fg",
-                      )}
-                    >
-                      {line}
-                    </span>
-                  ))}
-                </span>
-              </span>
-              {/* At the bottom: the icon on the left, the short description beside it (tall tiles). */}
-              <span className="mt-2 flex w-full items-center gap-2.5">
-                {icon}
-                {showDesc && (
-                  <span className="line-clamp-2 min-w-0 flex-1 text-xs leading-snug text-muted-foreground">
-                    {desc(row.id)}
+                {/* The text sits in the middle of the space to the right of the icon, whole. */}
+                <span className="flex min-w-0 flex-1 justify-center">
+                  <span className="min-w-0">
+                    {lines.slice(0, 2).map((line, i) => (
+                      <span
+                        key={line}
+                        className={cn(
+                          "block break-words",
+                          size === "l" && wide ? "text-sm leading-6" : "text-xs leading-[1.15rem]",
+                          i === 0 ? "font-semibold text-foreground" : "text-muted-foreground",
+                          status?.warn && i === 0 && "text-st-pending-fg",
+                        )}
+                      >
+                        {line}
+                      </span>
+                    ))}
                   </span>
-                )}
+                </span>
               </span>
             </>
           ) : (
