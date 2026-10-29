@@ -794,6 +794,11 @@
     );
     animation: gold-sweep 4.2s linear infinite;
   }
+
+  /* On the dark wash the light is softer, so it never washes out the text it crosses. */
+  :where(.dark) &::after {
+    opacity: 0.28;
+  }
 }
 
 /* Metallic gold surface (the crown badge): polished tones that keep drifting. */
@@ -817,18 +822,34 @@
 }
 
 /* Gold text that never stops shining (only for "SYCRAS Pro"). */
+/* Light mode: deep golds on the pale wash, the highlight kept dark enough to read.
+   Dark mode (below): bright golds on the dark wash. */
 @utility text-gold-live {
   background-image: linear-gradient(
     100deg,
-    #9a7420 0%,
-    #d4af37 20%,
-    #f7e08f 35%,
-    #c9a227 50%,
-    #9a7420 60%,
-    #d4af37 75%,
-    #f7e08f 88%,
-    #9a7420 100%
+    #6b4e0e 0%,
+    #8f6a14 20%,
+    #b8892b 35%,
+    #8f6a14 50%,
+    #6b4e0e 60%,
+    #8f6a14 75%,
+    #b8892b 88%,
+    #6b4e0e 100%
   );
+
+  :where(.dark) & {
+    background-image: linear-gradient(
+      100deg,
+      #e0b94a 0%,
+      #f3d77a 20%,
+      #fff3c4 35%,
+      #f0cf63 50%,
+      #e0b94a 60%,
+      #f3d77a 75%,
+      #fff3c4 88%,
+      #e0b94a 100%
+    );
+  }
   background-size: 200% 100%;
   background-repeat: no-repeat;
   -webkit-background-clip: text;
