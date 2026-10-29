@@ -269,8 +269,8 @@ export function AvailabilityPanel({ view }: { view: "hours" | "off" | "rules" })
     <div className="space-y-5">
       {tab === "hours" && (
         <section className="surface p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-base font-semibold">{t("pf.av.weekly")}</h2>
+          {/* The page already titles this "Weekly hours": only the shortcut here. */}
+          <div className="flex justify-end">
             <Button variant="outline" size="sm" onClick={copyMondayToWeekdays}>
               {t("pf.av.copyWeek")}
             </Button>

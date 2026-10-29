@@ -62,6 +62,8 @@ export function NewAppointmentDialog({
   const [customerId, setCustomerId] = useState<string | null>(defaultCustomer?.id ?? null);
   const [customerPickerOpen, setCustomerPickerOpen] = useState(false);
   const [search, setSearch] = useState("");
+  // A new client is typed into a plain name field, outside the search list.
+  const [newClient, setNewClient] = useState(false);
   const [serviceId, setServiceId] = useState("");
   const [staffId, setStaffId] = useState("");
   const [date, setDate] = useState(defaultDate ?? todayIn(business.timezone));
@@ -133,6 +135,7 @@ export function NewAppointmentDialog({
     if (!customer) return;
     setCustomerId(customer.id);
     setCustomerName(customer.name);
+    setNewClient(false);
     setPhone(customer.phone ?? "");
     setEmail(customer.email ?? "");
     setSearch("");
@@ -142,6 +145,7 @@ export function NewAppointmentDialog({
   function addNewCustomer(name: string) {
     setCustomerId(null);
     setCustomerName(name.trim());
+    setNewClient(true);
     setPhone("");
     setEmail("");
     setSearch("");
@@ -151,6 +155,7 @@ export function NewAppointmentDialog({
   function clearCustomer() {
     setCustomerId(null);
     setCustomerName("");
+    setNewClient(false);
     setPhone("");
     setEmail("");
   }
@@ -262,6 +267,7 @@ export function NewAppointmentDialog({
       setPhone("");
       setEmail("");
       setCustomerId(null);
+      setNewClient(false);
       setNotes("");
     } catch {
       setError(t("cal.err.create"));
@@ -289,6 +295,17 @@ export function NewAppointmentDialog({
           <div className="space-y-1.5">
             <Label>{t("cal.field.client")}</Label>
             <div className="flex items-center gap-2">
+              {newClient ? (
+                <Input
+                  autoFocus
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  maxLength={80}
+                  placeholder={t("cal.customer.namePh")}
+                  aria-label={t("cal.field.client")}
+                  className="flex-1"
+                />
+              ) : (
               <Popover open={customerPickerOpen} onOpenChange={setCustomerPickerOpen}>
                 <PopoverTrigger asChild>
                   <button
@@ -302,11 +319,6 @@ export function NewAppointmentDialog({
                       <span className={cn("truncate", !customerName && "text-muted-foreground")}>
                         {customerName || t("cal.customer.pick")}
                       </span>
-                      {customerName && !customerId && (
-                        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-bold text-muted-foreground">
-                          {t("cal.customer.new")}
-                        </span>
-                      )}
                     </span>
                     <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
                   </button>
@@ -331,6 +343,19 @@ export function NewAppointmentDialog({
                           >
                             <Plus className="size-4" />
                             {t("cal.customer.add").replace("{name}", search.trim())}
+                          </CommandItem>
+                        </CommandGroup>
+                      )}
+                      {search.trim().length < 2 && (
+                        <CommandGroup>
+                          <CommandItem
+                            forceMount
+                            value="__new__"
+                            onSelect={() => addNewCustomer(search)}
+                            className="py-2.5 font-bold text-primary"
+                          >
+                            <Plus className="size-4" />
+                            {t("cal.customer.addNew")}
                           </CommandItem>
                         </CommandGroup>
                       )}
@@ -366,7 +391,8 @@ export function NewAppointmentDialog({
                   </Command>
                 </PopoverContent>
               </Popover>
-              {customerName && (
+              )}
+              {(customerName || newClient) && (
                 <Button
                   type="button"
                   variant="ghost"
@@ -381,7 +407,7 @@ export function NewAppointmentDialog({
               )}
             </div>
           </div>
-          {customerName && !customerId && (
+          {newClient && (
             <div className="space-y-1.5 animate-enter">
               <Label htmlFor="cphone">{t("cal.field.phone")}</Label>
               <Input
@@ -395,7 +421,7 @@ export function NewAppointmentDialog({
               />
             </div>
           )}
-          {customerName && !customerId && (
+          {newClient && (
             <div className="space-y-1.5 animate-enter">
               <Label htmlFor="cemail">{t("cal.field.email")}</Label>
               <Input

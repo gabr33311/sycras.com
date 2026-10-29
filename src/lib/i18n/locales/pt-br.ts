@@ -142,6 +142,8 @@ export const ptBR: Record<string, string> = {
   "cal.customer.existing": "Cliente existente",
   "cal.customer.select": "Selecionar cliente existente",
   "cal.customer.search": "Buscar por nome ou contato…",
+  "cal.customer.addNew": "Adicionar cliente novo",
+  "cal.customer.namePh": "Nome do cliente",
   "cal.customer.empty": "Nenhum cliente encontrado.",
   "cal.customer.clear": "Limpar cliente selecionado",
   "cal.choose": "Escolher…",

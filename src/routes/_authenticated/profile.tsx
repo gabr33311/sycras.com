@@ -37,8 +37,6 @@ import {
   SlidersHorizontal,
   Users,
   CalendarOff,
-  CalendarCheck,
-  Store,
 } from "lucide-react";
 
 const SECTION_IDS = [
@@ -74,15 +72,13 @@ export const Route = createFileRoute("/_authenticated/profile")({
 type Row = { id: SectionId; icon: ComponentType<{ className?: string }> };
 
 /**
- * The menu: only how the business is set up. Daily things live where they are
- * used: stats on Today, sharing in the header card, time off in the calendar,
- * settings and the plan behind the gear.
+ * The menu: only how the business is set up, as one list on every screen size.
+ * Each row opens one setting directly (no squares, no tabs to discover).
+ * Daily things live where they are used; account and plan sit behind the gear.
  */
-const GROUPS: { title: string; tone: string; icon: Row["icon"]; rows: Row[] }[] = [
+const GROUPS: { title: string; rows: Row[] }[] = [
   {
     title: "pf.group.business",
-    icon: Store,
-    tone: "bg-brand text-brand-foreground",
     rows: [
       { id: "info", icon: Building2 },
       { id: "page", icon: Palette },
@@ -90,8 +86,6 @@ const GROUPS: { title: string; tone: string; icon: Row["icon"]; rows: Row[] }[] 
   },
   {
     title: "pf.group.offer",
-    icon: Scissors,
-    tone: "bg-brand text-brand-foreground",
     rows: [
       { id: "services", icon: Scissors },
       { id: "team", icon: Users },
@@ -99,8 +93,6 @@ const GROUPS: { title: string; tone: string; icon: Row["icon"]; rows: Row[] }[] 
   },
   {
     title: "pf.group.time",
-    icon: Clock,
-    tone: "bg-brand text-brand-foreground",
     rows: [
       { id: "hours", icon: Clock },
       { id: "timeoff", icon: CalendarOff },
@@ -108,19 +100,12 @@ const GROUPS: { title: string; tone: string; icon: Row["icon"]; rows: Row[] }[] 
   },
   {
     title: "pf.group.bookings",
-    icon: CalendarCheck,
-    tone: "bg-brand text-brand-foreground",
     rows: [
       { id: "rules", icon: SlidersHorizontal },
       { id: "reminders", icon: BellRing },
     ],
   },
 ];
-
-/** The category a setting belongs to. */
-function groupOf(id: SectionId) {
-  return GROUPS.find((g) => g.rows.some((r) => r.id === id)) ?? GROUPS[0]!;
-}
 
 function ProfilePage() {
   const { t } = usePrefs();
@@ -148,11 +133,9 @@ function ProfilePage() {
   return (
     <AppShell>
       <PageHeader
-        title={
-          section ? (isPhone ? t(groupOf(section).title) : label(section)) : t("pf.manage.title")
-        }
+        title={section && isPhone ? label(section) : t("pf.manage.title")}
         action={
-          !section ? (
+          !section || !isPhone ? (
             <Button size="sm" variant="outline" onClick={() => void navigate({ to: "/settings" })}>
               <Settings className="size-4" />
               {t("pf.s.settings")}
@@ -174,122 +157,71 @@ function ProfilePage() {
         }
       />
 
-      <div className="md:grid md:grid-cols-[250px_minmax(0,1fr)] md:items-start md:gap-6 lg:grid-cols-[270px_minmax(0,1fr)]">
-        <div
-          className={cn("space-y-3 md:sticky md:top-24 md:space-y-5", section && "hidden md:block")}
-        >
-          {/* The business in one line: who, its link, share and open. Neutral card, colour on the details. */}
+      <div className="md:grid md:grid-cols-[280px_minmax(0,1fr)] md:items-start md:gap-8 lg:grid-cols-[300px_minmax(0,1fr)]">
+        <div className={cn("space-y-5 md:sticky md:top-24", section && "hidden md:block")}>
+          {/* The business: full name, its link, and the two things done with it. */}
           {business && (
-            <div className="surface flex items-center gap-3 p-3">
-              {logoUrl ? (
-                <img
-                  src={logoUrl}
-                  alt=""
-                  className="size-11 shrink-0 rounded-xl object-cover ring-1 ring-border"
-                />
-              ) : (
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand text-sm font-bold text-brand-foreground">
-                  {initials(business.name)}
+            <div className="surface p-4">
+              <div className="flex items-center gap-3">
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt=""
+                    className="size-12 shrink-0 rounded-xl object-cover ring-1 ring-border"
+                  />
+                ) : (
+                  <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-brand text-sm font-bold text-brand-foreground">
+                    {initials(business.name)}
+                  </span>
+                )}
+                <span className="min-w-0 flex-1">
+                  <span className="line-clamp-2 font-display text-base font-bold leading-tight">
+                    {business.name}
+                  </span>
+                  <span className="mt-0.5 block break-all text-xs font-semibold text-brand-ink">
+                    sycras.com/{business.slug}
+                  </span>
                 </span>
-              )}
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-display text-[15px] font-bold leading-tight">
-                  {business.name}
-                </span>
-                <span className="mt-0.5 block truncate text-xs font-semibold text-brand-ink">
-                  sycras.com/{business.slug}
-                </span>
-              </span>
-              <Button
-                variant="outline"
-                size="icon"
-                className="size-10 shrink-0"
-                aria-label={t("pf.s.share")}
-                title={t("pf.s.share")}
-                onClick={() => setShareOpen(true)}
-              >
-                <Share2 className="size-4" />
-              </Button>
-              <Button asChild size="icon" className="size-10 shrink-0">
-                <a
-                  href={`/${business.slug}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={t("pf.manage.viewPage")}
-                  title={t("pf.manage.viewPage")}
-                >
-                  <ArrowUpRight className="size-4" />
-                </a>
-              </Button>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <Button variant="outline" size="sm" onClick={() => setShareOpen(true)}>
+                  <Share2 className="size-4" />
+                  {t("pf.s.share")}
+                </Button>
+                <Button asChild size="sm">
+                  <a href={`/${business.slug}`} target="_blank" rel="noreferrer">
+                    <ArrowUpRight className="size-4" />
+                    {t("pf.manage.viewPage")}
+                  </a>
+                </Button>
+              </div>
             </div>
           )}
 
-          {/* Phones: one square per category; inside, its settings as tabs. */}
-          <div className="grid grid-cols-2 gap-3 md:hidden">
-            {GROUPS.map((group) => (
-              <button
-                key={group.title}
-                type="button"
-                onClick={() => setSection(group.rows[0]!.id)}
-                className="surface group flex h-[max(7.5rem,calc((100dvh-17.5rem-var(--sab)-var(--sat))/2))] flex-col justify-between p-4 text-left transition-[background-color,transform] duration-150 active:scale-[0.97] active:bg-muted"
-              >
-                <span className="flex w-full items-start justify-between">
-                  <span
-                    className={cn(
-                      "flex size-11 items-center justify-center rounded-2xl shadow-sm",
-                      group.tone,
-                    )}
-                  >
-                    <group.icon className="size-5" />
-                  </span>
-                  <ChevronRight className="size-4 text-muted-foreground" />
-                </span>
-                <span className="min-w-0">
-                  <span className="block font-display text-base font-bold leading-tight">
-                    {t(group.title)}
-                  </span>
-                  {group.rows.map((row) => {
-                    const st = summary[row.id];
-                    return (
-                      <span
-                        key={row.id}
-                        className={cn(
-                          "mt-0.5 block truncate text-xs font-semibold",
-                          st?.warn ? "text-st-pending-fg" : "text-muted-foreground",
-                        )}
-                      >
-                        {st?.text ?? label(row.id)}
-                      </span>
-                    );
-                  })}
-                </span>
-              </button>
-            ))}
-          </div>
-
           {GROUPS.map((group) => (
-            <section key={group.title} className="hidden md:block">
+            <section key={group.title}>
               <h2 className="mb-1.5 px-1 text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
                 {t(group.title)}
               </h2>
               <nav className="surface divide-y divide-border overflow-hidden p-0">
                 {group.rows.map((row) => {
                   const status = summary[row.id];
+                  const active = !isPhone && shown === row.id;
                   return (
                     <button
                       key={row.id}
                       type="button"
                       onClick={() => setSection(row.id)}
-                      aria-current={shown === row.id ? "page" : undefined}
+                      aria-current={active ? "page" : undefined}
                       className={cn(
-                        "group flex min-h-[4.25rem] w-full items-center gap-3.5 px-4 py-3 text-left transition-[background-color,transform] duration-150 hover:bg-muted/50 active:scale-[0.985] active:bg-muted",
-                        shown === row.id && "md:bg-muted",
+                        "group flex min-h-[4rem] w-full items-center gap-3.5 px-4 py-3 text-left transition-[background-color,transform] duration-150 hover:bg-muted/50 active:scale-[0.985] active:bg-muted",
+                        active && "bg-muted",
                       )}
                     >
                       <span
                         className={cn(
-                          "flex size-10 shrink-0 items-center justify-center rounded-2xl transition-transform duration-200 group-hover:scale-105",
-                          group.tone,
+                          "flex size-10 shrink-0 items-center justify-center rounded-xl transition-colors",
+                          active ? "bg-brand text-brand-foreground" : "bg-muted text-foreground",
                         )}
                       >
                         <row.icon className="size-[18px]" />
@@ -298,10 +230,10 @@ function ProfilePage() {
                         <span className="block text-[15px] font-bold leading-tight">
                           {label(row.id)}
                         </span>
-                        {/* The live state of each setting; "to complete" when something is missing. */}
+                        {/* The live state of each setting; amber when something is missing. */}
                         <span
                           className={cn(
-                            "mt-1 flex items-center gap-1.5 truncate text-xs font-semibold leading-snug",
+                            "mt-1 flex items-center gap-1.5 text-xs font-semibold leading-snug",
                             status?.warn ? "text-st-pending-fg" : "text-muted-foreground",
                           )}
                         >
@@ -334,33 +266,12 @@ function ProfilePage() {
         </div>
 
         <div key={shown} className={cn("animate-enter min-w-0", !section && "hidden md:block")}>
-          {section && (
-            <div
-              role="tablist"
-              className="mb-4 grid grid-cols-2 gap-1 rounded-full bg-muted p-1 md:hidden"
-            >
-              {groupOf(section).rows.map((row) => (
-                <button
-                  key={row.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={row.id === section}
-                  onClick={() =>
-                    void navigate({ to: "/profile", search: { section: row.id }, replace: true })
-                  }
-                  className={cn(
-                    "h-9 truncate rounded-full px-2 text-[13px] font-bold transition-all",
-                    row.id === section
-                      ? "bg-card text-foreground shadow-soft"
-                      : "text-muted-foreground",
-                  )}
-                >
-                  {label(row.id)}
-                </button>
-              ))}
-            </div>
-          )}
-          <p className="mb-4 hidden text-sm text-muted-foreground md:block">{desc(shown)}</p>
+          {/* The open setting's own title on wide screens; phones show it in the header. */}
+          <div className="mb-4 hidden md:block">
+            <h2 className="font-display text-xl font-bold leading-tight">{label(shown)}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{desc(shown)}</p>
+          </div>
+          <p className="mb-4 text-sm text-muted-foreground md:hidden">{desc(shown)}</p>
           {shown === "info" && <BusinessPanel />}
           {shown === "page" && <PublicPagePanel />}
           {shown === "share" && (
@@ -370,11 +281,7 @@ function ProfilePage() {
           )}
           {shown === "services" && <ServicesPanel />}
           {shown === "team" && <TeamPanel />}
-          {shown === "hours" && (
-            <div className="space-y-4">
-              <AvailabilityPanel view="hours" />
-            </div>
-          )}
+          {shown === "hours" && <AvailabilityPanel view="hours" />}
           {shown === "timeoff" && <AvailabilityPanel view="off" />}
           {shown === "rules" && <AvailabilityPanel view="rules" />}
           {shown === "reminders" && <RemindersPanel />}
@@ -479,31 +386,4 @@ function useManageSummary(): Partial<Record<SectionId, RowStatus>> {
     ].join(" · "),
   };
   return out;
-}
-
-/** The live state under a tile's title: up to two lines, never cut mid-way. */
-function TileStatus({ status, fallback }: { status: RowStatus | undefined; fallback: string }) {
-  return (
-    <span
-      className={cn(
-        "line-clamp-2 text-[11px] font-semibold leading-snug",
-        status?.warn ? "text-st-pending-fg" : "text-muted-foreground",
-      )}
-    >
-      {status?.dot && (
-        <span
-          aria-hidden
-          className="mr-1 inline-block size-2 rounded-full align-middle ring-1 ring-black/10"
-          style={{ backgroundColor: status.dot }}
-        />
-      )}
-      {status?.warn && (
-        <span
-          aria-hidden
-          className="mr-1 inline-block size-1.5 rounded-full bg-st-pending align-middle"
-        />
-      )}
-      {status?.text ?? fallback}
-    </span>
-  );
 }

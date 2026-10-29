@@ -949,9 +949,10 @@ function CalendarPage() {
                         top: (row.start - dayStart) * pxPerMinute,
                         height,
                         // Overlapping appointments (several professionals) share the width.
-                        left: `calc(4px + (100% - 8px) * ${lane.lane / lane.lanes})`,
-                        width: `calc((100% - 8px) / ${lane.lanes} - ${lane.lanes > 1 ? 2 : 0}px)`,
-                        borderRadius: "6px",
+                        // Flush with the column edges, square corners.
+                        left: `calc(100% * ${lane.lane / lane.lanes})`,
+                        width: `calc(100% / ${lane.lanes} - ${lane.lanes > 1 ? 1 : 0}px)`,
+                        borderRadius: 0,
                       }}
                     >
                       <span

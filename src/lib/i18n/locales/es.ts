@@ -141,6 +141,8 @@ export const es: Record<string, string> = {
   "cal.customer.existing": "Cliente existente",
   "cal.customer.select": "Seleccionar cliente existente",
   "cal.customer.search": "Buscar por nombre o contacto…",
+  "cal.customer.addNew": "Añadir cliente nuevo",
+  "cal.customer.namePh": "Nombre del cliente",
   "cal.customer.empty": "No se ha encontrado ningún cliente.",
   "cal.customer.clear": "Quitar cliente seleccionado",
   "cal.choose": "Elegir…",
