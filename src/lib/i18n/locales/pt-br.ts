@@ -1050,4 +1050,6 @@ export const ptBR: Record<string, string> = {
   "sub.status.trialEndsShort": "Termina em {date}",
   "sub.trialHero.payLater": "Assinando agora, você só paga quando terminar.",
   "mg.nextOff": "Próxima folga: {date}",
+  "mg.priceRange": "De {from} a {to}",
+  "mg.cancelUpTo": "Cancelam até {h}h antes",
 };

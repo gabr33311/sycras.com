@@ -521,6 +521,8 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "sub.status.trialEndsShort": "Termina a {date}",
     "sub.trialHero.payLater": "Ao subscrever agora, só pagas quando terminar.",
     "mg.nextOff": "Próxima folga: {date}",
+    "mg.priceRange": "De {from} a {to}",
+    "mg.cancelUpTo": "Cancelam até {h}h antes",
   },
   en: {
     "pf.head.title": "Profile — SYCRAS",
@@ -1038,5 +1040,7 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "sub.status.trialEndsShort": "Ends on {date}",
     "sub.trialHero.payLater": "Subscribe now and you only pay when it ends.",
     "mg.nextOff": "Next day off: {date}",
+    "mg.priceRange": "From {from} to {to}",
+    "mg.cancelUpTo": "Cancel up to {h}h before",
   },
 };

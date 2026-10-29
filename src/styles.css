@@ -1067,6 +1067,33 @@
     scroll-behavior: auto !important;
   }
 
+  /* Kept on purpose (the owner asked for them): the slow gold of the Pro card and the
+     QR's gentle breathing. Both are soft, slow and small. */
+  .pro-shine {
+    animation-duration: 7s, 3.6s !important;
+    animation-iteration-count: infinite !important;
+  }
+  .pro-shine::after {
+    animation-duration: 4.2s !important;
+    animation-iteration-count: infinite !important;
+  }
+  .gold-metal {
+    animation-duration: 6s !important;
+    animation-iteration-count: infinite !important;
+  }
+  .text-gold-live {
+    animation-duration: 5s !important;
+    animation-iteration-count: infinite !important;
+  }
+  .gold-bar {
+    animation-duration: 2.8s !important;
+    animation-iteration-count: infinite !important;
+  }
+  .qr-breathe {
+    animation-duration: 2.6s !important;
+    animation-iteration-count: infinite !important;
+  }
+
   /* No movement on press or hover either: only colour changes remain. */
   button:active,
   a:active,

@@ -1048,4 +1048,6 @@ export const es: Record<string, string> = {
   "sub.status.trialEndsShort": "Termina el {date}",
   "sub.trialHero.payLater": "Si te suscribes ahora, solo pagas cuando termine.",
   "mg.nextOff": "Próximo día libre: {date}",
+  "mg.priceRange": "De {from} a {to}",
+  "mg.cancelUpTo": "Cancelan hasta {h} h antes",
 };

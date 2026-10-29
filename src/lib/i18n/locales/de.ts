@@ -1062,4 +1062,6 @@ export const de: Record<string, string> = {
   "sub.status.trialEndsShort": "Endet am {date}",
   "sub.trialHero.payLater": "Wenn du jetzt abonnierst, zahlst du erst am Ende.",
   "mg.nextOff": "Nächster freier Tag: {date}",
+  "mg.priceRange": "Von {from} bis {to}",
+  "mg.cancelUpTo": "Stornieren bis {h} Std. vorher",
 };

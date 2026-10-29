@@ -12,7 +12,7 @@ import { PageHeader } from "@/components/ui-bits";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { initials, weekdaysShort, currentLocale } from "@/lib/format";
+import { initials, weekdaysShort, currentLocale, formatPrice } from "@/lib/format";
 import { useMyBusiness } from "@/hooks/use-business";
 import { useLogoUrl } from "@/hooks/use-logo";
 import { BusinessPagePanel } from "@/components/panels/business-page-panel";
@@ -117,6 +117,7 @@ function ProfilePage() {
   // Phones: the grid takes exactly the height left above the dock.
   const gridRef = useRef<HTMLDivElement>(null);
   const [gridH, setGridH] = useState<number | null>(null);
+  const [gridW, setGridW] = useState(0);
   useEffect(() => {
     if (!isPhone || section) return;
     const el = gridRef.current;
@@ -126,6 +127,7 @@ function ProfilePage() {
       const bottom = main ? parseFloat(getComputedStyle(main).paddingBottom) || 0 : 0;
       const top = el.getBoundingClientRect().top + window.scrollY;
       setGridH(Math.max(260, Math.floor(window.innerHeight - top - bottom)));
+      setGridW(el.clientWidth);
     };
     fit();
     window.addEventListener("resize", fit);
@@ -144,6 +146,11 @@ function ProfilePage() {
   const tileH = gridH === null ? 0 : (gridH - 8) / 2;
   const size: "s" | "m" | "l" = tileH >= 160 ? "l" : tileH >= 110 ? "m" : "s";
   const roomy = size !== "s";
+  // Wide tiles (big phones in landscape, small tablets) take bigger type and the description;
+  // narrow ones keep compact type so nothing wraps or spills.
+  const tileW = (gridW - 8) / 2;
+  const wide = tileW >= 220;
+  const showDesc = size === "l" && (wide || tileH >= 240);
 
   const tile = (row: Row, phone: boolean) => {
     const status = summary[row.id];
@@ -169,12 +176,12 @@ function ProfilePage() {
           type="button"
           onClick={() => setSection(row.id)}
           className={cn(
-            "surface flex min-h-0 min-w-0 flex-col p-3.5 text-left transition-[background-color,transform] duration-150 active:scale-[0.97] active:bg-muted",
-            size === "l" ? "justify-between" : "justify-center",
+            "surface flex min-h-0 min-w-0 flex-col justify-center p-3.5 text-left transition-[background-color,transform] duration-150 active:scale-[0.97] active:bg-muted",
+            size === "l" && "px-4",
           )}
         >
-          {/* Icon and name share the top line; the details fill the rest. Taller tiles add a
-              short description, so the space carries information instead of staying empty. */}
+          {/* One block, centred: icon and name, the details, then (tall tiles) a short description.
+              Nothing is pushed to the edges, so no empty band opens in the middle. */}
           <span className="block w-full min-w-0">
             <span className="flex min-w-0 items-center gap-2.5">
               <span
@@ -188,34 +195,39 @@ function ProfilePage() {
               <span
                 className={cn(
                   "min-w-0 font-display font-bold leading-tight text-balance",
-                  roomy ? "text-[15px]" : "truncate text-sm",
+                  size === "l" && wide ? "text-base" : roomy ? "text-[15px]" : "truncate text-sm",
                 )}
               >
                 {name}
               </span>
             </span>
             {roomy ? (
-              <span className="mt-2.5 block w-full min-w-0">
-                {(status?.lines ?? [status?.text ?? desc(row.id)]).map((line, i) => (
-                  <span
-                    key={line}
-                    className={cn(
-                      "line-clamp-2 block leading-[1.35rem]",
-                      size === "l" ? "text-[13px]" : "text-xs",
-                      i === 0 ? "font-bold text-foreground" : "font-semibold text-muted-foreground",
-                      status?.warn && i === 0 && "text-st-pending-fg",
-                    )}
-                  >
-                    {line}
-                  </span>
-                ))}
+              <span className={cn("block w-full min-w-0", size === "l" ? "mt-3" : "mt-2.5")}>
+                {(status?.lines ?? [status?.text ?? desc(row.id)])
+                  // The third detail only where there is room for it.
+                  .slice(0, size === "l" ? 3 : 2)
+                  .map((line, i) => (
+                    <span
+                      key={line}
+                      className={cn(
+                        "line-clamp-2 block",
+                        size === "l" && wide ? "text-sm leading-6" : "text-xs leading-[1.35rem]",
+                        i === 0
+                          ? "font-bold text-foreground"
+                          : "font-semibold text-muted-foreground",
+                        status?.warn && i === 0 && "text-st-pending-fg",
+                      )}
+                    >
+                      {line}
+                    </span>
+                  ))}
               </span>
             ) : (
               text
             )}
           </span>
-          {size === "l" && (
-            <span className="line-clamp-2 block text-xs leading-snug text-muted-foreground">
+          {showDesc && (
+            <span className="mt-3 line-clamp-2 block border-t border-border pt-2.5 text-xs leading-snug text-muted-foreground">
               {desc(row.id)}
             </span>
           )}
@@ -311,8 +323,8 @@ function ProfilePage() {
       type="button"
       onClick={() => void navigate({ to: "/plans" })}
       className={cn(
-        "surface pro-shine flex min-h-0 min-w-0 flex-col p-3.5 text-left transition-transform duration-150 active:scale-[0.97]",
-        roomy ? "justify-between" : "justify-center",
+        "surface pro-shine flex min-h-0 min-w-0 flex-col justify-center p-3.5 text-left transition-transform duration-150 active:scale-[0.97]",
+        size === "l" && "px-4",
         pro.warn && "border-destructive",
       )}
     >
@@ -321,7 +333,7 @@ function ProfilePage() {
         {proName}
       </span>
       {roomy && (
-        <span className="mt-2 block w-full min-w-0">
+        <span className={cn("block w-full min-w-0", size === "l" ? "mt-3" : "mt-2")}>
           {daysLine || (
             <span className="block font-display text-[15px] font-bold leading-tight">
               {pro.title}
@@ -584,7 +596,10 @@ function useManageSummary(): Partial<Record<SectionId, RowStatus>> {
     queryFn: async () => {
       const id = business!.id;
       const [services, staff, hours, off] = await Promise.all([
-        supabase.from("services").select("is_active, requires_confirmation").eq("business_id", id),
+        supabase
+          .from("services")
+          .select("is_active, requires_confirmation, price_cents")
+          .eq("business_id", id),
         supabase.from("staff").select("id").eq("business_id", id).eq("is_active", true),
         supabase
           .from("working_hours")
@@ -637,10 +652,19 @@ function useManageSummary(): Partial<Record<SectionId, RowStatus>> {
   // Services and team together: one line, or one line each when there is room.
   const teamLine =
     data.staff <= 1 ? t("mg.team.solo") : t("mg.team.many").replace("{n}", String(data.staff));
+  // Prices from the cheapest to the dearest service, as a third detail.
+  const prices = active.map((s) => s.price_cents ?? 0).sort((a, b) => a - b);
+  const priceLine = !prices.length
+    ? null
+    : prices[0] === prices.at(-1)
+      ? formatPrice(prices[0]!, business.currency)
+      : t("mg.priceRange")
+          .replace("{from}", formatPrice(prices[0]!, business.currency))
+          .replace("{to}", formatPrice(prices.at(-1)!, business.currency));
   out.services = {
     ...out.services,
     text: active.length ? `${out.services.text} · ${teamLine}` : out.services.text,
-    lines: [out.services.text, teamLine],
+    lines: [out.services.text, teamLine, ...(priceLine ? [priceLine] : [])],
   };
   if (data.hours.length) {
     const days = [...new Set(data.hours.map((h) => h.weekday))];
@@ -671,7 +695,8 @@ function useManageSummary(): Partial<Record<SectionId, RowStatus>> {
     business.reminders_enabled
       ? t("mg.remindersOn").replace("{h}", String(business.reminder_hours ?? 24))
       : t("rl.noReminders"),
+    t("mg.cancelUpTo").replace("{h}", String(business.cancellation_hours)),
   ];
-  out.rules = { text: ruleLines.join(" · "), lines: ruleLines };
+  out.rules = { text: ruleLines.slice(0, 2).join(" · "), lines: ruleLines };
   return out;
 }
