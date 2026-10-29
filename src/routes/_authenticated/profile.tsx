@@ -150,7 +150,7 @@ function ProfilePage() {
   // narrow ones keep compact type so nothing wraps or spills.
   const tileW = (gridW - 8) / 2;
   const wide = tileW >= 220;
-  const showDesc = size === "l" && (wide || tileH >= 240);
+  const showDesc = size === "l" && (wide || tileH >= 235);
 
   const tile = (row: Row, phone: boolean) => {
     const status = summary[row.id];
@@ -169,48 +169,55 @@ function ProfilePage() {
       </span>
     );
     const name = label(row.id);
-    if (phone)
+    if (phone) {
+      const lines = status?.lines ?? [status?.text ?? desc(row.id)];
+      // Short tiles (small phones): a smaller name, one line of details, a smaller icon.
+      const tight = roomy && tileH < 150;
+      // Tight tiles show the main detail only; roomier ones give each its own line (a third on tall).
+      const shown = !roomy
+        ? []
+        : tileH < 150
+          ? lines.slice(0, 1)
+          : lines.slice(0, size === "l" ? 3 : 2);
+      const icon = (
+        <span
+          className={cn(
+            "flex shrink-0 items-center justify-center rounded-xl bg-muted text-foreground",
+            size === "l" ? "size-10" : roomy && !tight ? "size-8" : "size-7",
+          )}
+        >
+          <row.icon className={size === "l" ? "size-5" : "size-4"} />
+        </span>
+      );
       return (
         <button
           key={row.id}
           type="button"
           onClick={() => setSection(row.id)}
           className={cn(
-            "surface flex min-h-0 min-w-0 flex-col justify-center p-3.5 text-left transition-[background-color,transform] duration-150 active:scale-[0.97] active:bg-muted",
+            "surface flex min-h-0 min-w-0 flex-col p-3.5 text-left transition-[background-color,transform] duration-150 active:scale-[0.97] active:bg-muted",
+            roomy ? "justify-between" : "justify-center",
             size === "l" && "px-4",
           )}
         >
-          {/* One block, centred: icon and name, the details, then (tall tiles) a short description.
-              Nothing is pushed to the edges, so no empty band opens in the middle. */}
-          <span className="block w-full min-w-0">
-            <span className="flex min-w-0 items-center gap-2.5">
-              <span
-                className={cn(
-                  "flex shrink-0 items-center justify-center rounded-xl bg-muted text-foreground",
-                  roomy ? "size-9" : "size-7",
-                )}
-              >
-                <row.icon className={roomy ? "size-[18px]" : "size-4"} />
-              </span>
-              <span
-                className={cn(
-                  "min-w-0 font-display font-bold leading-tight text-balance",
-                  size === "l" && wide ? "text-base" : roomy ? "text-[15px]" : "truncate text-sm",
-                )}
-              >
-                {name}
-              </span>
-            </span>
-            {roomy ? (
-              <span className={cn("block w-full min-w-0", size === "l" ? "mt-3" : "mt-2.5")}>
-                {(status?.lines ?? [status?.text ?? desc(row.id)])
-                  // The third detail only where there is room for it.
-                  .slice(0, size === "l" ? 3 : 2)
-                  .map((line, i) => (
+          {roomy ? (
+            <>
+              {/* The name first, larger and centred; the details right under it, on the left. */}
+              <span className="block w-full min-w-0">
+                <span
+                  className={cn(
+                    "block text-center font-display font-bold leading-tight text-balance",
+                    size === "l" ? "text-lg" : tight ? "text-[15px]" : "text-[17px]",
+                  )}
+                >
+                  {name}
+                </span>
+                <span className="mt-1.5 block">
+                  {shown.map((line, i) => (
                     <span
                       key={line}
                       className={cn(
-                        "line-clamp-2 block",
+                        tight ? "block truncate" : "line-clamp-2 block",
                         size === "l" && wide ? "text-sm leading-6" : "text-xs leading-[1.35rem]",
                         i === 0
                           ? "font-bold text-foreground"
@@ -221,18 +228,32 @@ function ProfilePage() {
                       {line}
                     </span>
                   ))}
+                </span>
               </span>
-            ) : (
-              text
-            )}
-          </span>
-          {showDesc && (
-            <span className="mt-3 line-clamp-2 block border-t border-border pt-2.5 text-xs leading-snug text-muted-foreground">
-              {desc(row.id)}
+              {/* At the bottom: the icon on the left, the short description beside it (tall tiles). */}
+              <span className="mt-2 flex w-full items-center gap-2.5">
+                {icon}
+                {showDesc && (
+                  <span className="line-clamp-2 min-w-0 flex-1 text-xs leading-snug text-muted-foreground">
+                    {desc(row.id)}
+                  </span>
+                )}
+              </span>
+            </>
+          ) : (
+            <span className="flex min-w-0 items-center gap-2.5">
+              {icon}
+              <span className="block min-w-0">
+                <span className="block truncate font-display text-sm font-bold leading-tight">
+                  {name}
+                </span>
+                {text}
+              </span>
             </span>
           )}
         </button>
       );
+    }
     return (
       <button
         key={row.id}
