@@ -1,15 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SubPage } from "@/components/sub-page";
-import { SettingsPanel } from "@/components/panels/settings-panel";
+import { SettingsPanel, SignOutButton } from "@/components/panels/settings-panel";
 import { AccountPanel } from "@/components/panels/account-panel";
 import { usePrefs } from "@/lib/prefs";
 
-// Account settings and the plan, opened from the gear on Manage.
+// How the app looks and the account, opened from the gear on Manage. The plan lives on Manage.
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
     meta: [
       { title: "Definições — SYCRAS" },
-      { name: "description", content: "Subscrição, cor da app, tema, idioma e sessão." },
+      { name: "description", content: "Cor da app, tema, idioma, notificações e conta." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -22,6 +22,7 @@ function SettingsPage() {
     <SubPage title={t("pf.s.settings")} back="/profile">
       <SettingsPanel />
       <AccountPanel />
+      <SignOutButton />
     </SubPage>
   );
 }

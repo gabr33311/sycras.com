@@ -8,15 +8,31 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useMyBusiness } from "@/hooks/use-business";
-import { weekdays, formatDateShort } from "@/lib/format";
+import { weekdays, weekdaysShort, formatDateShort, currentLocale } from "@/lib/format";
 import { usePrefs } from "@/lib/prefs";
 import { cn } from "@/lib/utils";
-import { Trash2, MessageCircle, Mail, Coffee, Loader2 } from "lucide-react";
+import {
+  CalendarOff,
+  Coffee,
+  Loader2,
+  Mail,
+  MessageCircle,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ConfirmAction } from "@/components/confirm-action";
 import { SaveBar } from "@/components/save-bar";
 import { invalidateAppointmentData, setAppointmentStatus } from "@/lib/appointment-status";
 import { normalizePhonePt } from "@/lib/phone";
-import { timeToMinutes, zonedToUtc } from "@/lib/time";
+import { todayIn, zonedDateString, zonedToUtc } from "@/lib/time";
 
 type DayState = {
   enabled: boolean;
@@ -65,8 +81,14 @@ function fromRows(hours: { weekday: number; start_time: string; end_time: string
   return next;
 }
 
-/** One part of availability at a time; the Manage menu lists each as its own section. */
-export function AvailabilityPanel({ view }: { view: "hours" | "off" | "rules" }) {
+/** Time off shorter than this is a calendar block (a gap made on the calendar), not a day off. */
+const DAY_OFF_MIN_MS = 12 * 3_600_000;
+
+/**
+ * "hours": the week and the days off together (Manage → Hours and time off).
+ * "rules": approval and booking limits.
+ */
+export function AvailabilityPanel({ view }: { view: "hours" | "rules" }) {
   const { business } = useMyBusiness();
   const { t, lang } = usePrefs();
   const dayNames = weekdays(lang);
@@ -77,8 +99,11 @@ export function AvailabilityPanel({ view }: { view: "hours" | "off" | "rules" })
 
   const tab = view;
   const [busy, setBusy] = useState(false);
-  const [blockFrom, setBlockFrom] = useState("");
-  const [blockTo, setBlockTo] = useState("");
+  const [editingHours, setEditingHours] = useState(false);
+  const [offOpen, setOffOpen] = useState(false);
+  const [offMode, setOffMode] = useState<"one" | "many">("one");
+  const [offFrom, setOffFrom] = useState("");
+  const [offTo, setOffTo] = useState("");
   const [reason, setReason] = useState("");
   const [blockBusy, setBlockBusy] = useState(false);
   const [blockError, setBlockError] = useState<string | null>(null);
@@ -126,8 +151,8 @@ export function AvailabilityPanel({ view }: { view: "hours" | "off" | "rules" })
 
   const dirty = !!data && JSON.stringify(days) !== JSON.stringify(fromRows(data.hours));
 
-  async function saveHours() {
-    if (!business) return;
+  async function saveHours(): Promise<boolean> {
+    if (!business) return false;
     // Refuse invalid days instead of silently dropping them (which would close the day).
     const errors: Record<number, string> = {};
     for (const [i, d] of days.entries()) {
@@ -144,7 +169,7 @@ export function AvailabilityPanel({ view }: { view: "hours" | "off" | "rules" })
     setDayErrors(errors);
     if (Object.keys(errors).length) {
       toast.error(t("pf.common.checkData"));
-      return;
+      return false;
     }
     setBusy(true);
     try {
@@ -203,20 +228,34 @@ export function AvailabilityPanel({ view }: { view: "hours" | "off" | "rules" })
       }
       toast.success(t("pf.av.saved"));
       await qc.invalidateQueries({ queryKey: ["availability"] });
+      void qc.invalidateQueries({ queryKey: ["manage-summary"] });
+      return true;
     } catch (err) {
       console.error("[availability] save failed", err);
       toast.error(t("pf.av.err.save"));
+      return false;
     } finally {
       setBusy(false);
     }
   }
 
-  async function addBlock() {
+  const tz = business?.timezone ?? "Europe/Lisbon";
+  const today = todayIn(tz);
+
+  function openOff() {
+    setOffMode("one");
+    setOffFrom(today);
+    setOffTo(today);
+    setReason("");
+    setBlockError(null);
+    setOffOpen(true);
+  }
+
+  /** Whole days, from the start of the first to the end of the last (business time). */
+  async function addOff() {
     if (!business || blockBusy) return;
-    // datetime-local values are wall-clock times in the business timezone, not the browser's.
-    const toUtc = (v: string) =>
-      zonedToUtc(v.slice(0, 10), timeToMinutes(v.slice(11, 16)), business.timezone);
-    if (!blockFrom || !blockTo || toUtc(blockFrom) >= toUtc(blockTo)) {
+    const last = offMode === "one" ? offFrom : offTo;
+    if (!offFrom || !last || last < offFrom) {
       setBlockError(t("pf.av.err.range"));
       return;
     }
@@ -224,8 +263,8 @@ export function AvailabilityPanel({ view }: { view: "hours" | "off" | "rules" })
     setBlockBusy(true);
     const { error } = await supabase.from("blocked_times").insert({
       business_id: business.id,
-      starts_at: toUtc(blockFrom).toISOString(),
-      ends_at: toUtc(blockTo).toISOString(),
+      starts_at: zonedToUtc(offFrom, 0, tz).toISOString(),
+      ends_at: zonedToUtc(last, 23 * 60 + 59, tz).toISOString(),
       reason: reason.trim().slice(0, 120) || null,
     });
     setBlockBusy(false);
@@ -233,12 +272,10 @@ export function AvailabilityPanel({ view }: { view: "hours" | "off" | "rules" })
       setBlockError(t("pf.av.err.block"));
       return;
     }
-    setBlockFrom("");
-    setBlockTo("");
-    setReason("");
+    setOffOpen(false);
     toast.success(t("pf.av.blockAdded"));
-    qc.invalidateQueries({ queryKey: ["availability"] });
-    qc.invalidateQueries({ queryKey: ["calendar"] });
+    void qc.invalidateQueries({ queryKey: ["availability"] });
+    void qc.invalidateQueries({ queryKey: ["calendar"] });
   }
 
   async function removeBlock(id: string): Promise<boolean> {
@@ -255,7 +292,49 @@ export function AvailabilityPanel({ view }: { view: "hours" | "off" | "rules" })
 
   if (isLoading) return <LoadingRows rows={4} />;
 
-  const locked = false;
+  // The week as a few lines: equal days in a row share one ("Mon–Fri 09:00–19:00").
+  const short = weekdaysShort(lang);
+  const dayText = (d: DayState) =>
+    !d.enabled
+      ? t("pf.av.closed")
+      : d.lunch
+        ? `${d.start}–${d.lunchStart}, ${d.lunchEnd}–${d.end}`
+        : `${d.start}–${d.end}`;
+  const weekRuns: { label: string; text: string; closed: boolean }[] = [];
+  let run: number[] = [];
+  const flush = () => {
+    if (!run.length) return;
+    const first = run[0]!;
+    const label =
+      run.length > 2
+        ? `${short[first]}–${short[run.at(-1)!]}`
+        : run.map((d) => short[d]).join(", ");
+    weekRuns.push({ label, text: dayText(days[first]!), closed: !days[first]!.enabled });
+    run = [];
+  };
+  for (const d of WEEK_ORDER) {
+    if (run.length && dayText(days[run[0]!]!) !== dayText(days[d]!)) flush();
+    run.push(d);
+  }
+  flush();
+
+  // Days off only: short gaps blocked on the calendar stay on the calendar.
+  const daysOff = (data?.blocks ?? []).filter(
+    (b) => new Date(b.ends_at).getTime() - new Date(b.starts_at).getTime() >= DAY_OFF_MIN_MS,
+  );
+  const dayLabel = (iso: string) =>
+    new Intl.DateTimeFormat(currentLocale(), {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      timeZone: tz,
+    }).format(new Date(iso));
+  const offRange = (b: { starts_at: string; ends_at: string }) => {
+    const endIso = new Date(new Date(b.ends_at).getTime() - 60_000).toISOString();
+    const sameDay =
+      zonedDateString(new Date(b.starts_at), tz) === zonedDateString(new Date(endIso), tz);
+    return sameDay ? dayLabel(b.starts_at) : `${dayLabel(b.starts_at)} – ${dayLabel(endIso)}`;
+  };
 
   function copyMondayToWeekdays() {
     setDays((prev) => {
@@ -268,195 +347,186 @@ export function AvailabilityPanel({ view }: { view: "hours" | "off" | "rules" })
   return (
     <div className="space-y-5">
       {tab === "hours" && (
-        <section className="surface p-4">
-          {/* The page already titles this "Weekly hours": only the shortcut here. */}
-          <div className="flex justify-end">
-            <Button variant="outline" size="sm" onClick={copyMondayToWeekdays}>
-              {t("pf.av.copyWeek")}
-            </Button>
-          </div>
-
-          <div className="mt-3 divide-y divide-border">
-            {/* Monday first, like the calendar; the data keeps 0 = Sunday. */}
-            {WEEK_ORDER.map((i) => {
-              const d = days[i]!;
-              return (
-                <div
-                  key={i}
-                  className="py-3 sm:grid sm:grid-cols-[minmax(0,17rem)_minmax(0,24rem)] sm:items-center sm:gap-x-6"
-                >
-                  <div className="flex min-h-11 items-center gap-2.5">
-                    <Switch
-                      checked={d.enabled}
-                      disabled={locked}
-                      onCheckedChange={(v) => updateDay(i, { enabled: v })}
-                      aria-label={dayNames[i]}
-                    />
-                    <span className="min-w-0 flex-1 truncate text-sm font-bold">{dayNames[i]}</span>
-                    {d.enabled ? (
-                      <button
-                        type="button"
-                        onClick={() => updateDay(i, { lunch: !d.lunch })}
-                        aria-pressed={d.lunch}
-                        className={
-                          d.lunch
-                            ? "flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-border bg-accent px-3 text-xs font-bold text-accent-foreground"
-                            : "flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-dashed border-border px-3 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground"
-                        }
-                      >
-                        <Coffee className="size-4" strokeWidth={2.5} />
-                        {d.lunch ? t("pf.av.lunch") : `+ ${t("pf.av.lunch")}`}
-                      </button>
-                    ) : (
-                      <span className="shrink-0 text-sm text-muted-foreground">
-                        {t("pf.av.closed")}
-                      </span>
-                    )}
-                  </div>
-
-                  {d.enabled && (
-                    <div className="mt-2 flex items-center gap-2 sm:mt-0">
-                      <Input
-                        type="time"
-                        aria-label={`${dayNames[i]} · ${t("pf.av.start")}`}
-                        aria-invalid={!!dayErrors[i]}
-                        value={d.start}
-                        onChange={(e) => updateDay(i, { start: e.target.value })}
-                        className="h-11 w-full min-w-0 flex-1 px-3 text-sm"
-                      />
-                      <span className="shrink-0 text-xs text-muted-foreground">
-                        {t("pf.av.to")}
-                      </span>
-                      <Input
-                        type="time"
-                        aria-label={`${dayNames[i]} · ${t("pf.av.end")}`}
-                        aria-invalid={!!dayErrors[i]}
-                        value={d.end}
-                        onChange={(e) => updateDay(i, { end: e.target.value })}
-                        className="h-11 w-full min-w-0 flex-1 px-3 text-sm"
-                      />
-                    </div>
-                  )}
-
-                  {d.enabled && d.lunch && (
-                    <div className="mt-2 rounded-xl bg-muted/40 p-2 sm:col-start-2">
-                      <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                        {t("pf.av.lunch")}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="time"
-                          aria-label={`${dayNames[i]} · ${t("pf.av.lunch")}`}
-                          value={d.lunchStart}
-                          onChange={(e) => updateDay(i, { lunchStart: e.target.value })}
-                          className="h-11 w-full min-w-0 flex-1 bg-background px-3 text-sm"
-                        />
-                        <span className="shrink-0 text-xs text-muted-foreground">
-                          {t("pf.av.to")}
-                        </span>
-                        <Input
-                          type="time"
-                          aria-label={`${dayNames[i]} · ${t("pf.av.lunch")}`}
-                          value={d.lunchEnd}
-                          onChange={(e) => updateDay(i, { lunchEnd: e.target.value })}
-                          className="h-11 w-full min-w-0 flex-1 bg-background px-3 text-sm"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {dayErrors[i] && (
-                    <div className="mt-2 sm:col-start-2">
-                      <FieldError message={dayErrors[i]} />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          <SaveBar
-            dirty={dirty}
-            busy={busy}
-            onSave={() => void saveHours()}
-            onCancel={() => data && setDays(fromRows(data.hours))}
-          />
-        </section>
-      )}
-
-      {tab === "off" && (
         <>
+          {/* The week in a few lines; the day-by-day editor only when asked for. */}
           <section className="surface p-4">
-            <h2 className="text-base font-semibold">{t("pf.av.blocks")}</h2>
-            <p className="mt-0.5 text-sm text-muted-foreground">{t("pf.av.blocks.desc")}</p>
-            <div className="mt-3 grid gap-3 sm:grid-cols-3">
-              <div className="min-w-0 space-y-1.5">
-                <Label htmlFor="bf" className="font-semibold">
-                  {t("pf.av.start")}
-                </Label>
-                <Input
-                  id="bf"
-                  type="datetime-local"
-                  className="w-full min-w-0"
-                  value={blockFrom}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setBlockFrom(v);
-                    // Most time off is whole days: propose the end of that same day.
-                    if (v && (!blockTo || blockTo <= v)) setBlockTo(`${v.slice(0, 10)}T23:59`);
-                  }}
-                />
-              </div>
-              <div className="min-w-0 space-y-1.5">
-                <Label htmlFor="bt" className="font-semibold">
-                  {t("pf.av.end")}
-                </Label>
-                <Input
-                  id="bt"
-                  type="datetime-local"
-                  className="w-full min-w-0"
-                  value={blockTo}
-                  min={blockFrom || undefined}
-                  onChange={(e) => setBlockTo(e.target.value)}
-                />
-              </div>
-              <div className="min-w-0 space-y-1.5">
-                <Label htmlFor="br" className="font-semibold">
-                  {t("pf.av.reason")}
-                </Label>
-                <Input
-                  id="br"
-                  className="w-full min-w-0"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  maxLength={120}
-                  placeholder={t("pf.av.reason.placeholder")}
-                />
-              </div>
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-display text-lg font-bold">{t("pf.av.weekly")}</h2>
+              {editingHours || dirty ? (
+                <Button variant="outline" size="sm" onClick={copyMondayToWeekdays}>
+                  {t("pf.av.copyWeek")}
+                </Button>
+              ) : (
+                <Button size="sm" variant="outline" onClick={() => setEditingHours(true)}>
+                  <Pencil className="size-4" /> {t("pf.av.change")}
+                </Button>
+              )}
             </div>
 
-            <FormError message={blockError} className="mt-3" />
-            <Button className="mt-3 w-full sm:w-auto" onClick={addBlock} disabled={blockBusy}>
-              {blockBusy && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {t("pf.av.addBlock")}
-            </Button>
-
-            {(data?.blocks.length ?? 0) === 0 && (
-              <p className="mt-4 border-t border-border pt-4 text-sm text-muted-foreground">
-                {t("pf.av.blocks.empty")}
-              </p>
+            {!(editingHours || dirty) && (
+              <ul className="mt-3 space-y-1.5">
+                {weekRuns.map((run) => (
+                  <li key={run.label} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="font-bold">{run.label}</span>
+                    <span
+                      className={cn(
+                        "tabular-nums",
+                        run.closed ? "text-muted-foreground" : "font-semibold",
+                      )}
+                    >
+                      {run.text}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             )}
-            {(data?.blocks.length ?? 0) > 0 && (
-              <ul className="animate-stagger mt-4 space-y-2 border-t border-border pt-4">
-                {data!.blocks.map((b) => (
-                  <li
-                    key={b.id}
-                    className="flex items-center gap-3 rounded-lg border border-border p-3 text-sm"
-                  >
-                    <span className="min-w-0 flex-1 break-words">
-                      {formatDateShort(b.starts_at, business!.timezone)} —{" "}
-                      {formatDateShort(b.ends_at, business!.timezone)}
-                      {b.reason ? ` · ${b.reason}` : ""}
+
+            {(editingHours || dirty) && (
+              <div className="mt-3 divide-y divide-border">
+                {/* Monday first, like the calendar; the data keeps 0 = Sunday. */}
+                {WEEK_ORDER.map((i) => {
+                  const d = days[i]!;
+                  return (
+                    <div
+                      key={i}
+                      className="py-3 sm:grid sm:grid-cols-[minmax(0,17rem)_minmax(0,24rem)] sm:items-center sm:gap-x-6"
+                    >
+                      <div className="flex min-h-11 items-center gap-2.5">
+                        <Switch
+                          checked={d.enabled}
+                          onCheckedChange={(v) => updateDay(i, { enabled: v })}
+                          aria-label={dayNames[i]}
+                        />
+                        <span className="min-w-0 flex-1 truncate text-sm font-bold">
+                          {dayNames[i]}
+                        </span>
+                        {d.enabled ? (
+                          <button
+                            type="button"
+                            onClick={() => updateDay(i, { lunch: !d.lunch })}
+                            aria-pressed={d.lunch}
+                            className={
+                              d.lunch
+                                ? "flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-border bg-accent px-3 text-xs font-bold text-accent-foreground"
+                                : "flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-dashed border-border px-3 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground"
+                            }
+                          >
+                            <Coffee className="size-4" strokeWidth={2.5} />
+                            {d.lunch ? t("pf.av.lunch") : `+ ${t("pf.av.lunch")}`}
+                          </button>
+                        ) : (
+                          <span className="shrink-0 text-sm text-muted-foreground">
+                            {t("pf.av.closed")}
+                          </span>
+                        )}
+                      </div>
+
+                      {d.enabled && (
+                        <div className="mt-2 flex items-center gap-2 sm:mt-0">
+                          <Input
+                            type="time"
+                            aria-label={`${dayNames[i]} · ${t("pf.av.start")}`}
+                            aria-invalid={!!dayErrors[i]}
+                            value={d.start}
+                            onChange={(e) => updateDay(i, { start: e.target.value })}
+                            className="h-11 w-full min-w-0 flex-1 px-3 text-sm"
+                          />
+                          <span className="shrink-0 text-xs text-muted-foreground">
+                            {t("pf.av.to")}
+                          </span>
+                          <Input
+                            type="time"
+                            aria-label={`${dayNames[i]} · ${t("pf.av.end")}`}
+                            aria-invalid={!!dayErrors[i]}
+                            value={d.end}
+                            onChange={(e) => updateDay(i, { end: e.target.value })}
+                            className="h-11 w-full min-w-0 flex-1 px-3 text-sm"
+                          />
+                        </div>
+                      )}
+
+                      {d.enabled && d.lunch && (
+                        <div className="mt-2 rounded-xl bg-muted/40 p-2 sm:col-start-2">
+                          <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                            {t("pf.av.lunch")}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="time"
+                              aria-label={`${dayNames[i]} · ${t("pf.av.lunch")}`}
+                              value={d.lunchStart}
+                              onChange={(e) => updateDay(i, { lunchStart: e.target.value })}
+                              className="h-11 w-full min-w-0 flex-1 bg-background px-3 text-sm"
+                            />
+                            <span className="shrink-0 text-xs text-muted-foreground">
+                              {t("pf.av.to")}
+                            </span>
+                            <Input
+                              type="time"
+                              aria-label={`${dayNames[i]} · ${t("pf.av.lunch")}`}
+                              value={d.lunchEnd}
+                              onChange={(e) => updateDay(i, { lunchEnd: e.target.value })}
+                              className="h-11 w-full min-w-0 flex-1 bg-background px-3 text-sm"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {dayErrors[i] && (
+                        <div className="mt-2 sm:col-start-2">
+                          <FieldError message={dayErrors[i]} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {editingHours && !dirty && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-2 w-full"
+                onClick={() => setEditingHours(false)}
+              >
+                {t("pf.av.done")}
+              </Button>
+            )}
+
+            <SaveBar
+              dirty={dirty}
+              busy={busy}
+              onSave={() => void saveHours().then((ok) => ok && setEditingHours(false))}
+              onCancel={() => {
+                if (data) setDays(fromRows(data.hours));
+                setEditingHours(false);
+              }}
+            />
+          </section>
+
+          {/* Days off and holidays: whole days, picked by date. Hours are blocked on the calendar. */}
+          <section className="surface p-4">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-display text-lg font-bold">{t("pf.s.timeoff")}</h2>
+              <Button size="sm" variant="outline" onClick={openOff}>
+                <Plus className="size-4" /> {t("pf.av.addOff")}
+              </Button>
+            </div>
+            {daysOff.length === 0 ? (
+              <p className="mt-3 text-sm text-muted-foreground">{t("pf.av.off.empty")}</p>
+            ) : (
+              <ul className="animate-stagger mt-3 divide-y divide-border">
+                {daysOff.map((b) => (
+                  <li key={b.id} className="flex items-center gap-3 py-2.5">
+                    <CalendarOff className="size-4 shrink-0 text-muted-foreground" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-bold">{offRange(b)}</span>
+                      {b.reason && (
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {b.reason}
+                        </span>
+                      )}
                     </span>
                     <ConfirmAction
                       title={t("pf.av.removeBlock")}
@@ -473,9 +543,91 @@ export function AvailabilityPanel({ view }: { view: "hours" | "off" | "rules" })
                 ))}
               </ul>
             )}
+            <p className="mt-3 border-t border-border pt-3 text-xs text-muted-foreground">
+              {t("pf.av.off.hint")}
+            </p>
           </section>
 
           <VacationConflicts blocks={data?.blocks ?? []} />
+
+          <Dialog open={offOpen} onOpenChange={(o) => !blockBusy && setOffOpen(o)}>
+            <DialogContent className="sm:max-w-sm">
+              <DialogHeader>
+                <DialogTitle>{t("pf.av.addOff")}</DialogTitle>
+                <DialogDescription>{t("pf.av.off.desc")}</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
+                  {(["one", "many"] as const).map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      aria-pressed={offMode === m}
+                      onClick={() => setOffMode(m)}
+                      className={cn(
+                        "h-9 rounded-full text-sm font-bold transition-all",
+                        offMode === m
+                          ? "bg-card text-foreground shadow-soft"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {t(m === "one" ? "pf.av.off.one" : "pf.av.off.many")}
+                    </button>
+                  ))}
+                </div>
+                <div className={cn("grid gap-3", offMode === "many" && "grid-cols-2")}>
+                  <div className="min-w-0 space-y-1.5">
+                    <Label htmlFor="off-from" className="font-semibold">
+                      {offMode === "one" ? t("pf.av.off.day") : t("pf.av.off.from")}
+                    </Label>
+                    <Input
+                      id="off-from"
+                      type="date"
+                      min={today}
+                      value={offFrom}
+                      onChange={(e) => {
+                        setOffFrom(e.target.value);
+                        if (!offTo || offTo < e.target.value) setOffTo(e.target.value);
+                      }}
+                      className="w-full min-w-0"
+                    />
+                  </div>
+                  {offMode === "many" && (
+                    <div className="min-w-0 space-y-1.5">
+                      <Label htmlFor="off-to" className="font-semibold">
+                        {t("pf.av.off.to")}
+                      </Label>
+                      <Input
+                        id="off-to"
+                        type="date"
+                        min={offFrom || today}
+                        value={offTo}
+                        onChange={(e) => setOffTo(e.target.value)}
+                        className="w-full min-w-0"
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="off-reason" className="font-semibold">
+                    {t("pf.av.reason")}
+                  </Label>
+                  <Input
+                    id="off-reason"
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    maxLength={120}
+                    placeholder={t("pf.av.reason.placeholder")}
+                  />
+                </div>
+                <FormError message={blockError} />
+                <Button className="w-full" onClick={() => void addOff()} disabled={blockBusy}>
+                  {blockBusy && <Loader2 className="size-4 animate-spin" />}
+                  {t("pf.av.off.save")}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </>
       )}
 
@@ -615,7 +767,7 @@ function VacationConflicts({ blocks }: { blocks: Block[] }) {
 }
 
 /** How online bookings arrive: confirmed straight away, or as requests to approve. */
-function ApprovalSetting() {
+export function ApprovalSetting() {
   const { business } = useMyBusiness();
   const { t } = usePrefs();
   const qc = useQueryClient();
@@ -696,7 +848,7 @@ function noticeLabel(minutes: number, none: string): string {
   return `${minutes / 60} h`;
 }
 
-function BookingRules() {
+export function BookingRules() {
   const { business } = useMyBusiness();
   const { t } = usePrefs();
   const qc = useQueryClient();

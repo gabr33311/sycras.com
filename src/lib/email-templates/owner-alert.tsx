@@ -64,7 +64,7 @@ export const template = {
     when: "terça-feira, 27 de outubro às 11:30",
     phone: "912 345 678",
     pending: "1",
-    appUrl: "https://sycras.com/pendentes",
+    appUrl: "https://sycras.com/today",
   },
 } satisfies TemplateEntry;
 

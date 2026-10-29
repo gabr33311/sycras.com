@@ -20,10 +20,13 @@ export function PageHeader({
   title,
   action,
   leading,
+  meta,
   inline = false,
 }: {
   title: string;
   subtitle?: string;
+  /** Small text on the title's line (e.g. today's date), so it takes no extra row. */
+  meta?: ReactNode;
   action?: ReactNode;
   /** Shown before the title, e.g. a back button. */
   leading?: ReactNode;
@@ -39,10 +42,15 @@ export function PageHeader({
       }
     >
       {leading && <div className="-ml-2 shrink-0">{leading}</div>}
-      <div className="min-w-0 flex-1">
+      <div className="flex min-w-0 flex-1 items-baseline gap-2">
         <h1 className="truncate font-display text-[24px] font-bold leading-tight tracking-tight sm:text-[28px]">
           {title}
         </h1>
+        {meta && (
+          <span className="shrink-0 truncate text-xs font-semibold text-muted-foreground first-letter:uppercase sm:text-sm">
+            {meta}
+          </span>
+        )}
       </div>
       {action && <div className="shrink-0">{action}</div>}
     </div>

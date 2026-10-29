@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { CalendarViewSwitch } from "@/components/calendar-view-switch";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +14,6 @@ import { formatDateLong, formatDateShort, formatTime } from "@/lib/format";
 import { useMoney } from "@/hooks/use-money-hidden";
 import { NewAppointmentDialog } from "@/components/new-appointment-dialog";
 import {
-  ArrowLeft,
   CalendarX,
   Check,
   ChevronDown,
@@ -74,6 +75,7 @@ function AppointmentsPage() {
         : "upcoming",
   );
   const [newOpen, setNewOpen] = useState(Boolean(search.new));
+  const isWide = useMediaQuery("(min-width: 1024px)");
   const [overdueIdx, setOverdueIdx] = useState(0);
 
   const { data: overdue } = useQuery({
@@ -139,26 +141,16 @@ function AppointmentsPage() {
 
   return (
     <AppShell>
+      {/* The calendar's list view: same title and switch as the day view. */}
       <PageHeader
-        title={t("appt.page.title")}
-        subtitle={t("appt.page.subtitle")}
-        leading={
-          <Button
-            asChild
-            variant="ghost"
-            size="icon"
-            aria-label={t("cal.title")}
-            className="text-foreground"
-          >
-            <Link to="/calendar">
-              <ArrowLeft className="size-5" strokeWidth={2.5} />
-            </Link>
-          </Button>
-        }
+        title={t("cal.title")}
         action={
-          <Button className="hidden lg:inline-flex" onClick={() => setNewOpen(true)}>
-            {t("appt.new")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <CalendarViewSwitch value="list" withWeek={isWide} />
+            <Button className="hidden lg:inline-flex" onClick={() => setNewOpen(true)}>
+              {t("appt.new")}
+            </Button>
+          </div>
         }
       />
 

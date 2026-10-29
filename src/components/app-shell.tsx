@@ -40,7 +40,7 @@ const DOCK_RIGHT = [
 /** Pages that belong to a tab without living under its path (keeps the tab lit). */
 const TAB_ALIASES: Record<string, string[]> = {
   "/today": ["/analytics"],
-  "/calendar": ["/time-off", "/appointments"],
+  "/calendar": ["/appointments"],
   "/profile": ["/settings", "/plans"],
 };
 

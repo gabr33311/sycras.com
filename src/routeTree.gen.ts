@@ -19,7 +19,6 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAppointmentsRouteImport } from './routes/_authenticated/appointments'
-import { Route as AuthenticatedBookingPageRouteImport } from './routes/_authenticated/booking-page'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -28,10 +27,8 @@ import { Route as AuthenticatedPendentesRouteImport } from './routes/_authentica
 import { Route as AuthenticatedPlansRouteImport } from './routes/_authenticated/plans'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
-import { Route as AuthenticatedShareRouteImport } from './routes/_authenticated/share'
 import { Route as AuthenticatedTimeOffRouteImport } from './routes/_authenticated/time-off'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
-import { Route as AuthenticatedWaitlistRouteImport } from './routes/_authenticated/waitlist'
 import { Route as ApiSlugRouteImport } from './routes/api/slug'
 import { Route as BookSlugRouteImport } from './routes/book.$slug'
 import { Route as BookingTokenRouteImport } from './routes/booking.$token'
@@ -98,12 +95,6 @@ const AuthenticatedAppointmentsRoute =
     path: '/appointments',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedBookingPageRoute =
-  AuthenticatedBookingPageRouteImport.update({
-    id: '/booking-page',
-    path: '/booking-page',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
@@ -144,11 +135,6 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedShareRoute = AuthenticatedShareRouteImport.update({
-  id: '/share',
-  path: '/share',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedTimeOffRoute = AuthenticatedTimeOffRouteImport.update({
   id: '/time-off',
   path: '/time-off',
@@ -157,11 +143,6 @@ const AuthenticatedTimeOffRoute = AuthenticatedTimeOffRouteImport.update({
 const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
   id: '/today',
   path: '/today',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedWaitlistRoute = AuthenticatedWaitlistRouteImport.update({
-  id: '/waitlist',
-  path: '/waitlist',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const ApiSlugRoute = ApiSlugRouteImport.update({
@@ -252,7 +233,6 @@ export interface FileRoutesByFullPath {
   '/termos': typeof TermosRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/appointments': typeof AuthenticatedAppointmentsRoute
-  '/booking-page': typeof AuthenticatedBookingPageRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -261,10 +241,8 @@ export interface FileRoutesByFullPath {
   '/plans': typeof AuthenticatedPlansRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/share': typeof AuthenticatedShareRoute
   '/time-off': typeof AuthenticatedTimeOffRoute
   '/today': typeof AuthenticatedTodayRoute
-  '/waitlist': typeof AuthenticatedWaitlistRoute
   '/api/slug': typeof ApiSlugRoute
   '/book/$slug': typeof BookSlugRoute
   '/booking/$token': typeof BookingTokenRoute
@@ -291,7 +269,6 @@ export interface FileRoutesByTo {
   '/termos': typeof TermosRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/appointments': typeof AuthenticatedAppointmentsRoute
-  '/booking-page': typeof AuthenticatedBookingPageRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -300,10 +277,8 @@ export interface FileRoutesByTo {
   '/plans': typeof AuthenticatedPlansRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/share': typeof AuthenticatedShareRoute
   '/time-off': typeof AuthenticatedTimeOffRoute
   '/today': typeof AuthenticatedTodayRoute
-  '/waitlist': typeof AuthenticatedWaitlistRoute
   '/api/slug': typeof ApiSlugRoute
   '/book/$slug': typeof BookSlugRoute
   '/booking/$token': typeof BookingTokenRoute
@@ -332,7 +307,6 @@ export interface FileRoutesById {
   '/termos': typeof TermosRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/appointments': typeof AuthenticatedAppointmentsRoute
-  '/_authenticated/booking-page': typeof AuthenticatedBookingPageRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -341,10 +315,8 @@ export interface FileRoutesById {
   '/_authenticated/plans': typeof AuthenticatedPlansRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
-  '/_authenticated/share': typeof AuthenticatedShareRoute
   '/_authenticated/time-off': typeof AuthenticatedTimeOffRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
-  '/_authenticated/waitlist': typeof AuthenticatedWaitlistRoute
   '/api/slug': typeof ApiSlugRoute
   '/book/$slug': typeof BookSlugRoute
   '/booking/$token': typeof BookingTokenRoute
@@ -373,7 +345,6 @@ export interface FileRouteTypes {
     | '/termos'
     | '/analytics'
     | '/appointments'
-    | '/booking-page'
     | '/calendar'
     | '/customers'
     | '/dashboard'
@@ -382,10 +353,8 @@ export interface FileRouteTypes {
     | '/plans'
     | '/profile'
     | '/settings'
-    | '/share'
     | '/time-off'
     | '/today'
-    | '/waitlist'
     | '/api/slug'
     | '/book/$slug'
     | '/booking/$token'
@@ -412,7 +381,6 @@ export interface FileRouteTypes {
     | '/termos'
     | '/analytics'
     | '/appointments'
-    | '/booking-page'
     | '/calendar'
     | '/customers'
     | '/dashboard'
@@ -421,10 +389,8 @@ export interface FileRouteTypes {
     | '/plans'
     | '/profile'
     | '/settings'
-    | '/share'
     | '/time-off'
     | '/today'
-    | '/waitlist'
     | '/api/slug'
     | '/book/$slug'
     | '/booking/$token'
@@ -452,7 +418,6 @@ export interface FileRouteTypes {
     | '/termos'
     | '/_authenticated/analytics'
     | '/_authenticated/appointments'
-    | '/_authenticated/booking-page'
     | '/_authenticated/calendar'
     | '/_authenticated/customers'
     | '/_authenticated/dashboard'
@@ -461,10 +426,8 @@ export interface FileRouteTypes {
     | '/_authenticated/plans'
     | '/_authenticated/profile'
     | '/_authenticated/settings'
-    | '/_authenticated/share'
     | '/_authenticated/time-off'
     | '/_authenticated/today'
-    | '/_authenticated/waitlist'
     | '/api/slug'
     | '/book/$slug'
     | '/booking/$token'
@@ -580,13 +543,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppointmentsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/booking-page': {
-      id: '/_authenticated/booking-page'
-      path: '/booking-page'
-      fullPath: '/booking-page'
-      preLoaderRoute: typeof AuthenticatedBookingPageRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/calendar': {
       id: '/_authenticated/calendar'
       path: '/calendar'
@@ -643,13 +599,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/share': {
-      id: '/_authenticated/share'
-      path: '/share'
-      fullPath: '/share'
-      preLoaderRoute: typeof AuthenticatedShareRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/time-off': {
       id: '/_authenticated/time-off'
       path: '/time-off'
@@ -662,13 +611,6 @@ declare module '@tanstack/react-router' {
       path: '/today'
       fullPath: '/today'
       preLoaderRoute: typeof AuthenticatedTodayRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/waitlist': {
-      id: '/_authenticated/waitlist'
-      path: '/waitlist'
-      fullPath: '/waitlist'
-      preLoaderRoute: typeof AuthenticatedWaitlistRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/slug': {
@@ -782,7 +724,6 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedAppointmentsRoute: typeof AuthenticatedAppointmentsRoute
-  AuthenticatedBookingPageRoute: typeof AuthenticatedBookingPageRoute
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -791,16 +732,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPlansRoute: typeof AuthenticatedPlansRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedShareRoute: typeof AuthenticatedShareRoute
   AuthenticatedTimeOffRoute: typeof AuthenticatedTimeOffRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
-  AuthenticatedWaitlistRoute: typeof AuthenticatedWaitlistRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedAppointmentsRoute: AuthenticatedAppointmentsRoute,
-  AuthenticatedBookingPageRoute: AuthenticatedBookingPageRoute,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
@@ -809,10 +747,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPlansRoute: AuthenticatedPlansRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedShareRoute: AuthenticatedShareRoute,
   AuthenticatedTimeOffRoute: AuthenticatedTimeOffRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
-  AuthenticatedWaitlistRoute: AuthenticatedWaitlistRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

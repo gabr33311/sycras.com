@@ -74,6 +74,31 @@ export function ServicesPanel() {
     },
   });
 
+  // Who does each service, shown under its name. Under "team", so editing a person refreshes it.
+  const { data: whoDoes } = useQuery({
+    queryKey: ["team", business?.id, "by-service"],
+    enabled: !!business,
+    queryFn: async () => {
+      const [{ data: staff }, { data: links }] = await Promise.all([
+        supabase
+          .from("staff")
+          .select("id, name")
+          .eq("business_id", business!.id)
+          .eq("is_active", true)
+          .order("sort_order"),
+        supabase
+          .from("staff_services")
+          .select("staff_id, service_id")
+          .eq("business_id", business!.id),
+      ]);
+      const out: Record<string, string[]> = {};
+      for (const s of staff ?? [])
+        for (const l of links ?? [])
+          if (l.staff_id === s.id) (out[l.service_id] ??= []).push(s.name.split(" ")[0] ?? s.name);
+      return { byService: out, people: staff?.length ?? 0 };
+    },
+  });
+
   async function toggleActive(s: ServiceRow) {
     // Flip immediately so the switch answers the tap; the refetch corrects a failure.
     qc.setQueryData(["services", business?.id], (prev: ServiceRow[] | undefined) =>
@@ -143,9 +168,10 @@ export function ServicesPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button onClick={() => openEditor(null)}>
-          <Plus className="mr-2 size-4" /> {t("pf.svc.new")}
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-display text-lg font-bold">{t("pf.s.services")}</h2>
+        <Button size="sm" variant="outline" onClick={() => openEditor(null)}>
+          <Plus className="size-4" /> {t("pf.svc.new")}
         </Button>
       </div>
 
@@ -207,6 +233,9 @@ export function ServicesPanel() {
                     {formatDuration(s.duration_minutes)} ·{" "}
                     {formatPrice(s.price_cents, business!.currency)}
                     {s.buffer_minutes ? ` · +${s.buffer_minutes}${t("pf.svc.bufferSuffix")}` : ""}
+                    {/* With a team, who does it; alone, it is always you. */}
+                    {(whoDoes?.people ?? 0) > 1 &&
+                      ` · ${whoDoes?.byService[s.id]?.join(", ") || t("pf.svc.nobody")}`}
                   </span>
                 </span>
                 <ChevronRight className="size-4 shrink-0 text-muted-foreground" />

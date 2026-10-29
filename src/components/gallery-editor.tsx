@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +29,16 @@ async function shrink(file: File): Promise<Blob> {
  * Photos of the shop for the public booking page: add (several at once), remove.
  * Saved right away, like the logo and the cover.
  */
-export function GalleryEditor({ businessId, paths }: { businessId: string; paths: string[] }) {
+export function GalleryEditor({
+  businessId,
+  paths,
+  bare = false,
+}: {
+  businessId: string;
+  paths: string[];
+  /** Inside another card: no frame, no title (the host already names it). */
+  bare?: boolean;
+}) {
   const { t } = usePrefs();
   const qc = useQueryClient();
   const input = useRef<HTMLInputElement>(null);
@@ -84,10 +94,10 @@ export function GalleryEditor({ businessId, paths }: { businessId: string; paths
   }
 
   return (
-    <section className="surface space-y-4 p-5">
+    <section className={bare ? "space-y-3" : "surface space-y-4 p-5"}>
       <div>
-        <h2 className="text-sm font-bold">{t("gal.title")}</h2>
-        <p className="mt-0.5 text-sm text-muted-foreground">
+        {!bare && <h2 className="text-sm font-bold">{t("gal.title")}</h2>}
+        <p className={cn("text-sm text-muted-foreground", !bare && "mt-0.5")}>
           {t("gal.desc").replace("{n}", String(GALLERY_MAX))}
         </p>
       </div>

@@ -57,7 +57,7 @@ async function emailToBusiness(businessId: string, alert: Alert): Promise<void> 
             when: `${date} às ${time}`,
             phone: appt.customer_phone ?? undefined,
             pending: pending ? "1" : undefined,
-            appUrl: origin ? `${origin}${pending ? "/pendentes" : "/today"}` : undefined,
+            appUrl: origin ? `${origin}/today` : undefined,
           },
           idempotencyKey: `owner-alert-${alert.kind}-${alert.appointmentId}-${m.user_id}-${appt.starts_at}`,
         });

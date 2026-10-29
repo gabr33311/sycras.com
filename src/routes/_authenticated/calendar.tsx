@@ -16,7 +16,6 @@ import { NewAppointmentDialog } from "@/components/new-appointment-dialog";
 import {
   BellRing,
   CalendarDays,
-  List,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -37,6 +36,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { layoutLanes } from "@/lib/calendar-layout";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { CalendarViewSwitch } from "@/components/calendar-view-switch";
 import { CalendarWeek } from "@/components/calendar-week";
 import { usePrefs } from "@/lib/prefs";
 import { currentLocale, formatTime, statusLabel } from "@/lib/format";
@@ -422,6 +422,42 @@ function CalendarPage() {
     qc.invalidateQueries({ queryKey: ["calendar"] });
   }
 
+  /** A day off from the calendar itself: the whole day, for the professional shown (or all). */
+  async function closeDay() {
+    if (!business) return;
+    const { data: created, error } = await supabase
+      .from("blocked_times")
+      .insert({
+        business_id: business.id,
+        staff_id: staffFilter === "all" ? null : staffFilter,
+        starts_at: zonedToUtc(date, 0, tz).toISOString(),
+        ends_at: zonedToUtc(date, 23 * 60 + 59, tz).toISOString(),
+        reason: t("cal.closeDay.reason"),
+      })
+      .select("id")
+      .single();
+    if (error) {
+      toast.error(t("cal.toast.blockError"));
+      return;
+    }
+    // Bookings already made that day stay: say so, the owner may want to warn the clients.
+    const kept = apptRows.filter((row) =>
+      ["pending", "confirmed"].includes(row.appt.status),
+    ).length;
+    toast.success(t("cal.closeDay.done"), {
+      description:
+        kept > 0
+          ? t(kept === 1 ? "cal.closeDay.kept.one" : "cal.closeDay.kept.many").replace(
+              "{n}",
+              String(kept),
+            )
+          : undefined,
+      action: { label: t("cal.undo"), onClick: () => void unblock(created.id, true) },
+    });
+    qc.invalidateQueries({ queryKey: ["calendar"] });
+    qc.invalidateQueries({ queryKey: ["availability"] });
+  }
+
   function isPastMinute(minute: number) {
     return zonedToUtc(date, minute, tz).getTime() <= now;
   }
@@ -555,53 +591,12 @@ function CalendarPage() {
                 </span>
               )}
               <PendingCapsule variant="badge" />
-              <div
-                role="group"
-                aria-label={t("cal.view")}
-                className="hidden items-center rounded-full bg-muted p-1 lg:flex"
-              >
-                {(["day", "week"] as const).map((v) => (
-                  <button
-                    key={v}
-                    type="button"
-                    aria-pressed={view === v}
-                    onClick={() => setView(v)}
-                    className={cn(
-                      "h-9 rounded-full px-4 text-[13px] font-bold transition-all duration-200",
-                      view === v
-                        ? "bg-card text-foreground shadow-soft"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {t(v === "day" ? "cal.view.day" : "cal.view.week")}
-                  </button>
-                ))}
-              </div>
-              <Button
-                asChild
-                variant="outline"
-                size="icon"
-                aria-label={t("cal.list")}
-                title={t("cal.list")}
-                className="shrink-0"
-              >
-                <Link to="/appointments">
-                  <List className="size-4" />
-                </Link>
-              </Button>
-              {/* Days off and holidays are planned from the calendar. */}
-              <Button
-                asChild
-                variant="outline"
-                size="icon"
-                aria-label={t("pf.s.timeoff")}
-                title={t("pf.s.timeoff")}
-                className="shrink-0"
-              >
-                <Link to="/time-off">
-                  <CalendarOff className="size-4" />
-                </Link>
-              </Button>
+              {/* Day, week (wide screens) or the list of every booking: one written switch. */}
+              <CalendarViewSwitch
+                value={week ? "week" : "day"}
+                withWeek={isWide}
+                onChange={(v) => setView(v)}
+              />
               <Button className="hidden lg:inline-flex" onClick={() => setNewOpen(true)}>
                 {t("cal.new")}
               </Button>
@@ -877,6 +872,17 @@ function CalendarPage() {
                               {staffFilter === "all" && staffList.length > 1
                                 ? t("cal.slot.menu.blockAll")
                                 : t("cal.slot.menu.block")}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSlotMenu(null);
+                                void closeDay();
+                              }}
+                              className="flex h-11 w-full items-center gap-2.5 rounded-xl px-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            >
+                              <CalendarOff className="size-4" strokeWidth={2.6} />
+                              {t("cal.slot.menu.closeDay")}
                             </button>
                           </PopoverContent>
                         </Popover>

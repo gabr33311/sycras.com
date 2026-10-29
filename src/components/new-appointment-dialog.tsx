@@ -306,91 +306,91 @@ export function NewAppointmentDialog({
                   className="flex-1"
                 />
               ) : (
-              <Popover open={customerPickerOpen} onOpenChange={setCustomerPickerOpen}>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    role="combobox"
-                    aria-expanded={customerPickerOpen}
-                    className="flex h-11 min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border border-border bg-card px-3.5 text-left text-base transition-colors hover:bg-muted/40 md:text-sm"
-                  >
-                    <span className="flex min-w-0 items-center gap-2">
-                      <Users className="size-4 shrink-0 text-muted-foreground" />
-                      <span className={cn("truncate", !customerName && "text-muted-foreground")}>
-                        {customerName || t("cal.customer.pick")}
+                <Popover open={customerPickerOpen} onOpenChange={setCustomerPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      role="combobox"
+                      aria-expanded={customerPickerOpen}
+                      className="flex h-11 min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border border-border bg-card px-3.5 text-left text-base transition-colors hover:bg-muted/40 md:text-sm"
+                    >
+                      <span className="flex min-w-0 items-center gap-2">
+                        <Users className="size-4 shrink-0 text-muted-foreground" />
+                        <span className={cn("truncate", !customerName && "text-muted-foreground")}>
+                          {customerName || t("cal.customer.pick")}
+                        </span>
                       </span>
-                    </span>
-                    <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent
-                  align="start"
-                  className="w-[var(--radix-popover-trigger-width)] p-0"
-                >
-                  <Command>
-                    <CommandInput
-                      placeholder={t("cal.customer.search")}
-                      value={search}
-                      onValueChange={setSearch}
-                    />
-                    <CommandList>
-                      {search.trim().length >= 2 && (
+                      <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="start"
+                    className="w-[var(--radix-popover-trigger-width)] p-0"
+                  >
+                    <Command>
+                      <CommandInput
+                        placeholder={t("cal.customer.search")}
+                        value={search}
+                        onValueChange={setSearch}
+                      />
+                      <CommandList>
+                        {search.trim().length >= 2 && (
+                          <CommandGroup>
+                            <CommandItem
+                              value={`__new__ ${search}`}
+                              onSelect={() => addNewCustomer(search)}
+                              className="py-2.5 font-bold"
+                            >
+                              <Plus className="size-4" />
+                              {t("cal.customer.add").replace("{name}", search.trim())}
+                            </CommandItem>
+                          </CommandGroup>
+                        )}
+                        {search.trim().length < 2 && (
+                          <CommandGroup>
+                            <CommandItem
+                              forceMount
+                              value="__new__"
+                              onSelect={() => addNewCustomer(search)}
+                              className="py-2.5 font-bold text-primary"
+                            >
+                              <Plus className="size-4" />
+                              {t("cal.customer.addNew")}
+                            </CommandItem>
+                          </CommandGroup>
+                        )}
+                        {search.trim().length < 2 && (
+                          <CommandEmpty>{t("cal.customer.empty")}</CommandEmpty>
+                        )}
                         <CommandGroup>
-                          <CommandItem
-                            value={`__new__ ${search}`}
-                            onSelect={() => addNewCustomer(search)}
-                            className="py-2.5 font-bold"
-                          >
-                            <Plus className="size-4" />
-                            {t("cal.customer.add").replace("{name}", search.trim())}
-                          </CommandItem>
+                          {customers.map((customer) => (
+                            <CommandItem
+                              key={customer.id}
+                              value={`${customer.name} ${customer.phone ?? ""} ${customer.email ?? ""}`}
+                              onSelect={() => chooseCustomer(customer.id)}
+                              className="py-2.5"
+                            >
+                              <Check
+                                className={cn(
+                                  "size-4",
+                                  customerId === customer.id ? "opacity-100" : "opacity-0",
+                                )}
+                              />
+                              <div className="min-w-0">
+                                <p className="truncate font-semibold">{customer.name}</p>
+                                {(customer.phone || customer.email) && (
+                                  <p className="truncate text-xs text-muted-foreground">
+                                    {customer.phone ?? customer.email}
+                                  </p>
+                                )}
+                              </div>
+                            </CommandItem>
+                          ))}
                         </CommandGroup>
-                      )}
-                      {search.trim().length < 2 && (
-                        <CommandGroup>
-                          <CommandItem
-                            forceMount
-                            value="__new__"
-                            onSelect={() => addNewCustomer(search)}
-                            className="py-2.5 font-bold text-primary"
-                          >
-                            <Plus className="size-4" />
-                            {t("cal.customer.addNew")}
-                          </CommandItem>
-                        </CommandGroup>
-                      )}
-                      {search.trim().length < 2 && (
-                        <CommandEmpty>{t("cal.customer.empty")}</CommandEmpty>
-                      )}
-                      <CommandGroup>
-                        {customers.map((customer) => (
-                          <CommandItem
-                            key={customer.id}
-                            value={`${customer.name} ${customer.phone ?? ""} ${customer.email ?? ""}`}
-                            onSelect={() => chooseCustomer(customer.id)}
-                            className="py-2.5"
-                          >
-                            <Check
-                              className={cn(
-                                "size-4",
-                                customerId === customer.id ? "opacity-100" : "opacity-0",
-                              )}
-                            />
-                            <div className="min-w-0">
-                              <p className="truncate font-semibold">{customer.name}</p>
-                              {(customer.phone || customer.email) && (
-                                <p className="truncate text-xs text-muted-foreground">
-                                  {customer.phone ?? customer.email}
-                                </p>
-                              )}
-                            </div>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               )}
               {(customerName || newClient) && (
                 <Button

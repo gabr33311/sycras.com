@@ -1,25 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { SubPage } from "@/components/sub-page";
-import { AvailabilityPanel } from "@/components/panels/availability-panel";
-import { usePrefs } from "@/lib/prefs";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-// Days off and holidays, opened from the calendar (and from the weekly hours).
+// Days off now live with the weekly hours in Manage (old links land there).
 export const Route = createFileRoute("/_authenticated/time-off")({
-  head: () => ({
-    meta: [
-      { title: "Folgas e férias — SYCRAS" },
-      { name: "description", content: "Períodos em que não recebes marcações." },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
-  component: TimeOffPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/profile", search: { section: "hours" } });
+  },
+  component: () => null,
 });
-
-function TimeOffPage() {
-  const { t } = usePrefs();
-  return (
-    <SubPage title={t("pf.s.timeoff")} back="/calendar">
-      <AvailabilityPanel view="off" />
-    </SubPage>
-  );
-}

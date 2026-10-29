@@ -7,14 +7,11 @@ import {
   Ban,
   BarChart3,
   BellRing,
-  Check,
-  Clock3,
   CreditCard,
   Crown,
   Loader2,
   Lock,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -46,14 +43,6 @@ const STORE_MANAGE = {
   },
   app_store: { name: "App Store", url: "https://apps.apple.com/account/subscriptions" },
 } as const;
-
-/** Included from day one (also in the free trial). */
-const FEATURES = [
-  "sub.feature.bookingPage",
-  "sub.feature.calendar",
-  "sub.feature.clients",
-  "sub.feature.team",
-] as const;
 
 /** Only when paying: the free trial does not have these. */
 const PRO_ONLY = [
@@ -127,121 +116,101 @@ function PlansPage() {
   }
 
   const subscribed = access?.subscribed ?? false;
+  // Pro already on (paid, or turned on by hand): nothing to sell, only the state.
+  const isPro = access?.state === "active" || access?.state === "past_due";
 
   return (
     <AppShell>
       <PageHeader title={t("sub.title")} />
 
       <div className="mx-auto max-w-xl space-y-4">
-        {access && <StatusCard access={access} tz={tz} />}
-
-        <section className="surface overflow-hidden p-0">
-          <div className="bg-brand bg-[linear-gradient(135deg,var(--brand),color-mix(in_oklch,var(--brand)_82%,white))] px-6 py-6 text-brand-foreground">
-            <div className="flex items-center justify-between gap-3">
-              <p className="flex items-center gap-2 font-display text-xl font-bold">
-                <Sparkles className="size-5" /> SYCRAS Pro
-              </p>
-              {!subscribed && (
-                <span className="rounded-full bg-black/10 px-2.5 py-1 text-xs font-bold">
-                  {t("sub.trialBadge")}
-                </span>
-              )}
-            </div>
-            {/* Already subscribed: the plan is theirs, no prices or billing choice to show. */}
-            {subscribed ? (
-              <p className="mt-3 text-sm font-semibold opacity-90">{t("sub.yourPlan")}</p>
-            ) : (
-              <>
-                <p className="mt-4 flex items-end gap-1.5">
-                  <span className="font-display text-5xl font-bold leading-none tabular-nums">
-                    {annual ? t("sub.pro.priceAnnual") : t("sub.pro.price")}
-                  </span>
-                  <span className="pb-1 text-sm font-semibold opacity-80">
-                    {t("sub.price.suffix")}
-                  </span>
-                </p>
-                <p className="mt-1 text-sm font-medium opacity-80">
-                  {annual ? t("sub.billedYearly") : t("sub.billedMonthly")}
-                </p>
-              </>
-            )}
-          </div>
-
-          <div className="space-y-5 p-6">
-            {!subscribed && (
-              <div
-                role="group"
-                aria-label={t("sub.billing.label")}
-                className="grid grid-cols-2 gap-1 rounded-full bg-muted p-1"
-              >
-                {[
-                  [false, t("sub.billing.monthly")],
-                  [true, t("sub.billing.annual")],
-                ].map(([value, label]) => (
-                  <button
-                    key={String(value)}
-                    type="button"
-                    aria-pressed={annual === value}
-                    onClick={() => setAnnual(value as boolean)}
-                    className={cn(
-                      "h-10 rounded-full text-sm font-bold transition-all",
-                      annual === value
-                        ? "bg-card text-foreground shadow-soft"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {label as string}
-                    {value === true && (
-                      <span className="ml-1.5 rounded-full bg-st-confirmed/15 px-1.5 py-0.5 text-[10px] font-bold text-st-confirmed-fg">
-                        -20%
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <ul className="space-y-2.5">
-              {FEATURES.map((key) => (
-                <li key={key} className="flex items-start gap-2.5 text-sm">
-                  <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-brand/15 text-brand-ink">
-                    <Check className="size-3" strokeWidth={3.5} />
-                  </span>
-                  {t(key)}
-                </li>
-              ))}
-            </ul>
-
-            {/* What the free trial leaves out: the reason to pay. Gold only here. */}
-            <div className="rounded-xl border border-subscription-accent/45 p-4">
-              <p className="flex items-center gap-2 text-sm font-bold">
-                <Crown className="size-4 text-subscription-accent" /> {t("sub.only.title")}
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {access?.pro ? t("sub.only.yours") : t("sub.only.sub")}
-              </p>
-              <ul className="mt-3 space-y-2.5">
-                {PRO_ONLY.map(({ key, icon: Icon }) => (
-                  <li key={key} className="flex items-start gap-2.5 text-sm">
-                    <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-subscription-accent/15 text-subscription-accent">
-                      <Icon className="size-3" strokeWidth={3} />
-                    </span>
-                    {t(key)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
+        {access && isPro && (
+          <>
+            <StatusCard access={access} tz={tz} />
             <FormError message={error} />
-
-            {subscribed ? (
+            {subscribed && (
               <Button size="lg" className="w-full" onClick={() => void manage()} disabled={busy}>
                 {busy ? <Loader2 className="animate-spin" /> : <CreditCard />}
-                {access && access.store !== "stripe"
+                {access.store !== "stripe"
                   ? t("sub.manageStore").replace("{store}", STORE_MANAGE[access.store].name)
                   : t("sub.manage")}
               </Button>
-            ) : (
+            )}
+            {subscribed && access.store !== "stripe" && (
+              <p className="text-center text-xs text-muted-foreground">
+                {t("sub.storeNote").replace("{store}", STORE_MANAGE[access.store].name)}
+              </p>
+            )}
+          </>
+        )}
+
+        {/* Not paying yet: one card with the time left, the price, the three extras and the button. */}
+        {access && !isPro && (
+          <section className="surface overflow-hidden p-0">
+            <TrialTop access={access} tz={tz} />
+
+            <div className="space-y-5 p-5">
+              <div className="flex items-end justify-between gap-3">
+                <p className="flex items-end gap-1.5">
+                  <span className="font-display text-4xl font-bold leading-none tabular-nums">
+                    {annual ? t("sub.pro.priceAnnual") : t("sub.pro.price")}
+                  </span>
+                  <span className="pb-0.5 text-sm font-semibold text-muted-foreground">
+                    {t("sub.price.suffix")}
+                  </span>
+                </p>
+                <div
+                  role="group"
+                  aria-label={t("sub.billing.label")}
+                  className="flex shrink-0 gap-1 rounded-full bg-muted p-1"
+                >
+                  {[
+                    [false, t("sub.billing.monthly")],
+                    [true, t("sub.billing.annual")],
+                  ].map(([value, label]) => (
+                    <button
+                      key={String(value)}
+                      type="button"
+                      aria-pressed={annual === value}
+                      onClick={() => setAnnual(value as boolean)}
+                      className={cn(
+                        "h-8 rounded-full px-3 text-xs font-bold transition-all",
+                        annual === value
+                          ? "bg-card text-foreground shadow-soft"
+                          : "text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      {label as string}
+                      {value === true && (
+                        <span className="ml-1 text-[10px] text-st-confirmed-fg">-20%</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="-mt-3 text-xs text-muted-foreground">
+                {annual ? t("sub.billedYearly") : t("sub.billedMonthly")}
+              </p>
+
+              {/* What the free trial leaves out: the reason to pay. Gold only here. */}
+              <div>
+                <p className="flex items-center gap-2 text-sm font-bold">
+                  <Crown className="size-4 text-subscription-accent" /> {t("sub.only.title")}
+                </p>
+                <ul className="mt-3 space-y-2.5">
+                  {PRO_ONLY.map(({ key, icon: Icon }) => (
+                    <li key={key} className="flex items-start gap-2.5 text-sm">
+                      <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-subscription-accent/15 text-subscription-accent">
+                        <Icon className="size-3" strokeWidth={3} />
+                      </span>
+                      {t(key)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <FormError message={error} />
+
               <Button
                 size="lg"
                 variant="brand"
@@ -250,24 +219,64 @@ function PlansPage() {
                 disabled={busy || !business}
               >
                 {busy && <Loader2 className="animate-spin" />}
-                {access?.state === "trial" ? t("sub.subscribeKeepTrial") : t("sub.subscribe")}
+                {access.state === "trial" ? t("sub.subscribeKeepTrial") : t("sub.subscribe")}
               </Button>
-            )}
-
-            <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
-              <ShieldCheck className="size-3.5" />{" "}
-              {subscribed && access && access.store !== "stripe"
-                ? t("sub.storeNote").replace("{store}", STORE_MANAGE[access.store].name)
-                : t("sub.secure")}
-            </p>
-          </div>
-        </section>
+              <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
+                <ShieldCheck className="size-3.5" /> {t("sub.secure")}
+              </p>
+            </div>
+          </section>
+        )}
       </div>
     </AppShell>
   );
 }
 
-/** Where the business stands right now, in one line. */
+/** Top of the offer: the days left in the free month, or that it has ended. */
+function TrialTop({
+  access,
+  tz,
+}: {
+  access: NonNullable<ReturnType<typeof useSubscription>["access"]>;
+  tz: string;
+}) {
+  const { t } = usePrefs();
+  const end = formatDateLong(access.trialEndsAt.toISOString(), tz);
+  if (access.state !== "trial")
+    return (
+      <div className="flex items-center gap-3 border-b border-border bg-st-noshow/10 px-5 py-4">
+        <Lock className="size-5 shrink-0 text-st-noshow-fg" />
+        <div className="min-w-0">
+          <p className="text-sm font-bold">{t("sub.status.blocked")}</p>
+          <p className="text-sm text-muted-foreground">{t("sub.status.blockedBody")}</p>
+        </div>
+      </div>
+    );
+  const used = Math.min(1, Math.max(0.04, 1 - access.trialDaysLeft / TRIAL_DAYS));
+  return (
+    <div className="border-b border-border bg-subscription-accent/8 px-5 py-4">
+      <div className="flex items-end justify-between gap-3">
+        <p className="flex items-baseline gap-1.5 whitespace-nowrap">
+          <span className="font-display text-4xl font-bold leading-none tabular-nums">
+            {access.trialDaysLeft}
+          </span>
+          <span className="text-base font-semibold text-muted-foreground">
+            {t(access.trialDaysLeft === 1 ? "pf.pro.dayLeft" : "pf.pro.daysLeft")}
+          </span>
+        </p>
+        <p className="text-right text-xs font-semibold text-muted-foreground">
+          {t("sub.status.trialEndsShort").replace("{date}", end)}
+        </p>
+      </div>
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
+        <div className="gold-bar h-full rounded-full" style={{ width: `${used * 100}%` }} />
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">{t("sub.trialHero.payLater")}</p>
+    </div>
+  );
+}
+
+/** Pro is on: where it stands, in one line. */
 function StatusCard({
   access,
   tz,
@@ -276,77 +285,28 @@ function StatusCard({
   tz: string;
 }) {
   const { t } = usePrefs();
-  const date = (d: Date | null) => (d ? formatDateLong(d.toISOString(), tz) : "");
-  // The free month, impossible to miss: days left, a bar, the end date and what happens then.
-  if (access.state === "trial") {
-    const used = Math.min(1, Math.max(0, 1 - access.trialDaysLeft / TRIAL_DAYS));
-    return (
-      <section className="surface overflow-hidden border-brand/40 p-0">
-        <div className="flex items-end justify-between gap-3 px-5 pt-5">
-          <div>
-            <p className="flex items-center gap-1.5 text-xs font-bold tracking-wide text-brand-ink uppercase">
-              <Clock3 className="size-3.5" /> {t("sub.trialHero.label")}
-            </p>
-            <p className="mt-1 font-display text-4xl font-bold leading-none tracking-tight tabular-nums">
-              {access.trialDaysLeft}
-              <span className="ml-1.5 text-lg font-semibold text-muted-foreground">
-                {t("sub.trialHero.daysLeft")}
-              </span>
-            </p>
-          </div>
-          <p className="pb-1 text-right text-sm text-muted-foreground">
-            {t("sub.status.trialEnds").replace("{date}", date(access.trialEndsAt))}
-          </p>
-        </div>
-        <div className="mx-5 mt-4 h-2 overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full rounded-full bg-brand"
-            style={{ width: `${Math.max(4, used * 100)}%` }}
-          />
-        </div>
-        <p className="mt-4 border-t border-border bg-muted/40 px-5 py-3.5 text-sm text-muted-foreground">
-          {t("sub.trialHero.after").replace("{date}", date(access.trialEndsAt))}
-        </p>
-      </section>
-    );
-  }
-  const { icon, title, body, tone } =
-    access.state === "active"
-      ? {
-          icon: <ShieldCheck className="size-5" />,
-          title: t("sub.status.active"),
-          body: access.periodEnd
-            ? t("sub.status.renews").replace("{date}", date(access.periodEnd))
-            : "",
-          tone: "ok" as const,
-        }
-      : access.state === "past_due"
-        ? {
-            icon: <CreditCard className="size-5" />,
-            title: t("sub.status.pastDue"),
-            body: t("sub.status.pastDueBody"),
-            tone: "bad" as const,
-          }
-        : {
-            icon: <Lock className="size-5" />,
-            title: t("sub.status.blocked"),
-            body: t("sub.status.blockedBody"),
-            tone: "bad" as const,
-          };
+  const bad = access.state === "past_due";
+  const title = bad ? t("sub.status.pastDue") : t("sub.status.active");
+  const body = bad
+    ? t("sub.status.pastDueBody")
+    : access.periodEnd
+      ? t("sub.status.renews").replace("{date}", formatDateLong(access.periodEnd.toISOString(), tz))
+      : t("pf.pro.all");
   return (
     <section className="surface flex items-center gap-3.5 p-4">
       <span
         className={cn(
           "flex size-11 shrink-0 items-center justify-center rounded-xl",
-          tone === "ok" && "bg-st-confirmed/15 text-st-confirmed-fg",
-          tone === "bad" && "bg-st-noshow/15 text-st-noshow-fg",
+          bad
+            ? "bg-st-noshow/15 text-st-noshow-fg"
+            : "bg-subscription-accent/15 text-subscription-accent",
         )}
       >
-        {icon}
+        {bad ? <CreditCard className="size-5" /> : <Crown className="size-5" />}
       </span>
       <div className="min-w-0">
         <p className="text-sm font-bold">{title}</p>
-        {body && <p className="mt-0.5 text-sm text-muted-foreground">{body}</p>}
+        <p className="mt-0.5 text-sm text-muted-foreground">{body}</p>
       </div>
     </section>
   );

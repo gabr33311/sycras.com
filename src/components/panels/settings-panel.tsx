@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { Bell, ChevronRight, Crown, LogOut } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { Bell, LogOut } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { sendTestPush } from "@/lib/push.functions";
-import { useSubscription } from "@/hooks/use-subscription";
 import { ColorSwatches } from "@/components/color-swatches";
 import { useAppColor } from "@/hooks/use-app-color";
 import { useQueryClient } from "@tanstack/react-query";
@@ -24,18 +23,8 @@ import {
 
 export function SettingsPanel() {
   const { business } = useMyBusiness();
-  const qc = useQueryClient();
-  const [busy, setBusy] = useState(false);
-  const navigate = useNavigate();
-  async function signOut() {
-    await qc.cancelQueries();
-    qc.clear();
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", search: { mode: undefined, next: undefined }, replace: true });
-  }
   const { theme, setTheme, lang, setLang, t } = usePrefs();
   const { color: appColor, setColor: setAppColor } = useAppColor();
-  const { access } = useSubscription();
   const [testingPush, setTestingPush] = useState(false);
   const sendPush = useServerFn(sendTestPush);
   // Email for each booking event (saved in the account; the server reads it). On unless turned off.
@@ -69,89 +58,9 @@ export function SettingsPanel() {
       setTestingPush(false);
     }
   }
-  const planBadge =
-    access?.state === "active"
-      ? "Pro"
-      : access?.state === "trial"
-        ? t("sub.menu.trial").replace("{n}", String(access.trialDaysLeft))
-        : access?.state === "past_due"
-          ? t("sub.status.pastDue")
-          : access
-            ? t("sub.menu.ended")
-            : "";
-
-  // Taking the page offline lives in Account → Suspend (one control, not two).
-  async function toggle(field: "seo_indexable", value: boolean) {
-    if (!business) return;
-    setBusy(true);
-    const { error } = await supabase
-      .from("businesses")
-      .update({ [field]: value })
-      .eq("id", business.id);
-    setBusy(false);
-    if (error) {
-      toast.error(t("pf.common.saveError"));
-      return;
-    }
-    qc.invalidateQueries({ queryKey: ["my-business"] });
-    toast.success(t("ui.save.auto"));
-  }
-
   return (
     <section className="surface divide-y divide-border overflow-hidden">
-      {/* The plan: gold only on the small badge. */}
-      <Link
-        to="/plans"
-        className="group flex items-center gap-3.5 p-5 transition-colors hover:bg-muted/50"
-      >
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
-          <Crown className="size-[17px]" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="flex items-center gap-2">
-            <span className="text-sm font-bold">{t("sub.menu.title")}</span>
-            {planBadge && (
-              <span className="whitespace-nowrap rounded-full border border-subscription-accent px-2 py-px text-[10px] font-bold uppercase text-foreground">
-                {planBadge}
-              </span>
-            )}
-          </span>
-          <span className="mt-0.5 block text-sm text-muted-foreground">
-            {access?.subscribed ? t("sub.manage") : t("sub.menu.upgrade")}
-          </span>
-        </span>
-        <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-      </Link>
-      {/* Push notifications on this phone (native app). */}
-      <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        <div>
-          <p className="text-sm font-bold">{t("push.title")}</p>
-          <p className="text-sm text-muted-foreground">{t("push.desc")}</p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="shrink-0"
-          disabled={testingPush || !business}
-          onClick={() => void testPush()}
-        >
-          <Bell /> {t("push.test")}
-        </Button>
-      </div>
-      <Row
-        title={t("alerts.email.title")}
-        description={t("alerts.email.desc")}
-        checked={emailAlerts}
-        disabled={false}
-        onChange={(v) => void toggleEmailAlerts(v)}
-      />
-      <Row
-        title={t("pf.set.google")}
-        description={t("pf.set.google.desc")}
-        checked={business?.seo_indexable ?? false}
-        disabled={busy}
-        onChange={(v) => toggle("seo_indexable", v)}
-      />
+      <h2 className="px-5 pt-5 pb-3 text-base font-bold">{t("pf.set.group.app")}</h2>
       {/* Personal: how the app looks to you. Clients see the page colour instead. */}
       <div className="space-y-3 p-5">
         <div>
@@ -192,14 +101,52 @@ export function SettingsPanel() {
           </SelectContent>
         </Select>
       </div>
-      <button
-        type="button"
-        onClick={signOut}
-        className="flex w-full items-center gap-3 p-5 text-left text-sm font-bold text-destructive hover:bg-muted"
-      >
-        <LogOut className="size-4" /> {t("nav.logout")}
-      </button>
+      {/* Push notifications on this phone (native app). */}
+      <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div>
+          <p className="text-sm font-bold">{t("push.title")}</p>
+          <p className="text-sm text-muted-foreground">{t("push.desc")}</p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="shrink-0"
+          disabled={testingPush || !business}
+          onClick={() => void testPush()}
+        >
+          <Bell /> {t("push.test")}
+        </Button>
+      </div>
+      <Row
+        title={t("alerts.email.title")}
+        description={t("alerts.email.desc")}
+        checked={emailAlerts}
+        disabled={false}
+        onChange={(v) => void toggleEmailAlerts(v)}
+      />
     </section>
+  );
+}
+
+/** Leaving the account, at the very end of Settings. */
+export function SignOutButton() {
+  const { t } = usePrefs();
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  async function signOut() {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", search: { mode: undefined, next: undefined }, replace: true });
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => void signOut()}
+      className="surface mt-4 flex w-full items-center gap-3 p-5 text-left text-sm font-bold text-destructive hover:bg-muted"
+    >
+      <LogOut className="size-4" /> {t("nav.logout")}
+    </button>
   );
 }
 

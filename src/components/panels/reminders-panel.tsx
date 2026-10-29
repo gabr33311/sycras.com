@@ -28,7 +28,7 @@ const MAX_HOURS = 168;
 const MAX_MESSAGE = 600;
 
 /** Pro: clients get an email before their appointment, so fewer of them forget. */
-export function RemindersPanel() {
+export function RemindersPanel({ withReview = true }: { withReview?: boolean } = {}) {
   const { business } = useMyBusiness();
   const { t } = usePrefs();
   const qc = useQueryClient();
@@ -355,7 +355,7 @@ export function RemindersPanel() {
         {dirty && <p className="text-xs text-muted-foreground">{t("rm.test.saveFirst")}</p>}
       </section>
 
-      <ReviewLink />
+      {withReview && <ReviewLink />}
 
       <SaveBar dirty={dirty} busy={busy} onSave={() => void save()} onCancel={hydrate} />
     </div>
@@ -363,7 +363,7 @@ export function RemindersPanel() {
 }
 
 /** The review link for the "How did it go?" email (a Pro extra, sent with the reminders). */
-function ReviewLink() {
+export function ReviewLink() {
   const { business } = useMyBusiness();
   const { t } = usePrefs();
   const qc = useQueryClient();

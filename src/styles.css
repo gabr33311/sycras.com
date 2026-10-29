@@ -632,6 +632,220 @@
   animation: gold-sheen 7s cubic-bezier(0.45, 0, 0.25, 1) 1.2s infinite;
 }
 
+/* Blocks that open in place (settings blocks, any accordion): the height eases open and
+   closed while the content fades and settles, so nothing jumps. */
+@keyframes accordion-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes accordion-settle {
+  from {
+    transform: translateY(-6px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@utility animate-accordion-down {
+  animation: accordion-down 320ms cubic-bezier(0.32, 0.72, 0, 1);
+
+  & > * {
+    animation: accordion-settle 320ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+}
+
+@utility animate-accordion-up {
+  animation: accordion-up 240ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* The QR in the business card: grows and shrinks a little, to invite a tap. */
+@keyframes qr-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@utility qr-breathe {
+  animation: qr-breathe 2.6s ease-in-out infinite;
+}
+
+/* The Pro card. Real gold has several tones and moves with the light: a champagne wash that
+   drifts, a metallic border whose highlight travels round, a soft light that crosses the card
+   without pause and a glow that breathes. All loops are seamless (the gradients start and end
+   on the same tone), so the movement never jumps. Reduced motion stills it (rule below). */
+@keyframes gold-drift {
+  from {
+    background-position:
+      0% 50%,
+      0% 50%;
+  }
+  to {
+    background-position:
+      200% 50%,
+      200% 50%;
+  }
+}
+
+@keyframes gold-drift-one {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes gold-glow {
+  0%,
+  100% {
+    box-shadow: 0 10px 28px -16px rgb(184 137 43 / 0.45);
+  }
+  50% {
+    box-shadow: 0 14px 34px -12px rgb(212 175 55 / 0.6);
+  }
+}
+
+@keyframes gold-sweep {
+  from {
+    transform: translateX(-140%) skewX(-22deg);
+  }
+  to {
+    transform: translateX(330%) skewX(-22deg);
+  }
+}
+
+@utility pro-shine {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(
+        115deg,
+        color-mix(in srgb, #d4af37 7%, var(--card)) 0%,
+        color-mix(in srgb, #e9c766 20%, var(--card)) 25%,
+        color-mix(in srgb, #d4af37 7%, var(--card)) 50%,
+        color-mix(in srgb, #e9c766 20%, var(--card)) 75%,
+        color-mix(in srgb, #d4af37 7%, var(--card)) 100%
+      )
+      padding-box,
+    linear-gradient(
+        115deg,
+        #8a6a1f 0%,
+        #d4af37 12%,
+        #fff1b8 22%,
+        #c9a227 32%,
+        #8a6a1f 50%,
+        #d4af37 62%,
+        #fff1b8 72%,
+        #c9a227 82%,
+        #8a6a1f 100%
+      )
+      border-box;
+  background-size:
+    200% 100%,
+    200% 100%;
+  animation:
+    gold-drift 7s linear infinite,
+    gold-glow 3.6s ease-in-out infinite;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: -10%;
+    bottom: -10%;
+    left: 0;
+    width: 42%;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgb(255 228 140 / 0.22) 28%,
+      rgb(255 248 215 / 0.8) 50%,
+      rgb(255 228 140 / 0.22) 72%,
+      transparent 100%
+    );
+    animation: gold-sweep 4.2s linear infinite;
+  }
+}
+
+/* Metallic gold surface (the crown badge): polished tones that keep drifting. */
+@utility gold-metal {
+  background-image: linear-gradient(
+    120deg,
+    #a8811f 0%,
+    #e9c766 18%,
+    #fff1b8 30%,
+    #d4af37 45%,
+    #a8811f 50%,
+    #e9c766 68%,
+    #fff1b8 80%,
+    #d4af37 95%,
+    #a8811f 100%
+  );
+  background-size: 200% 100%;
+  color: #4a3608;
+  animation: gold-drift-one 6s linear infinite;
+}
+
+/* Gold text that never stops shining (only for "SYCRAS Pro"). */
+@utility text-gold-live {
+  background-image: linear-gradient(
+    100deg,
+    #9a7420 0%,
+    #d4af37 20%,
+    #f7e08f 35%,
+    #c9a227 50%,
+    #9a7420 60%,
+    #d4af37 75%,
+    #f7e08f 88%,
+    #9a7420 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gold-drift-one 5s linear infinite;
+}
+
+/* A gold progress bar (days of the free month), with light running along it. */
+@utility gold-bar {
+  background-image: linear-gradient(
+    90deg,
+    #a8811f 0%,
+    #d4af37 25%,
+    #fff1b8 50%,
+    #d4af37 75%,
+    #a8811f 100%
+  );
+  background-size: 200% 100%;
+  animation: gold-drift-one 2.8s linear infinite;
+}
+
 @utility monochrome-media {
   filter: grayscale(1) contrast(1.04);
 }

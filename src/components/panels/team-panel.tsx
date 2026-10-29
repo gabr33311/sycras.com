@@ -119,9 +119,10 @@ export function TeamPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button onClick={() => openEditor(null)}>
-          <Plus className="mr-2 size-4" /> {t("pf.team.add")}
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-display text-lg font-bold">{t("pf.s.team")}</h2>
+        <Button size="sm" variant="outline" onClick={() => openEditor(null)}>
+          <Plus className="size-4" /> {t("pf.team.add")}
         </Button>
       </div>
 
