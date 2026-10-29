@@ -1066,4 +1066,8 @@ export const de: Record<string, string> = {
   "mg.cancelUpTo": "Stornieren bis {h} Std. vorher",
   "mg.team.soloLong": "Nur du bedienst die Kunden",
   "mg.team.more": "{names} und {n} weitere",
+  "mg.unit.service": "aktive Leistung",
+  "mg.unit.services": "aktive Leistungen",
+  "mg.unit.reminder": "Erinnerung vorher",
+  "mg.unit.cancel": "zum Stornieren",
 };

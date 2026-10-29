@@ -1054,4 +1054,8 @@ export const ptBR: Record<string, string> = {
   "mg.cancelUpTo": "Cancelam até {h}h antes",
   "mg.team.soloLong": "Só você atendendo",
   "mg.team.more": "{names} e mais {n}",
+  "mg.unit.service": "serviço ativo",
+  "mg.unit.services": "serviços ativos",
+  "mg.unit.reminder": "lembrete antes",
+  "mg.unit.cancel": "para cancelar",
 };

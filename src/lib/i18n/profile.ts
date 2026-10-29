@@ -525,6 +525,10 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "mg.cancelUpTo": "Cancelam até {h}h antes",
     "mg.team.soloLong": "Só tu a atender",
     "mg.team.more": "{names} e mais {n}",
+    "mg.unit.service": "serviço ativo",
+    "mg.unit.services": "serviços ativos",
+    "mg.unit.reminder": "lembrete antes",
+    "mg.unit.cancel": "para cancelar",
   },
   en: {
     "pf.head.title": "Profile — SYCRAS",
@@ -1046,5 +1050,9 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "mg.cancelUpTo": "Cancel up to {h}h before",
     "mg.team.soloLong": "Just you serving clients",
     "mg.team.more": "{names} and {n} more",
+    "mg.unit.service": "active service",
+    "mg.unit.services": "active services",
+    "mg.unit.reminder": "reminder before",
+    "mg.unit.cancel": "to cancel",
   },
 };

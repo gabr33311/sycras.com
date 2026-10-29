@@ -183,10 +183,10 @@ function ProfilePage() {
         <span
           className={cn(
             "flex shrink-0 items-center justify-center rounded-xl bg-muted text-foreground",
-            size === "l" ? "size-10" : roomy && !tight ? "size-8" : "size-7",
+            roomy && !tight ? "size-9" : "size-7",
           )}
         >
-          <row.icon className={size === "l" ? "size-5" : "size-4"} />
+          <row.icon className={roomy && !tight ? "size-[18px]" : "size-4"} />
         </span>
       );
       return (
@@ -202,53 +202,57 @@ function ProfilePage() {
         >
           {roomy ? (
             <>
-              {/* The name large and centred; under it the icon in a soft circle, a thin rule
-                  and the details beside it, all centred in the tile. */}
-              <span
-                className={cn(
-                  "block text-center font-display font-bold leading-tight text-balance",
-                  size === "l" ? "text-xl" : tight ? "text-base" : "text-lg",
-                )}
-              >
-                {name}
+              {/* Like the Pro tile: icon and name on top, then the figure in large type with what
+                  it counts, then one more line. Everything on the left, the same on all four. */}
+              <span className="flex min-w-0 items-center gap-2.5">
+                {icon}
+                <span
+                  className={cn(
+                    "min-w-0 font-display font-bold leading-tight text-balance",
+                    size === "l" && wide ? "text-lg" : "text-[15px]",
+                  )}
+                >
+                  {name}
+                </span>
               </span>
-              {/* The icon, large, in the middle with the two lines: beside them on wide tiles,
-                  above them on narrow ones (so the text never gets squeezed). */}
               <span
                 className={cn(
-                  "flex w-full items-center",
-                  wide ? "mt-4 gap-3" : tight ? "mt-2 gap-2" : "mt-3 gap-2.5",
+                  "flex flex-wrap items-baseline justify-center gap-x-1.5 text-center",
+                  tight ? "mt-1.5" : "mt-3",
                 )}
               >
                 <span
                   className={cn(
-                    "flex shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand-ink",
-                    size === "l" && wide ? "size-16" : tight ? "size-9" : "size-12",
+                    "font-display font-extrabold leading-none tabular-nums",
+                    status?.warn ? "text-st-pending-fg" : "text-foreground",
+                    tight
+                      ? "text-2xl"
+                      : (status?.big?.length ?? 0) > 3
+                        ? size === "l" && wide
+                          ? "text-3xl"
+                          : "text-[26px]"
+                        : size === "l" && wide
+                          ? "text-4xl"
+                          : "text-3xl",
                   )}
                 >
-                  <row.icon
-                    className={size === "l" && wide ? "size-8" : tight ? "size-[18px]" : "size-6"}
-                  />
+                  {status?.big ?? ""}
                 </span>
-                {/* The text sits in the middle of the space to the right of the icon, whole. */}
-                <span className="flex min-w-0 flex-1 justify-center">
-                  <span className="min-w-0">
-                    {lines.slice(0, 2).map((line, i) => (
-                      <span
-                        key={line}
-                        className={cn(
-                          "block break-words",
-                          size === "l" && wide ? "text-sm leading-6" : "text-xs leading-[1.15rem]",
-                          i === 0 ? "font-semibold text-foreground" : "text-muted-foreground",
-                          status?.warn && i === 0 && "text-st-pending-fg",
-                        )}
-                      >
-                        {line}
-                      </span>
-                    ))}
-                  </span>
+                <span className="min-w-0 text-xs font-bold text-muted-foreground">
+                  {status?.unit}
                 </span>
               </span>
+              {/* Short tiles keep the figure only; the extra line needs the room. */}
+              {status?.small && !tight && (
+                <span
+                  className={cn(
+                    "mt-1.5 line-clamp-2 block text-center text-muted-foreground",
+                    size === "l" && wide ? "text-sm" : "text-xs",
+                  )}
+                >
+                  {status.small}
+                </span>
+              )}
             </>
           ) : (
             <span className="flex min-w-0 items-center gap-2.5">
@@ -595,7 +599,16 @@ function ProfilePage() {
 }
 
 /** One line for small spaces ("text"); "lines" when there is room to show each part on its own. */
-type RowStatus = { text: string; lines?: string[]; warn?: boolean; dot?: string };
+/** "big"/"unit": the figure in large type with what it counts; "small": one more line under it. */
+type RowStatus = {
+  text: string;
+  lines?: string[];
+  warn?: boolean;
+  dot?: string;
+  big?: string;
+  unit?: string;
+  small?: string;
+};
 
 /** "Seg–Sex" style label for a set of weekdays (0 = Sunday), Monday first. */
 function daysLabel(days: number[], short: string[], every: string): string {
@@ -712,6 +725,9 @@ function useManageSummary(): Partial<Record<SectionId, RowStatus>> {
     ...out.services,
     text: active.length ? `${out.services.text} · ${teamLine}` : out.services.text,
     lines: [out.services.text, teamLine, ...(priceLine ? [priceLine] : [])],
+    big: String(active.length),
+    unit: t(active.length === 1 ? "mg.unit.service" : "mg.unit.services"),
+    small: teamLine,
   };
   if (data.hours.length) {
     const days = [...new Set(data.hours.map((h) => h.weekday))];
@@ -720,8 +736,26 @@ function useManageSummary(): Partial<Record<SectionId, RowStatus>> {
       .map((h) => h.end_time.slice(0, 5))
       .sort()
       .at(-1);
-    out.hours = { text: `${daysLabel(days, weekdaysShort(), t("mg.everyDay"))} · ${start}–${end}` };
-  } else out.hours = { text: t("mg.noHours"), warn: true };
+    const dayText = daysLabel(days, weekdaysShort(), t("mg.everyDay"));
+    // "09–19", or "09:30–19" when a time is not on the hour.
+    const hh = (x?: string) => (x ? (x.endsWith(":00") ? x.slice(0, 2) : x) : "");
+    out.hours = {
+      text: `${dayText} · ${start}–${end}`,
+      big: `${hh(start)}–${hh(end)}`,
+      unit: dayText,
+    };
+  } else out.hours = { text: t("mg.noHours"), warn: true, big: "—", unit: t("mg.noHours") };
+  out.hours.small = data.nextOff
+    ? t("mg.nextOff").replace(
+        "{date}",
+        new Intl.DateTimeFormat(currentLocale(), {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+          timeZone: business.timezone,
+        }).format(new Date(data.nextOff)),
+      )
+    : t("pf.av.off.empty");
   out.hours.lines = [
     out.hours.text,
     data.nextOff
@@ -744,6 +778,13 @@ function useManageSummary(): Partial<Record<SectionId, RowStatus>> {
       : t("rl.noReminders"),
     t("mg.cancelUpTo").replace("{h}", String(business.cancellation_hours)),
   ];
-  out.rules = { text: ruleLines.slice(0, 2).join(" · "), lines: ruleLines };
+  out.rules = {
+    text: ruleLines.slice(0, 2).join(" · "),
+    lines: ruleLines,
+    // The reminder when there is one, otherwise the cancellation window.
+    big: `${business.reminders_enabled ? (business.reminder_hours ?? 24) : business.cancellation_hours}h`,
+    unit: t(business.reminders_enabled ? "mg.unit.reminder" : "mg.unit.cancel"),
+    small: ruleLines[0] ?? "",
+  };
   return out;
 }

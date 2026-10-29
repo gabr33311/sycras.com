@@ -1059,4 +1059,8 @@ export const it: Record<string, string> = {
   "mg.cancelUpTo": "Annullano fino a {h} h prima",
   "mg.team.soloLong": "Solo tu servi i clienti",
   "mg.team.more": "{names} e altri {n}",
+  "mg.unit.service": "servizio attivo",
+  "mg.unit.services": "servizi attivi",
+  "mg.unit.reminder": "promemoria prima",
+  "mg.unit.cancel": "per annullare",
 };
