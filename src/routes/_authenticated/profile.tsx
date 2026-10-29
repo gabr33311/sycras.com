@@ -158,7 +158,9 @@ function ProfilePage() {
       />
 
       <div className="md:grid md:grid-cols-[280px_minmax(0,1fr)] md:items-start md:gap-8 lg:grid-cols-[300px_minmax(0,1fr)]">
-        <div className={cn("space-y-5 md:sticky md:top-24", section && "hidden md:block")}>
+        <div
+          className={cn("space-y-3 md:sticky md:top-24 md:space-y-5", section && "hidden md:block")}
+        >
           {/* The business: full name, its link, and the two things done with it. */}
           {business && (
             <div className="surface p-4">
@@ -198,8 +200,54 @@ function ProfilePage() {
             </div>
           )}
 
+          {/* Phones: the eight settings in a grid that fits the screen (no scroll);
+              each row of two is one theme. */}
+          <div className="grid grid-cols-2 gap-2 md:hidden">
+            {GROUPS.flatMap((group) => group.rows).map((row) => {
+              const status = summary[row.id];
+              return (
+                <button
+                  key={row.id}
+                  type="button"
+                  onClick={() => setSection(row.id)}
+                  className="surface min-w-0 px-3 py-2.5 text-left transition-[background-color,transform] duration-150 active:scale-[0.97] active:bg-muted"
+                >
+                  <span className="block w-full min-w-0">
+                    <span className="flex items-center gap-1.5">
+                      <row.icon className="size-4 shrink-0 text-muted-foreground" />
+                      <span className="truncate text-[13px] font-bold leading-tight">
+                        {row.id === "rules" ? t("pf.s.rules.short") : label(row.id)}
+                      </span>
+                    </span>
+                    <span
+                      className={cn(
+                        "mt-0.5 flex items-center gap-1 text-[11px] font-semibold leading-snug",
+                        status?.warn ? "text-st-pending-fg" : "text-muted-foreground",
+                      )}
+                    >
+                      {status?.dot && (
+                        <span
+                          aria-hidden
+                          className="size-2 shrink-0 rounded-full ring-1 ring-black/10"
+                          style={{ backgroundColor: status.dot }}
+                        />
+                      )}
+                      {status?.warn && (
+                        <span
+                          aria-hidden
+                          className="size-1.5 shrink-0 rounded-full bg-st-pending"
+                        />
+                      )}
+                      <span className="truncate">{status?.text ?? desc(row.id)}</span>
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
           {GROUPS.map((group) => (
-            <section key={group.title}>
+            <section key={group.title} className="hidden md:block">
               <h2 className="mb-1.5 px-1 text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
                 {t(group.title)}
               </h2>
