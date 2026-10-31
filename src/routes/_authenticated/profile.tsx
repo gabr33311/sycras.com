@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
+import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { effectiveBrand } from "@/lib/brand";
@@ -20,14 +21,15 @@ import { QrDialog, QrThumb } from "@/components/qr-dialog";
 import { ServicesPanel } from "@/components/panels/services-panel";
 import { TeamPanel } from "@/components/panels/team-panel";
 import { AvailabilityPanel } from "@/components/panels/availability-panel";
-import { ShareSheet } from "@/components/share-sheet";
 import { RulesPanel } from "@/components/panels/rules-panel";
 import {
   ArrowLeft,
   ArrowUpRight,
   Crown,
   Pencil,
+  Check,
   ChevronRight,
+  Copy,
   Clock,
   Scissors,
   Settings,
@@ -102,9 +104,32 @@ function ProfilePage() {
   // left and the first section fills the right column by default.
   const shown: Shown = !section ? "info" : (MERGED[section] ?? (section as Shown));
   const [qrOpen, setQrOpen] = useState(false);
-  const [shareOpen, setShareOpen] = useState(false);
   const isPhone = !useMediaQuery("(min-width: 768px)");
   const { business } = useMyBusiness();
+  const [copied, setCopied] = useState(false);
+  const pageUrl = business ? `https://sycras.com/${business.slug}` : "";
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(pageUrl);
+      setCopied(true);
+      toast.success(t("pf.share.linkCopied"));
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error(pageUrl);
+    }
+  }
+  /** Straight to the phone's own share menu; where there is none, the link is copied. */
+  async function shareLink() {
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({ title: business?.name ?? "SYCRAS", url: pageUrl });
+      } catch {
+        // Closed without sharing.
+      }
+      return;
+    }
+    await copyLink();
+  }
   const logoUrl = useLogoUrl(business?.logo_url);
   const summary = useManageSummary();
   const { access } = useSubscription();
@@ -472,9 +497,21 @@ function ProfilePage() {
                   <span className="line-clamp-1 font-display text-base font-bold leading-tight">
                     {business.name}
                   </span>
-                  <span className="mt-0.5 block truncate text-xs font-semibold text-brand-ink">
-                    sycras.com/{business.slug}
-                  </span>
+                  {/* Tap the link to copy it; the icon after it says so. */}
+                  <button
+                    type="button"
+                    onClick={() => void copyLink()}
+                    aria-label={t("pf.share.copy")}
+                    title={t("pf.share.copy")}
+                    className="mt-0.5 flex max-w-full items-center gap-1 rounded text-left text-xs font-semibold text-brand-ink hover:underline"
+                  >
+                    <span className="truncate">sycras.com/{business.slug}</span>
+                    {copied ? (
+                      <Check className="size-3.5 shrink-0" strokeWidth={3} />
+                    ) : (
+                      <Copy className="size-3.5 shrink-0" strokeWidth={2.5} />
+                    )}
+                  </button>
                   <span className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] font-semibold">
                     <span
                       aria-hidden
@@ -528,7 +565,7 @@ function ProfilePage() {
                 ))}
                 <button
                   type="button"
-                  onClick={() => setShareOpen(true)}
+                  onClick={() => void shareLink()}
                   className="flex h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-xl bg-muted px-1 text-[11px] font-bold transition-[background-color,transform] active:scale-95"
                 >
                   <Share2 className="size-4" />
@@ -584,7 +621,6 @@ function ProfilePage() {
           {shown === "rules" && <RulesPanel />}
         </div>
       </div>
-      <ShareSheet open={shareOpen} onOpenChange={setShareOpen} />
       {business && (
         <QrDialog
           url={`https://sycras.com/${business.slug}`}
