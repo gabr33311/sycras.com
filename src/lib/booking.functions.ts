@@ -31,8 +31,12 @@ const bookingSchema = z.object({
   /** The 6-digit code emailed to the client, when the business asks for it. */
   code: z
     .string()
-    .regex(/^d{6}$/)
+    .regex(/^\d{6}$/)
     .optional(),
+  /** The client agrees to get the confirmation and reminder on WhatsApp. */
+  whatsapp: z.boolean().optional(),
+  /** Cloudflare Turnstile token (a person, not a script), when the captcha is on. */
+  captchaToken: z.string().max(4096).optional(),
 });
 
 const tokenSchema = z.object({ token: z.string().trim().length(48) });
@@ -105,10 +109,21 @@ export const createPublicBooking = createServerFn({ method: "POST" })
       logSecurityEvent,
       issueBookingCode,
       checkBookingCode,
+      captchaPassed,
     } = await import("./booking.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const ipHash = await hashIp(clientIp());
+
+    // A person, not a script. The step with the emailed code is proven by the code itself.
+    if (!data.code && !(await captchaPassed(data.captchaToken, clientIp()))) {
+      await logSecurityEvent("booking_captcha_failed", ipHash, data.phone, data.businessId);
+      return {
+        ok: false as const,
+        code: "captcha",
+        message: "Confirma que não és um robô e tenta outra vez.",
+      };
+    }
 
     if (await rateLimitExceeded(ipHash, data.phone)) {
       await logSecurityEvent("booking_rate_limited", ipHash, data.phone, data.businessId);
@@ -272,6 +287,8 @@ export const createPublicBooking = createServerFn({ method: "POST" })
         status,
         notes: data.notes || null,
         source: "public",
+        // The client ticked "WhatsApp": consent to get the confirmation and reminder there.
+        whatsapp_ok: data.whatsapp === true,
       })
       .select("id, starts_at, ends_at, status")
       .single();
@@ -314,6 +331,11 @@ export const createPublicBooking = createServerFn({ method: "POST" })
     if (appointment.status === "confirmed" && data.email) {
       const { sendConfirmedEmail } = await import("@/lib/confirmation-email.server");
       await sendConfirmedEmail(appointment.id);
+    }
+    // And on WhatsApp, when they asked for it and the business has it (Pro).
+    if (appointment.status === "confirmed" && data.whatsapp) {
+      const { sendWhatsApp } = await import("@/lib/whatsapp.server");
+      await sendWhatsApp(appointment.id, "confirmed").catch(() => false);
     }
 
     return { ok: true as const, token, status: appointment.status };

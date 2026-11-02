@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { BellRing, Loader2, Mail, RotateCcw, Send } from "lucide-react";
+import { BellRing, Loader2, Mail, RotateCcw, Send, MessageCircle } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,6 +85,24 @@ export function RemindersPanel({ withReview = true }: { withReview?: boolean } =
       return count ?? 0;
     },
   });
+
+  const whatsappOn = business?.whatsapp_reminders ?? false;
+
+  async function toggleWhatsapp(v: boolean) {
+    if (!business) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("businesses")
+      .update({ whatsapp_reminders: v })
+      .eq("id", business.id);
+    setBusy(false);
+    if (error) {
+      toast.error(t("pf.common.saveError"));
+      return;
+    }
+    toast.success(t("ui.save.auto"));
+    qc.invalidateQueries({ queryKey: ["my-business"] });
+  }
 
   async function toggle(v: boolean) {
     if (!business) return;
@@ -202,6 +220,30 @@ export function RemindersPanel({ withReview = true }: { withReview?: boolean } =
             disabled={busy || !business}
             onCheckedChange={(v) => void toggle(v)}
             aria-label={t("rm.toggle")}
+          />
+        </div>
+
+        {/* WhatsApp: the confirmation and the reminder, to clients who ask for it when booking. */}
+        <div className="flex items-center justify-between gap-4 p-5">
+          <div className="flex items-start gap-3">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#25d366]/15 text-[#128c4a] dark:text-[#4ade80]">
+              <MessageCircle className="size-[17px]" />
+            </span>
+            <div>
+              <p className="flex items-center gap-2 text-sm font-bold">
+                {t("rm.wa.toggle")}
+                <span className="rounded-full border border-subscription-accent px-2 py-px text-[10px] font-bold uppercase">
+                  Pro
+                </span>
+              </p>
+              <p className="text-sm text-muted-foreground">{t("rm.wa.desc")}</p>
+            </div>
+          </div>
+          <Switch
+            checked={whatsappOn}
+            disabled={busy || !business}
+            onCheckedChange={(v) => void toggleWhatsapp(v)}
+            aria-label={t("rm.wa.toggle")}
           />
         </div>
 

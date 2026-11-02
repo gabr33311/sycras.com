@@ -154,6 +154,8 @@ export const bookingDict: Record<BaseLang, Record<string, string>> = {
     "bk.auth.completeTitle": "Completa os teus dados",
     "bk.auth.completeDesc": "Para marcares precisamos do teu nome e telemóvel.",
     "bk.auth.completeCta": "Guardar e continuar",
+    "bk.wa.label": "Receber a confirmação e o lembrete por WhatsApp",
+    "bk.wa.hint": "Só mensagens sobre esta marcação, para o número acima.",
   },
   en: {
     "bk.notFound.title": "Page not found",
@@ -307,5 +309,7 @@ export const bookingDict: Record<BaseLang, Record<string, string>> = {
     "bk.auth.completeTitle": "Complete your details",
     "bk.auth.completeDesc": "We need your name and phone number to book.",
     "bk.auth.completeCta": "Save and continue",
+    "bk.wa.label": "Get the confirmation and reminder on WhatsApp",
+    "bk.wa.hint": "Only messages about this booking, to the number above.",
   },
 };

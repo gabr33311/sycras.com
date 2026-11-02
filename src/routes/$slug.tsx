@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { Captcha } from "@/components/captcha";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
@@ -172,6 +173,8 @@ function BookPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [notes, setNotes] = useState("");
+  // The client's consent to get the confirmation and reminder on WhatsApp.
+  const [whatsapp, setWhatsapp] = useState(false);
   const [busy, setBusy] = useState(false);
   const [stepIdx, setStepIdx] = useState(0);
   // Field errors shown under each input, so the client sees exactly what to fix.
@@ -182,6 +185,9 @@ function BookPage() {
   // The business asks for a code: true once it was emailed, then the client types it.
   const [codeSent, setCodeSent] = useState(false);
   const [code, setCode] = useState("");
+  // One-use captcha token (Turnstile); a new one after each try.
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const [captchaKey, setCaptchaKey] = useState(0);
 
   const stepKeys = useMemo<readonly string[]>(
     () =>
@@ -292,7 +298,7 @@ function BookPage() {
     }
     if (!serviceId || !time) return;
     const withCode = codeSent && !opts.resend;
-    if (withCode && !/^d{6}$/.test(code)) {
+    if (withCode && !/^\d{6}$/.test(code)) {
       setSubmitError(t("bk.code.invalid"));
       document.getElementById("code")?.focus();
       return;
@@ -312,15 +318,22 @@ function BookPage() {
           phone: parsed.data.phone,
           email: parsed.data.email,
           notes: parsed.data.notes,
+          ...(business.whatsapp && whatsapp ? { whatsapp: true } : {}),
           ...(withCode ? { code } : {}),
+          ...(captcha && !withCode ? { captchaToken: captcha } : {}),
         },
       });
+      if (!withCode) setCaptchaKey((k) => k + 1);
       if (!res.ok) {
         if (res.code === "needs_code") {
           if (opts.resend) toast.success(t("bk.code.resent"));
           setCodeSent(true);
           setCode("");
           setTimeout(() => document.getElementById("code")?.focus(), 50);
+          return;
+        }
+        if (res.code === "captcha") {
+          setSubmitError(t("auth.err.captcha"));
           return;
         }
         if (res.code === "slot_taken") {
@@ -829,6 +842,20 @@ function BookPage() {
                       placeholder="912 345 678"
                     />
                     <FieldError message={fieldErrors.phone} />
+                    {business.whatsapp && (
+                      <label className="mt-1.5 flex cursor-pointer items-start gap-2.5 rounded-xl border border-border bg-muted/40 p-3 text-sm">
+                        <input
+                          type="checkbox"
+                          className="mt-0.5 size-4 shrink-0 accent-[var(--brand)]"
+                          checked={whatsapp}
+                          onChange={(e) => setWhatsapp(e.target.checked)}
+                        />
+                        <span>
+                          <span className="block font-semibold">{t("bk.wa.label")}</span>
+                          <span className="block text-xs text-muted-foreground">{t("bk.wa.hint")}</span>
+                        </span>
+                      </label>
+                    )}
                   </div>
                   <div className="space-y-1 lg:col-span-2">
                     <Label htmlFor="obs" className="text-xs font-bold">
@@ -855,7 +882,7 @@ function BookPage() {
                         className="h-12 text-center font-display text-xl tracking-[0.4em]"
                         value={code}
                         onChange={(e) => {
-                          setCode(e.target.value.replace(/D/g, "").slice(0, 6));
+                          setCode(e.target.value.replace(/\D/g, "").slice(0, 6));
                           setSubmitError(null);
                         }}
                         maxLength={6}
@@ -888,6 +915,11 @@ function BookPage() {
                   {formatDateLong(`${date}T12:00:00Z`, business.timezone)}
                 </p>
               </div>
+              {!codeSent && (
+                <div className="w-full lg:order-first">
+                  <Captcha onToken={setCaptcha} resetKey={captchaKey} lang={lang} />
+                </div>
+              )}
               <FormError message={submitError} />
               <Button
                 type="submit"

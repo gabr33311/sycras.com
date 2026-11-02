@@ -529,6 +529,8 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "mg.unit.services": "serviços ativos",
     "mg.unit.reminder": "lembrete antes",
     "mg.unit.cancel": "para cancelar",
+    "rm.wa.toggle": "Mensagens por WhatsApp",
+    "rm.wa.desc": "Confirmação e lembrete por WhatsApp aos clientes que o pedirem ao marcar.",
   },
   en: {
     "pf.head.title": "Profile — SYCRAS",
@@ -1054,5 +1056,7 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "mg.unit.services": "active services",
     "mg.unit.reminder": "reminder before",
     "mg.unit.cancel": "to cancel",
+    "rm.wa.toggle": "WhatsApp messages",
+    "rm.wa.desc": "Confirmation and reminder on WhatsApp to clients who ask for it when booking.",
   },
 };

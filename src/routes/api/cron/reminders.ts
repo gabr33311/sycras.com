@@ -13,7 +13,13 @@ export const Route = createFileRoute("/api/cron/reminders")({
         }
         try {
           const { sendDueReminders } = await import("@/lib/reminders.server");
-          return Response.json(await sendDueReminders());
+          const { sendDueWhatsAppReminders } = await import("@/lib/whatsapp.server");
+          const email = await sendDueReminders();
+          const whatsapp = await sendDueWhatsAppReminders().catch((e) => {
+            console.error("[cron reminders] whatsapp failed", e);
+            return { sent: 0 };
+          });
+          return Response.json({ ...email, whatsapp: whatsapp.sent });
         } catch (e) {
           console.error("[cron reminders] failed", e);
           return Response.json({ error: "Failed" }, { status: 500 });

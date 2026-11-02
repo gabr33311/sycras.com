@@ -150,6 +150,7 @@ export type Database = {
           starts_at: string
           status: Database["public"]["Enums"]["appointment_status"]
           updated_at: string
+          whatsapp_ok: boolean
           user_id: string | null
         }
         Insert: {
@@ -170,6 +171,7 @@ export type Database = {
           starts_at: string
           status?: Database["public"]["Enums"]["appointment_status"]
           updated_at?: string
+          whatsapp_ok?: boolean
           user_id?: string | null
         }
         Update: {
@@ -190,6 +192,7 @@ export type Database = {
           starts_at?: string
           status?: Database["public"]["Enums"]["appointment_status"]
           updated_at?: string
+          whatsapp_ok?: boolean
           user_id?: string | null
         }
         Relationships: [
@@ -445,6 +448,7 @@ export type Database = {
           show_map: boolean
           suspended_at: string | null
           verify_bookings: boolean
+          whatsapp_reminders: boolean
           review_url: string | null
         }
         Insert: {
@@ -488,6 +492,7 @@ export type Database = {
           show_map?: boolean
           suspended_at?: string | null
           verify_bookings?: boolean
+          whatsapp_reminders?: boolean
           review_url?: string | null
         }
         Update: {
@@ -531,6 +536,7 @@ export type Database = {
           show_map?: boolean
           suspended_at?: string | null
           verify_bookings?: boolean
+          whatsapp_reminders?: boolean
           review_url?: string | null
         }
         Relationships: []

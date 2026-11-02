@@ -2,9 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { ArrowLeft, Check, Eye, EyeOff, Loader2, MailCheck } from "lucide-react";
+import { ArrowLeft, Check, Eye, EyeOff, Loader2, MailCheck, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { emailHasAccount } from "@/lib/booking.functions";
+import { Captcha } from "@/components/captcha";
+import { needsSecondStep, passwordLogin } from "@/lib/password-login";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,7 +52,7 @@ const emailSchema = z.string().trim().email().max(255);
 const CODE_LENGTH = 6;
 const RESEND_SECONDS = 60;
 
-type Mode = "login" | "register" | "verify" | "forgot";
+type Mode = "login" | "register" | "verify" | "forgot" | "mfa";
 
 /** Maps Supabase auth errors to clear messages. */
 function authMessage(err: unknown, t: (k: string) => string): string {
@@ -85,12 +87,19 @@ function AuthPage() {
   }
 
   // Already signed in (or the email link was opened in this browser): move on.
+  // Signed in: the two-step code first when the account has one, then on.
+  function signedIn() {
+    void needsSecondStep().then((more) => (more ? setMode("mfa") : goAfterAuth()));
+  }
+
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) goAfterAuth();
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      // MFA_CHALLENGE_VERIFIED is handled by the code step itself.
+      if (session && event !== "MFA_CHALLENGE_VERIFIED") signedIn();
+      if (event === "SIGNED_OUT") setMode("login");
     });
     void supabase.auth.getSession().then(({ data }) => {
-      if (data.session) goAfterAuth();
+      if (data.session) signedIn();
     });
     return () => sub.subscription.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -108,9 +117,10 @@ function AuthPage() {
           onRegister={() => setMode("register")}
           onForgot={() => setMode("forgot")}
           onNeedsVerify={() => setMode("verify")}
-          onDone={() => goAfterAuth()}
+          onDone={signedIn}
         />
       )}
+      {mode === "mfa" && <SecondStep onDone={() => goAfterAuth()} />}
       {mode === "register" && (
         <RegisterForm
           email={email}
@@ -261,6 +271,8 @@ function LoginForm({
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const [captchaKey, setCaptchaKey] = useState(0);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -275,29 +287,39 @@ function LoginForm({
     }
     setBusy(true);
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-      if (signInError) {
-        if (signInError.message.includes("Email not confirmed")) {
-          // Unconfirmed account: send a fresh code and go straight to the code step.
-          await supabase.auth.resend({ type: "signup", email: email.trim() });
-          onNeedsVerify();
-          return;
-        }
-        if (signInError.message.includes("Invalid login credentials")) {
-          const res = await emailHasAccount({ data: { email: email.trim() } }).catch(() => null);
-          setError(
-            res?.known && !res.registered
-              ? t("onb.auth.err.noAccount")
-              : t("onb.auth.err.invalidLogin"),
-          );
-          return;
-        }
-        throw signInError;
+      const res = await passwordLogin(email, password, captcha);
+      if (res.code === "ok") {
+        onDone();
+        return;
       }
-      onDone();
+      // Each token works once: get a new one for the next try.
+      setCaptchaKey((k) => k + 1);
+      if (res.code === "unconfirmed") {
+        // Unconfirmed account: send a fresh code and go straight to the code step.
+        await supabase.auth.resend({ type: "signup", email: email.trim() }).catch(() => null);
+        onNeedsVerify();
+        return;
+      }
+      if (res.code === "invalid") {
+        const known = await emailHasAccount({ data: { email: email.trim() } }).catch(() => null);
+        setError(
+          known?.known && !known.registered
+            ? t("onb.auth.err.noAccount")
+            : res.left <= 2
+              ? t("auth.err.triesLeft").replace("{n}", String(res.left))
+              : t("onb.auth.err.invalidLogin"),
+        );
+        return;
+      }
+      if (res.code === "locked") {
+        setError(t("auth.err.locked").replace("{n}", String(res.minutes)));
+        return;
+      }
+      if (res.code === "captcha") {
+        setError(t("auth.err.captcha"));
+        return;
+      }
+      setError(res.code === "rate_limit" ? t("onb.auth.err.rateLimit") : t("onb.auth.err.generic"));
     } catch (err) {
       setError(authMessage(err, t));
     } finally {
@@ -339,6 +361,7 @@ function LoginForm({
             autoComplete="current-password"
           />
         </div>
+        <Captcha onToken={setCaptcha} resetKey={captchaKey} />
         <FormError message={error} />
         <Button type="submit" size="lg" className="w-full" disabled={busy}>
           {busy && <Loader2 className="animate-spin" />}
@@ -380,6 +403,8 @@ function RegisterForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [exists, setExists] = useState(false);
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const [captchaKey, setCaptchaKey] = useState(0);
   const passwordOk = PASSWORD_RULES.every((r) => r.test(password));
 
   async function submit(e: React.FormEvent) {
@@ -406,9 +431,11 @@ function RegisterForm({
         password,
         options: {
           ...(redirect ? { emailRedirectTo: redirect } : {}),
+          ...(captcha ? { captchaToken: captcha } : {}),
           data: { full_name: name.trim() },
         },
       });
+      setCaptchaKey((k) => k + 1);
       if (signUpError) throw signUpError;
       // Email already registered (Supabase returns a user with no identities).
       if (data.user && data.user.identities?.length === 0) {
@@ -502,6 +529,7 @@ function RegisterForm({
         ) : (
           <FormError message={error} />
         )}
+        <Captcha onToken={setCaptcha} resetKey={captchaKey} />
         <Button type="submit" size="lg" className="w-full" disabled={busy}>
           {busy && <Loader2 className="animate-spin" />}
           {t("auth.continue")}
@@ -538,6 +566,8 @@ function VerifyCode({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [wait, setWait] = useState(RESEND_SECONDS);
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const [captchaKey, setCaptchaKey] = useState(0);
 
   useEffect(() => {
     if (wait <= 0) return;
@@ -574,8 +604,12 @@ function VerifyCode({
       const { error: resendError } = await supabase.auth.resend({
         type: "signup",
         email: email.trim(),
-        ...(redirect ? { options: { emailRedirectTo: redirect } } : {}),
+        options: {
+          ...(redirect ? { emailRedirectTo: redirect } : {}),
+          ...(captcha ? { captchaToken: captcha } : {}),
+        },
       });
+      setCaptchaKey((k) => k + 1);
       if (resendError) throw resendError;
       toast.success(t("onb.auth.success.resent"));
       setWait(RESEND_SECONDS);
@@ -635,6 +669,7 @@ function VerifyCode({
       <p className="mt-2 text-xs text-muted-foreground">{t("auth.verify.linkTip")}</p>
 
       <div className="mt-6 flex flex-col gap-2">
+        {wait <= 0 && <Captcha onToken={setCaptcha} resetKey={captchaKey} />}
         <Button variant="outline" onClick={() => void resend()} disabled={wait > 0}>
           {wait > 0 ? t("auth.verify.resendIn").replace("{s}", String(wait)) : t("onb.auth.resend")}
         </Button>
@@ -642,6 +677,85 @@ function VerifyCode({
           <ArrowLeft /> {t("auth.verify.changeEmail")}
         </Button>
       </div>
+    </section>
+  );
+}
+
+/** After the password, for accounts with two-step verification: the code from the authenticator app. */
+function SecondStep({ onDone }: { onDone: () => void }) {
+  const { t } = usePrefs();
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function verify(value: string) {
+    if (value.length !== CODE_LENGTH || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const { data } = await supabase.auth.mfa.listFactors();
+      const factor = data?.totp.find((x) => x.status === "verified");
+      if (!factor) throw new Error("no factor");
+      const { error: mfaError } = await supabase.auth.mfa.challengeAndVerify({
+        factorId: factor.id,
+        code: value,
+      });
+      if (mfaError) throw mfaError;
+      onDone();
+    } catch {
+      setError(t("auth.mfa.wrong"));
+      setCode("");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="surface animate-enter p-6 text-center sm:p-7">
+      <span className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-brand/12 dark:bg-brand/25 text-brand-ink">
+        <ShieldCheck className="size-7" />
+      </span>
+      <h1 className="mt-4 font-display text-2xl font-bold tracking-tight">{t("auth.mfa.title")}</h1>
+      <p className="mt-1.5 text-sm text-muted-foreground">{t("auth.mfa.body")}</p>
+
+      <div className="mt-6 flex justify-center">
+        <InputOTP
+          maxLength={CODE_LENGTH}
+          value={code}
+          onChange={(v) => {
+            setCode(v.replace(/\D/g, ""));
+            setError(null);
+          }}
+          onComplete={(v) => void verify(v)}
+          inputMode="numeric"
+          autoFocus
+          disabled={busy}
+        >
+          <InputOTPGroup className="gap-2">
+            {Array.from({ length: CODE_LENGTH }).map((_, i) => (
+              <InputOTPSlot
+                key={i}
+                index={i}
+                className="size-12 rounded-xl border bg-card text-xl font-bold shadow-none first:rounded-l-xl last:rounded-r-xl sm:size-13"
+              />
+            ))}
+          </InputOTPGroup>
+        </InputOTP>
+      </div>
+
+      <div className="mt-4 min-h-6">
+        {busy ? (
+          <p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" /> {t("auth.verify.checking")}
+          </p>
+        ) : (
+          <FormError message={error} className="text-left" />
+        )}
+      </div>
+
+      <Button variant="ghost" className="mt-4" onClick={() => void supabase.auth.signOut()}>
+        <ArrowLeft /> {t("auth.mfa.other")}
+      </Button>
     </section>
   );
 }
@@ -659,6 +773,8 @@ function ForgotForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const [captchaKey, setCaptchaKey] = useState(0);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -671,7 +787,9 @@ function ForgotForm({
     try {
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: `${window.location.origin}/reset-password`,
+        ...(captcha ? { captchaToken: captcha } : {}),
       });
+      setCaptchaKey((k) => k + 1);
       if (resetError) throw resetError;
       setSent(true);
     } catch (err) {
@@ -716,6 +834,7 @@ function ForgotForm({
             autoComplete="email"
           />
         </div>
+        <Captcha onToken={setCaptcha} resetKey={captchaKey} />
         <FormError message={error} />
         <Button type="submit" size="lg" className="w-full" disabled={busy}>
           {busy && <Loader2 className="animate-spin" />}

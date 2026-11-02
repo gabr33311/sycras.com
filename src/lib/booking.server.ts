@@ -41,6 +41,8 @@ export type PublicBusiness = {
   verify_bookings: boolean;
   /** The example page from the homepage: bookings are never saved. */
   is_demo: boolean;
+  /** Clients can ask for the confirmation and reminder on WhatsApp (Pro, turned on). */
+  whatsapp: boolean;
   /** The shop's map card (OpenStreetMap), when the owner shows the map and placed the pin. */
   map: { lat: number; lng: number; directions: string; label: string } | null;
 };
@@ -84,7 +86,7 @@ export type PublicStaff = {
 };
 
 const BUSINESS_FIELDS =
-  "id, slug, name, description, business_type, address, city, phone, email, website, instagram, logo_url, cover_url, brand_color, timezone, currency, cancellation_hours, slot_interval_minutes, seo_indexable, show_team, show_contacts, booking_horizon_months, latitude, longitude, show_map, verify_bookings, is_demo";
+  "id, slug, name, description, business_type, address, city, website, instagram, logo_url, cover_url, brand_color, timezone, currency, cancellation_hours, slot_interval_minutes, seo_indexable, show_team, show_contacts, booking_horizon_months, latitude, longitude, show_map, verify_bookings, is_demo, whatsapp_reminders";
 
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -199,6 +201,18 @@ export async function loadPublicBusiness(slug: string): Promise<{
 
   // Contacts only leave the server when the owner enables "show contacts".
   const showContacts = business.show_contacts === true;
+  // Phone and email are not readable with the public key (anyone could list them), so
+  // they come through the server key, and only when the owner shows them.
+  const contacts =
+    showContacts && process.env["SUPABASE_SERVICE_ROLE_KEY"]
+      ? (
+          await (await admin())
+            .from("businesses")
+            .select("phone, email")
+            .eq("id", business.id)
+            .maybeSingle()
+        ).data
+      : null;
   const { data: created } = await db
     .from("businesses")
     .select("created_at")
@@ -206,6 +220,14 @@ export async function loadPublicBusiness(slug: string): Promise<{
     .maybeSingle();
   const { businessAllowed } = await import("@/lib/billing.server");
   const bookable = created ? await businessAllowed(business.id, created.created_at) : true;
+  // WhatsApp is a Pro extra, offered only once the API is set up.
+  const { whatsappReady } = await import("@/lib/whatsapp.server");
+  const { businessHasPro } = await import("@/lib/billing.server");
+  const whatsapp =
+    business.whatsapp_reminders === true &&
+    whatsappReady() &&
+    !!created &&
+    (await businessHasPro(business.id, created.created_at));
 
   return {
     business: {
@@ -214,8 +236,9 @@ export async function loadPublicBusiness(slug: string): Promise<{
       cover_url,
       gallery: gallery.filter((u): u is string => !!u),
       map: shopMap(business),
-      phone: showContacts ? business.phone : null,
-      email: showContacts ? business.email : null,
+      phone: contacts?.phone ?? null,
+      email: contacts?.email ?? null,
+      whatsapp,
     } as PublicBusiness,
     services: (services ?? []) as PublicService[],
     staff: (staff ?? []).map((s) => ({
@@ -411,6 +434,30 @@ export async function hashIp(ip: string): Promise<string> {
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("")
     .slice(0, 32);
+}
+
+/**
+ * Cloudflare Turnstile check for the public booking form. Passes when the captcha is
+ * not set up (no TURNSTILE_SECRET_KEY), so bookings keep working before it is.
+ */
+export async function captchaPassed(token: string | undefined, ip: string): Promise<boolean> {
+  const secret = process.env["TURNSTILE_SECRET_KEY"];
+  if (!secret) return true;
+  if (!token) return false;
+  try {
+    const body = new URLSearchParams({ secret, response: token });
+    if (ip && ip !== "unknown") body.set("remoteip", ip);
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      body,
+    });
+    const out = (await res.json()) as { success?: boolean };
+    return out.success === true;
+  } catch (e) {
+    // Cloudflare down: let the booking through rather than lose it (rate limits still apply).
+    console.error("[captcha] siteverify failed", e);
+    return true;
+  }
 }
 
 /** Simple abuse guard: too many bookings from one IP or phone in a short window. */

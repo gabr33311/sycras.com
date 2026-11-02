@@ -33,6 +33,9 @@ export const Route = createFileRoute("/api/appointments/confirmed")({
           .eq("user_id", auth.user.id)
           .maybeSingle();
         if (!member) return Response.json({ status: "failed" }, { status: 403 });
+        // The client also gets it on WhatsApp when they asked for it (Pro).
+        const { sendWhatsApp } = await import("@/lib/whatsapp.server");
+        await sendWhatsApp(appt.id, "confirmed").catch(() => false);
         if (!appt.customer_email) return Response.json({ status: "no_email" });
 
         const { sendConfirmedEmail } = await import("@/lib/confirmation-email.server");

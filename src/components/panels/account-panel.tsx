@@ -19,6 +19,8 @@ import { ConfirmAction } from "@/components/confirm-action";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyBusiness } from "@/hooks/use-business";
 import { useSubscription } from "@/hooks/use-subscription";
+import { Captcha } from "@/components/captcha";
+import { TwoStep } from "@/components/two-step";
 import { usePrefs } from "@/lib/prefs";
 
 /** Account: sign-in email, password, pause the business, delete everything. */
@@ -32,6 +34,8 @@ export function AccountPanel() {
   const [open, setOpen] = useState<"email" | "password" | null>(null);
   const [newEmail, setNewEmail] = useState("");
   const [current, setCurrent] = useState("");
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const [captchaKey, setCaptchaKey] = useState(0);
   const [next, setNext] = useState("");
   const [busy, setBusy] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -81,18 +85,26 @@ export function AccountPanel() {
     if (next.length < 8) return void toast.error(t("acc.password.short"));
     if (!user?.email) return;
     setBusy(true);
-    // The current password first, so an open laptop is not enough to take the account.
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: current,
-    });
-    if (authError) {
-      setBusy(false);
-      return void toast.error(t("acc.password.wrong"));
-    }
-    const { error } = await supabase.auth.updateUser({ password: next });
+    // The server checks the current password (an open laptop is not enough to take the
+    // account) under the same lock as sign-in, so it cannot be guessed either.
+    const { data: s } = await supabase.auth.getSession();
+    const res = await fetch("/api/auth/password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${s.session?.access_token ?? ""}`,
+      },
+      body: JSON.stringify({ current, next, captchaToken: captcha }),
+    }).catch(() => null);
+    const body = (await res?.json().catch(() => ({}))) as { code?: string; minutes?: number };
     setBusy(false);
-    if (error) return void toast.error(error.message);
+    setCaptchaKey((k) => k + 1);
+    if (body.code === "locked")
+      return void toast.error(t("auth.err.locked").replace("{n}", String(body.minutes ?? 15)));
+    if (body.code === "invalid") return void toast.error(t("acc.password.wrong"));
+    if (body.code === "captcha") return void toast.error(t("auth.err.captcha"));
+    if (body.code === "weak") return void toast.error(t("onb.auth.err.weakPassword"));
+    if (body.code !== "ok") return void toast.error(t("acc.error"));
     toast.success(t("acc.password.changed"));
     setOpen(null);
     setCurrent("");
@@ -217,9 +229,14 @@ export function AccountPanel() {
               {busy && <Loader2 className="animate-spin" />}
               {t("acc.password.change")}
             </Button>
+            <div className="sm:col-span-3">
+              <Captcha onToken={setCaptcha} resetKey={captchaKey} />
+            </div>
           </div>
         )}
       </div>
+
+      <TwoStep />
 
       {canManage && business && (
         <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">

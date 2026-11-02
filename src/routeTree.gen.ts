@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CaptchaRouteImport } from './routes/captcha'
 import { Route as EliminarContaRouteImport } from './routes/eliminar-conta'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -37,6 +38,8 @@ import { Route as ApiAccountExportRouteImport } from './routes/api/account/expor
 import { Route as ApiAppointmentsCancelledRouteImport } from './routes/api/appointments/cancelled'
 import { Route as ApiAppointmentsConfirmedRouteImport } from './routes/api/appointments/confirmed'
 import { Route as ApiAppointmentsMovedRouteImport } from './routes/api/appointments/moved'
+import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
+import { Route as ApiAuthPasswordRouteImport } from './routes/api/auth/password'
 import { Route as ApiBillingCheckoutRouteImport } from './routes/api/billing/checkout'
 import { Route as ApiBillingReturnRouteImport } from './routes/api/billing/return'
 import { Route as ApiCronRemindersRouteImport } from './routes/api/cron/reminders'
@@ -62,6 +65,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CaptchaRoute = CaptchaRouteImport.update({
+  id: '/captcha',
+  path: '/captcha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EliminarContaRoute = EliminarContaRouteImport.update({
@@ -187,6 +195,16 @@ const ApiAppointmentsMovedRoute = ApiAppointmentsMovedRouteImport.update({
   path: '/api/appointments/moved',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
+  id: '/api/auth/login',
+  path: '/api/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthPasswordRoute = ApiAuthPasswordRouteImport.update({
+  id: '/api/auth/password',
+  path: '/api/auth/password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBillingCheckoutRoute = ApiBillingCheckoutRouteImport.update({
   id: '/api/billing/checkout',
   path: '/api/billing/checkout',
@@ -227,6 +245,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/auth': typeof AuthRoute
+  '/captcha': typeof CaptchaRoute
   '/eliminar-conta': typeof EliminarContaRoute
   '/privacidade': typeof PrivacidadeRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -251,6 +270,8 @@ export interface FileRoutesByFullPath {
   '/api/appointments/cancelled': typeof ApiAppointmentsCancelledRoute
   '/api/appointments/confirmed': typeof ApiAppointmentsConfirmedRoute
   '/api/appointments/moved': typeof ApiAppointmentsMovedRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/password': typeof ApiAuthPasswordRoute
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/return': typeof ApiBillingReturnRoute
   '/api/cron/reminders': typeof ApiCronRemindersRoute
@@ -263,6 +284,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/auth': typeof AuthRoute
+  '/captcha': typeof CaptchaRoute
   '/eliminar-conta': typeof EliminarContaRoute
   '/privacidade': typeof PrivacidadeRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -287,6 +309,8 @@ export interface FileRoutesByTo {
   '/api/appointments/cancelled': typeof ApiAppointmentsCancelledRoute
   '/api/appointments/confirmed': typeof ApiAppointmentsConfirmedRoute
   '/api/appointments/moved': typeof ApiAppointmentsMovedRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/password': typeof ApiAuthPasswordRoute
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/return': typeof ApiBillingReturnRoute
   '/api/cron/reminders': typeof ApiCronRemindersRoute
@@ -301,6 +325,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/$slug': typeof SlugRoute
   '/auth': typeof AuthRoute
+  '/captcha': typeof CaptchaRoute
   '/eliminar-conta': typeof EliminarContaRoute
   '/privacidade': typeof PrivacidadeRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -325,6 +350,8 @@ export interface FileRoutesById {
   '/api/appointments/cancelled': typeof ApiAppointmentsCancelledRoute
   '/api/appointments/confirmed': typeof ApiAppointmentsConfirmedRoute
   '/api/appointments/moved': typeof ApiAppointmentsMovedRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/password': typeof ApiAuthPasswordRoute
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/return': typeof ApiBillingReturnRoute
   '/api/cron/reminders': typeof ApiCronRemindersRoute
@@ -339,6 +366,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/auth'
+    | '/captcha'
     | '/eliminar-conta'
     | '/privacidade'
     | '/reset-password'
@@ -363,6 +391,8 @@ export interface FileRouteTypes {
     | '/api/appointments/cancelled'
     | '/api/appointments/confirmed'
     | '/api/appointments/moved'
+    | '/api/auth/login'
+    | '/api/auth/password'
     | '/api/billing/checkout'
     | '/api/billing/return'
     | '/api/cron/reminders'
@@ -375,6 +405,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/auth'
+    | '/captcha'
     | '/eliminar-conta'
     | '/privacidade'
     | '/reset-password'
@@ -399,6 +430,8 @@ export interface FileRouteTypes {
     | '/api/appointments/cancelled'
     | '/api/appointments/confirmed'
     | '/api/appointments/moved'
+    | '/api/auth/login'
+    | '/api/auth/password'
     | '/api/billing/checkout'
     | '/api/billing/return'
     | '/api/cron/reminders'
@@ -412,6 +445,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/$slug'
     | '/auth'
+    | '/captcha'
     | '/eliminar-conta'
     | '/privacidade'
     | '/reset-password'
@@ -436,6 +470,8 @@ export interface FileRouteTypes {
     | '/api/appointments/cancelled'
     | '/api/appointments/confirmed'
     | '/api/appointments/moved'
+    | '/api/auth/login'
+    | '/api/auth/password'
     | '/api/billing/checkout'
     | '/api/billing/return'
     | '/api/cron/reminders'
@@ -450,6 +486,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   SlugRoute: typeof SlugRoute
   AuthRoute: typeof AuthRoute
+  CaptchaRoute: typeof CaptchaRoute
   EliminarContaRoute: typeof EliminarContaRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -462,6 +499,8 @@ export interface RootRouteChildren {
   ApiAppointmentsCancelledRoute: typeof ApiAppointmentsCancelledRoute
   ApiAppointmentsConfirmedRoute: typeof ApiAppointmentsConfirmedRoute
   ApiAppointmentsMovedRoute: typeof ApiAppointmentsMovedRoute
+  ApiAuthLoginRoute: typeof ApiAuthLoginRoute
+  ApiAuthPasswordRoute: typeof ApiAuthPasswordRoute
   ApiBillingCheckoutRoute: typeof ApiBillingCheckoutRoute
   ApiBillingReturnRoute: typeof ApiBillingReturnRoute
   ApiCronRemindersRoute: typeof ApiCronRemindersRoute
@@ -499,6 +538,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/captcha': {
+      id: '/captcha'
+      path: '/captcha'
+      fullPath: '/captcha'
+      preLoaderRoute: typeof CaptchaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/eliminar-conta': {
@@ -669,6 +715,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAppointmentsMovedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/login': {
+      id: '/api/auth/login'
+      path: '/api/auth/login'
+      fullPath: '/api/auth/login'
+      preLoaderRoute: typeof ApiAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/password': {
+      id: '/api/auth/password'
+      path: '/api/auth/password'
+      fullPath: '/api/auth/password'
+      preLoaderRoute: typeof ApiAuthPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/billing/checkout': {
       id: '/api/billing/checkout'
       path: '/api/billing/checkout'
@@ -759,6 +819,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   SlugRoute: SlugRoute,
   AuthRoute: AuthRoute,
+  CaptchaRoute: CaptchaRoute,
   EliminarContaRoute: EliminarContaRoute,
   PrivacidadeRoute: PrivacidadeRoute,
   ResetPasswordRoute: ResetPasswordRoute,
@@ -771,6 +832,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAppointmentsCancelledRoute: ApiAppointmentsCancelledRoute,
   ApiAppointmentsConfirmedRoute: ApiAppointmentsConfirmedRoute,
   ApiAppointmentsMovedRoute: ApiAppointmentsMovedRoute,
+  ApiAuthLoginRoute: ApiAuthLoginRoute,
+  ApiAuthPasswordRoute: ApiAuthPasswordRoute,
   ApiBillingCheckoutRoute: ApiBillingCheckoutRoute,
   ApiBillingReturnRoute: ApiBillingReturnRoute,
   ApiCronRemindersRoute: ApiCronRemindersRoute,
