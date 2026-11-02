@@ -3,9 +3,11 @@ import { useEffect, useRef } from "react";
 /**
  * Cloudflare Turnstile: proves a person (not a script) is behind a sign-in, sign-up,
  * password reset or public booking. Most people never see a puzzle. Without the
- * site key (VITE_TURNSTILE_SITE_KEY) nothing renders and forms work as before.
+ * site key nothing renders and forms work as before.
  */
-export const CAPTCHA_SITE_KEY: string | undefined = import.meta.env["VITE_TURNSTILE_SITE_KEY"];
+// The site key is public (it ships in every page); the secret one lives only on the servers.
+export const CAPTCHA_SITE_KEY: string | undefined =
+  import.meta.env["VITE_TURNSTILE_SITE_KEY"] || "0x4AAAAAAFwmplaginRcufQi";
 export const CAPTCHA_ON = !!CAPTCHA_SITE_KEY;
 
 type Turnstile = {
