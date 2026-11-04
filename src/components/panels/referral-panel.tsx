@@ -43,9 +43,10 @@ async function call(method: "GET" | "POST", body?: unknown) {
 export function ReferralPanel() {
   const { t } = usePrefs();
   const qc = useQueryClient();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["referral"],
     queryFn: () => call("GET") as Promise<Summary>,
+    retry: 1,
   });
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -55,6 +56,16 @@ export function ReferralPanel() {
   const [iban, setIban] = useState("");
   const [busy, setBusy] = useState(false);
 
+  if (isError) {
+    return (
+      <section className="surface mt-4 flex flex-wrap items-center justify-between gap-3 p-5 text-sm">
+        <span className="text-muted-foreground">{t("ref.error")}</span>
+        <Button variant="outline" size="sm" onClick={() => void refetch()}>
+          {t("ref.retry")}
+        </Button>
+      </section>
+    );
+  }
   if (isLoading || !data) {
     return (
       <section className="surface mt-4 flex items-center gap-2 p-5 text-sm text-muted-foreground">

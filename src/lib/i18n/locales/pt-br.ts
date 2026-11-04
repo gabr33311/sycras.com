@@ -1157,4 +1157,6 @@ export const ptBR: Record<string, string> = {
   "ref.signup.label": "Código de convite (opcional)",
   "ref.signup.hint": "Com um código você ganha 15 dias grátis a mais.",
   "ref.applied": "Convite aplicado: você tem mais 15 dias grátis.",
+  "ref.error": "Não foi possível carregar seus convites.",
+  "ref.retry": "Tentar de novo",
 };

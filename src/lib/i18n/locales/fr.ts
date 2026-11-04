@@ -1171,4 +1171,6 @@ export const fr: Record<string, string> = {
   "ref.signup.label": "Code de parrainage (facultatif)",
   "ref.signup.hint": "Avec un code, vous gagnez 15 jours gratuits de plus.",
   "ref.applied": "Parrainage appliqué : 15 jours gratuits de plus.",
+  "ref.error": "Impossible de charger vos parrainages.",
+  "ref.retry": "Réessayer",
 };

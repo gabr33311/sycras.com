@@ -1162,4 +1162,6 @@ export const it: Record<string, string> = {
   "ref.signup.label": "Codice di invito (facoltativo)",
   "ref.signup.hint": "Con un codice ottieni 15 giorni gratis in più.",
   "ref.applied": "Invito applicato: hai 15 giorni gratis in più.",
+  "ref.error": "Impossibile caricare i tuoi inviti.",
+  "ref.retry": "Riprova",
 };

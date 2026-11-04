@@ -1155,4 +1155,6 @@ export const es: Record<string, string> = {
   "ref.signup.label": "Código de invitación (opcional)",
   "ref.signup.hint": "Con un código ganas 15 días gratis más.",
   "ref.applied": "Invitación aplicada: tienes 15 días gratis más.",
+  "ref.error": "No se pudieron cargar tus invitaciones.",
+  "ref.retry": "Reintentar",
 };

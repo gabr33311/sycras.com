@@ -564,6 +564,8 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "ref.signup.label": "Código de convite (opcional)",
     "ref.signup.hint": "Com um código ganhas 15 dias grátis a mais.",
     "ref.applied": "Convite aplicado: tens mais 15 dias grátis.",
+    "ref.error": "Não foi possível carregar os teus convites.",
+    "ref.retry": "Tentar outra vez",
   },
   en: {
     "pf.head.title": "Profile — SYCRAS",
@@ -1124,5 +1126,7 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "ref.signup.label": "Invite code (optional)",
     "ref.signup.hint": "With a code you get 15 extra free days.",
     "ref.applied": "Invite applied: you have 15 more free days.",
+    "ref.error": "Couldn't load your invites.",
+    "ref.retry": "Try again",
   },
 };

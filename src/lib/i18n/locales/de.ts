@@ -1169,4 +1169,6 @@ export const de: Record<string, string> = {
   "ref.signup.label": "Einladungscode (optional)",
   "ref.signup.hint": "Mit einem Code bekommst du 15 Gratistage extra.",
   "ref.applied": "Einladung angewendet: 15 Gratistage mehr.",
+  "ref.error": "Einladungen konnten nicht geladen werden.",
+  "ref.retry": "Erneut versuchen",
 };
