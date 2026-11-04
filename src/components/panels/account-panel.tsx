@@ -104,6 +104,7 @@ export function AccountPanel() {
     if (body.code === "invalid") return void toast.error(t("acc.password.wrong"));
     if (body.code === "captcha") return void toast.error(t("auth.err.captcha"));
     if (body.code === "weak") return void toast.error(t("onb.auth.err.weakPassword"));
+    if (body.code === "breached") return void toast.error(t("auth.err.breached"));
     if (body.code !== "ok") return void toast.error(t("acc.error"));
     toast.success(t("acc.password.changed"));
     setOpen(null);

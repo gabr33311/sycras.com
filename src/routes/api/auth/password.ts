@@ -51,6 +51,10 @@ export const Route = createFileRoute("/api/auth/password")({
         }
         await guard.clearFailures(emailHash);
 
+        // A password from a known data breach is the first one attackers try.
+        const { passwordBreached } = await import("@/lib/pwned.server");
+        if (await passwordBreached(next)) return Response.json({ code: "breached" }, { status: 400 });
+
         const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
           password: next,
         });

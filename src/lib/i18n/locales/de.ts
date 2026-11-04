@@ -1096,4 +1096,5 @@ export const de: Record<string, string> = {
   "bk.wa.hint": "Nur Nachrichten zu diesem Termin, an die Nummer oben.",
   "rm.wa.toggle": "WhatsApp-Nachrichten",
   "rm.wa.desc": "Bestätigung und Erinnerung per WhatsApp an Kunden, die das bei der Buchung wählen.",
+  "auth.err.breached": "Dieses Passwort tauchte in Datenlecks anderer Seiten auf. Wähle ein anderes.",
 };

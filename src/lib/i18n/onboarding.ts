@@ -333,6 +333,7 @@ export const onboardingDict: Record<BaseLang, Record<string, string>> = {
     "mfa.off.title": "Desativar a verificação em dois passos?",
     "mfa.off.desc": "A conta passa a ficar protegida só pela palavra-passe.",
     "mfa.off.confirm": "Desativar",
+    "auth.err.breached": "Esta palavra-passe apareceu em fugas de dados de outros sites. Escolhe outra.",
   },
   en: {
     "onb.meta.title": "Set up your business — SYCRAS",
@@ -651,5 +652,6 @@ export const onboardingDict: Record<BaseLang, Record<string, string>> = {
     "mfa.off.title": "Turn off two-step verification?",
     "mfa.off.desc": "The account will be protected by the password only.",
     "mfa.off.confirm": "Turn off",
+    "auth.err.breached": "This password appeared in data breaches on other sites. Choose another one.",
   },
 };

@@ -1,12 +1,18 @@
-// Server-only: stops password guessing. After 5 wrong passwords an email is locked for
-// 15 minutes; after 30 wrong passwords from one network, that network is locked too.
+// Server-only: stops password guessing without letting a stranger lock the owner out.
+// - 5 wrong passwords for an email from one network lock that email on that network for
+//   15 minutes (whoever is guessing locks only themselves; the owner still gets in at home).
+// - 50 wrong passwords for an email from all networks in an hour lock it everywhere
+//   (guessing spread over many networks; each try also needs a solved captcha).
+// - 30 wrong passwords from one network lock that network.
 // The attempts live in security_events (kind "login_failed"), hashed, never in clear.
 import { createClient } from "@supabase/supabase-js";
 import { hashIp } from "@/lib/booking.server";
 
 export const MAX_TRIES = 5;
 const MAX_IP_TRIES = 30;
+const MAX_EMAIL_TRIES = 50;
 const WINDOW_MS = 15 * 60 * 1000;
+const EMAIL_WINDOW_MS = 60 * 60 * 1000;
 
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -36,15 +42,22 @@ export function requestIp(request: Request): string {
 export async function lockedFor(emailHash: string, ipHash: string): Promise<number> {
   const db = await admin();
   const since = new Date(Date.now() - WINDOW_MS).toISOString();
-  const [byEmail, byIp] = await Promise.all([
+  const [here, everywhere, byIp] = await Promise.all([
     db
       .from("security_events")
       .select("created_at")
       .eq("kind", "login_failed")
       .eq("identifier", emailHash)
+      .eq("ip_hash", ipHash)
       .gte("created_at", since)
       .order("created_at", { ascending: false })
       .limit(MAX_TRIES),
+    db
+      .from("security_events")
+      .select("id", { count: "exact", head: true })
+      .eq("kind", "login_failed")
+      .eq("identifier", emailHash)
+      .gte("created_at", new Date(Date.now() - EMAIL_WINDOW_MS).toISOString()),
     db
       .from("security_events")
       .select("id", { count: "exact", head: true })
@@ -54,9 +67,10 @@ export async function lockedFor(emailHash: string, ipHash: string): Promise<numb
   ]);
   const minutesFrom = (iso: string) =>
     Math.max(1, Math.ceil((new Date(iso).getTime() + WINDOW_MS - Date.now()) / 60000));
-  const rows = byEmail.data ?? [];
+  const rows = here.data ?? [];
   if (rows.length >= MAX_TRIES) return minutesFrom(rows[MAX_TRIES - 1]!.created_at);
   if ((byIp.count ?? 0) >= MAX_IP_TRIES) return 15;
+  if ((everywhere.count ?? 0) >= MAX_EMAIL_TRIES) return 60;
   return 0;
 }
 
@@ -71,6 +85,7 @@ export async function recordFailure(emailHash: string, ipHash: string): Promise<
     .select("id", { count: "exact", head: true })
     .eq("kind", "login_failed")
     .eq("identifier", emailHash)
+    .eq("ip_hash", ipHash)
     .gte("created_at", new Date(Date.now() - WINDOW_MS).toISOString());
   return Math.max(0, MAX_TRIES - (count ?? 0));
 }

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, KeyRound } from "lucide-react";
 import { usePrefs } from "@/lib/prefs";
+import { isBreachedPassword } from "@/lib/password-breached";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -30,6 +31,7 @@ const COPY = {
     submit: "Guardar palavra-passe",
     rules: "Mínimo 8 caracteres, com maiúscula, minúscula e número.",
     weak: "A palavra-passe tem de ter 8 caracteres, maiúscula, minúscula e número.",
+    breached: "Esta palavra-passe apareceu em fugas de dados de outros sites. Escolhe outra.",
     mismatch: "As palavras-passe não coincidem.",
     noSession: "Link inválido ou expirado. Pede um novo email de reposição.",
     done: "Palavra-passe atualizada.",
@@ -44,6 +46,7 @@ const COPY = {
     submit: "Save password",
     rules: "At least 8 characters, with uppercase, lowercase and a number.",
     weak: "Password needs 8 characters, uppercase, lowercase and a number.",
+    breached: "This password appeared in data breaches on other sites. Choose another one.",
     mismatch: "Passwords do not match.",
     noSession: "Invalid or expired link. Request a new reset email.",
     done: "Password updated.",
@@ -58,6 +61,7 @@ const COPY = {
     submit: "Salvar senha",
     rules: "Mínimo de 8 caracteres, com maiúscula, minúscula e número.",
     weak: "A senha precisa ter 8 caracteres, maiúscula, minúscula e número.",
+    breached: "Esta senha apareceu em vazamentos de dados de outros sites. Escolha outra.",
     mismatch: "As senhas não coincidem.",
     noSession: "Link inválido ou expirado. Peça um novo e-mail de redefinição.",
     done: "Senha atualizada.",
@@ -72,6 +76,7 @@ const COPY = {
     submit: "Guardar contraseña",
     rules: "Mínimo 8 caracteres, con mayúscula, minúscula y número.",
     weak: "La contraseña debe tener 8 caracteres, mayúscula, minúscula y número.",
+    breached: "Esta contraseña apareció en filtraciones de datos de otros sitios. Elige otra.",
     mismatch: "Las contraseñas no coinciden.",
     noSession: "Enlace no válido o caducado. Pide un nuevo email de recuperación.",
     done: "Contraseña actualizada.",
@@ -86,6 +91,7 @@ const COPY = {
     submit: "Enregistrer le mot de passe",
     rules: "8 caractères minimum, avec majuscule, minuscule et chiffre.",
     weak: "Le mot de passe doit contenir 8 caractères, une majuscule, une minuscule et un chiffre.",
+    breached: "Ce mot de passe est apparu dans des fuites de données d'autres sites. Choisissez-en un autre.",
     mismatch: "Les mots de passe ne correspondent pas.",
     noSession: "Lien invalide ou expiré. Demandez un nouvel e-mail de réinitialisation.",
     done: "Mot de passe mis à jour.",
@@ -100,6 +106,7 @@ const COPY = {
     submit: "Salva password",
     rules: "Minimo 8 caratteri, con maiuscola, minuscola e numero.",
     weak: "La password deve avere 8 caratteri, una maiuscola, una minuscola e un numero.",
+    breached: "Questa password è comparsa in fughe di dati di altri siti. Scegline un'altra.",
     mismatch: "Le password non coincidono.",
     noSession: "Link non valido o scaduto. Richiedi una nuova email di reimpostazione.",
     done: "Password aggiornata.",
@@ -114,6 +121,7 @@ const COPY = {
     submit: "Passwort speichern",
     rules: "Mindestens 8 Zeichen, mit Groß- und Kleinbuchstaben und einer Zahl.",
     weak: "Das Passwort braucht 8 Zeichen, Groß- und Kleinbuchstaben und eine Zahl.",
+    breached: "Dieses Passwort tauchte in Datenlecks anderer Seiten auf. Wähle ein anderes.",
     mismatch: "Die Passwörter stimmen nicht überein.",
     noSession: "Ungültiger oder abgelaufener Link. Fordere eine neue E-Mail zum Zurücksetzen an.",
     done: "Passwort aktualisiert.",
@@ -160,6 +168,12 @@ function ResetPasswordPage() {
       return;
     }
     setBusy(true);
+    // A password from a known data breach is the first one attackers try.
+    if (await isBreachedPassword(password)) {
+      setBusy(false);
+      toast.error(c.breached);
+      return;
+    }
     const { error } = await supabase.auth.updateUser({ password });
     setBusy(false);
     if (error) {

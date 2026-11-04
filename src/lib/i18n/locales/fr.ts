@@ -1098,4 +1098,5 @@ export const fr: Record<string, string> = {
   "bk.wa.hint": "Uniquement des messages sur ce rendez-vous, au numéro ci-dessus.",
   "rm.wa.toggle": "Messages WhatsApp",
   "rm.wa.desc": "Confirmation et rappel sur WhatsApp aux clients qui le demandent en réservant.",
+  "auth.err.breached": "Ce mot de passe est apparu dans des fuites de données d'autres sites. Choisissez-en un autre.",
 };

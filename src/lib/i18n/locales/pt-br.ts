@@ -1084,4 +1084,5 @@ export const ptBR: Record<string, string> = {
   "bk.wa.hint": "Só mensagens sobre este agendamento, para o número acima.",
   "rm.wa.toggle": "Mensagens pelo WhatsApp",
   "rm.wa.desc": "Confirmação e lembrete pelo WhatsApp aos clientes que pedirem ao agendar.",
+  "auth.err.breached": "Esta senha apareceu em vazamentos de dados de outros sites. Escolha outra.",
 };

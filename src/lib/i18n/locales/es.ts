@@ -1082,4 +1082,5 @@ export const es: Record<string, string> = {
   "bk.wa.hint": "Solo mensajes sobre esta cita, al número de arriba.",
   "rm.wa.toggle": "Mensajes por WhatsApp",
   "rm.wa.desc": "Confirmación y recordatorio por WhatsApp a los clientes que lo pidan al reservar.",
+  "auth.err.breached": "Esta contraseña apareció en filtraciones de datos de otros sitios. Elige otra.",
 };

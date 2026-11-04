@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { emailHasAccount } from "@/lib/booking.functions";
 import { Captcha } from "@/components/captcha";
 import { needsSecondStep, passwordLogin } from "@/lib/password-login";
+import { isBreachedPassword } from "@/lib/password-breached";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -425,6 +426,11 @@ function RegisterForm({
     }
     setBusy(true);
     try {
+      // A password from a known data breach is the first one attackers try.
+      if (await isBreachedPassword(password)) {
+        setError(t("auth.err.breached"));
+        return;
+      }
       const redirect = redirectTo();
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: email.trim(),

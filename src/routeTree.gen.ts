@@ -40,6 +40,7 @@ import { Route as ApiAppointmentsConfirmedRouteImport } from './routes/api/appoi
 import { Route as ApiAppointmentsMovedRouteImport } from './routes/api/appointments/moved'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as ApiAuthPasswordRouteImport } from './routes/api/auth/password'
+import { Route as ApiAuthPasswordCheckRouteImport } from './routes/api/auth/password-check'
 import { Route as ApiBillingCheckoutRouteImport } from './routes/api/billing/checkout'
 import { Route as ApiBillingReturnRouteImport } from './routes/api/billing/return'
 import { Route as ApiCronRemindersRouteImport } from './routes/api/cron/reminders'
@@ -205,6 +206,11 @@ const ApiAuthPasswordRoute = ApiAuthPasswordRouteImport.update({
   path: '/api/auth/password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthPasswordCheckRoute = ApiAuthPasswordCheckRouteImport.update({
+  id: '/api/auth/password-check',
+  path: '/api/auth/password-check',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBillingCheckoutRoute = ApiBillingCheckoutRouteImport.update({
   id: '/api/billing/checkout',
   path: '/api/billing/checkout',
@@ -272,6 +278,7 @@ export interface FileRoutesByFullPath {
   '/api/appointments/moved': typeof ApiAppointmentsMovedRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/password': typeof ApiAuthPasswordRoute
+  '/api/auth/password-check': typeof ApiAuthPasswordCheckRoute
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/return': typeof ApiBillingReturnRoute
   '/api/cron/reminders': typeof ApiCronRemindersRoute
@@ -311,6 +318,7 @@ export interface FileRoutesByTo {
   '/api/appointments/moved': typeof ApiAppointmentsMovedRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/password': typeof ApiAuthPasswordRoute
+  '/api/auth/password-check': typeof ApiAuthPasswordCheckRoute
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/return': typeof ApiBillingReturnRoute
   '/api/cron/reminders': typeof ApiCronRemindersRoute
@@ -352,6 +360,7 @@ export interface FileRoutesById {
   '/api/appointments/moved': typeof ApiAppointmentsMovedRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/password': typeof ApiAuthPasswordRoute
+  '/api/auth/password-check': typeof ApiAuthPasswordCheckRoute
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/return': typeof ApiBillingReturnRoute
   '/api/cron/reminders': typeof ApiCronRemindersRoute
@@ -393,6 +402,7 @@ export interface FileRouteTypes {
     | '/api/appointments/moved'
     | '/api/auth/login'
     | '/api/auth/password'
+    | '/api/auth/password-check'
     | '/api/billing/checkout'
     | '/api/billing/return'
     | '/api/cron/reminders'
@@ -432,6 +442,7 @@ export interface FileRouteTypes {
     | '/api/appointments/moved'
     | '/api/auth/login'
     | '/api/auth/password'
+    | '/api/auth/password-check'
     | '/api/billing/checkout'
     | '/api/billing/return'
     | '/api/cron/reminders'
@@ -472,6 +483,7 @@ export interface FileRouteTypes {
     | '/api/appointments/moved'
     | '/api/auth/login'
     | '/api/auth/password'
+    | '/api/auth/password-check'
     | '/api/billing/checkout'
     | '/api/billing/return'
     | '/api/cron/reminders'
@@ -501,6 +513,7 @@ export interface RootRouteChildren {
   ApiAppointmentsMovedRoute: typeof ApiAppointmentsMovedRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthPasswordRoute: typeof ApiAuthPasswordRoute
+  ApiAuthPasswordCheckRoute: typeof ApiAuthPasswordCheckRoute
   ApiBillingCheckoutRoute: typeof ApiBillingCheckoutRoute
   ApiBillingReturnRoute: typeof ApiBillingReturnRoute
   ApiCronRemindersRoute: typeof ApiCronRemindersRoute
@@ -729,6 +742,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/password-check': {
+      id: '/api/auth/password-check'
+      path: '/api/auth/password-check'
+      fullPath: '/api/auth/password-check'
+      preLoaderRoute: typeof ApiAuthPasswordCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/billing/checkout': {
       id: '/api/billing/checkout'
       path: '/api/billing/checkout'
@@ -834,6 +854,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAppointmentsMovedRoute: ApiAppointmentsMovedRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthPasswordRoute: ApiAuthPasswordRoute,
+  ApiAuthPasswordCheckRoute: ApiAuthPasswordCheckRoute,
   ApiBillingCheckoutRoute: ApiBillingCheckoutRoute,
   ApiBillingReturnRoute: ApiBillingReturnRoute,
   ApiCronRemindersRoute: ApiCronRemindersRoute,
