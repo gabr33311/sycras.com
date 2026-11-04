@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { applyInvite } from "@/lib/invite";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import {
@@ -406,6 +407,8 @@ function Onboarding() {
         }
       }
       if (imageFailed) toast.error(t("ob.err.image"));
+      // Came with an invite: 15 more free days.
+      if (await applyInvite().catch(() => false)) toast.success(t("ref.applied"));
       window.localStorage.setItem("active_business", business.id);
       setCreatedSlug(business.slug);
     } catch (err) {

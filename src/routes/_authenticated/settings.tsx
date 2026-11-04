@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SubPage } from "@/components/sub-page";
 import { SettingsPanel, SignOutButton } from "@/components/panels/settings-panel";
 import { AccountPanel } from "@/components/panels/account-panel";
+import { ReferralPanel } from "@/components/panels/referral-panel";
 import { usePrefs } from "@/lib/prefs";
 
 // How the app looks and the account, opened from the gear on Manage. The plan lives on Manage.
@@ -21,6 +22,7 @@ function SettingsPage() {
   return (
     <SubPage title={t("pf.s.settings")} back="/profile">
       <SettingsPanel />
+      <ReferralPanel />
       <AccountPanel />
       <SignOutButton />
     </SubPage>

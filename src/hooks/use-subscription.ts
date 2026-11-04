@@ -23,7 +23,7 @@ export function useSubscription(): { access: Access | null; isLoading: boolean }
     },
   });
   if (!business || data === undefined) return { access: null, isLoading };
-  return { access: computeAccess(business.created_at, data), isLoading };
+  return { access: computeAccess(business.created_at, data, new Date(), business.trial_bonus_days ?? 0), isLoading };
 }
 
 /** True when the Pro-only extras are unlocked (paying; the free trial does not count). */

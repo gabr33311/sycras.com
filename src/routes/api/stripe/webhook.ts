@@ -49,6 +49,27 @@ export const Route = createFileRoute("/api/stripe/webhook")({
             case "customer.subscription.deleted":
               await syncSubscription(event.data.object);
               break;
+            // Invites: the first real payment earns the inviter 10 €; a refund takes it back.
+            case "invoice.paid":
+            case "charge.refunded": {
+              const obj = event.data.object as { customer?: string | { id: string } | null; amount_paid?: number };
+              const customer = typeof obj.customer === "string" ? obj.customer : obj.customer?.id;
+              if (!customer) break;
+              const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+              const { data: row } = await supabaseAdmin
+                .from("subscriptions")
+                .select("business_id")
+                .eq("stripe_customer_id", customer)
+                .maybeSingle();
+              if (!row) break;
+              const ref = await import("@/lib/referral.server");
+              if (event.type === "invoice.paid" && (obj.amount_paid ?? 0) > 0) {
+                await ref.rewardFirstPayment(row.business_id);
+              } else if (event.type === "charge.refunded") {
+                await ref.cancelPendingReward(row.business_id);
+              }
+              break;
+            }
             default:
               break;
           }

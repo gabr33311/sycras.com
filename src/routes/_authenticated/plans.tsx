@@ -252,7 +252,7 @@ function TrialTop({
         </div>
       </div>
     );
-  const used = Math.min(1, Math.max(0.04, 1 - access.trialDaysLeft / TRIAL_DAYS));
+  const used = Math.min(1, Math.max(0.04, 1 - access.trialDaysLeft / access.trialTotalDays));
   return (
     <div className="border-b border-border bg-subscription-accent/8 px-5 py-4">
       <div className="flex items-end justify-between gap-3">

@@ -30,9 +30,11 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTimeOffRouteImport } from './routes/_authenticated/time-off'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
+import { Route as ApiReferralRouteImport } from './routes/api/referral'
 import { Route as ApiSlugRouteImport } from './routes/api/slug'
 import { Route as BookSlugRouteImport } from './routes/book.$slug'
 import { Route as BookingTokenRouteImport } from './routes/booking.$token'
+import { Route as CCodeRouteImport } from './routes/c.$code'
 import { Route as ApiAccountDeleteRouteImport } from './routes/api/account/delete'
 import { Route as ApiAccountExportRouteImport } from './routes/api/account/export'
 import { Route as ApiAppointmentsCancelledRouteImport } from './routes/api/appointments/cancelled'
@@ -154,6 +156,11 @@ const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
   path: '/today',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiReferralRoute = ApiReferralRouteImport.update({
+  id: '/api/referral',
+  path: '/api/referral',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSlugRoute = ApiSlugRouteImport.update({
   id: '/api/slug',
   path: '/api/slug',
@@ -167,6 +174,11 @@ const BookSlugRoute = BookSlugRouteImport.update({
 const BookingTokenRoute = BookingTokenRouteImport.update({
   id: '/booking/$token',
   path: '/booking/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CCodeRoute = CCodeRouteImport.update({
+  id: '/c/$code',
+  path: '/c/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAccountDeleteRoute = ApiAccountDeleteRouteImport.update({
@@ -268,9 +280,11 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/time-off': typeof AuthenticatedTimeOffRoute
   '/today': typeof AuthenticatedTodayRoute
+  '/api/referral': typeof ApiReferralRoute
   '/api/slug': typeof ApiSlugRoute
   '/book/$slug': typeof BookSlugRoute
   '/booking/$token': typeof BookingTokenRoute
+  '/c/$code': typeof CCodeRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/account/export': typeof ApiAccountExportRoute
   '/api/appointments/cancelled': typeof ApiAppointmentsCancelledRoute
@@ -308,9 +322,11 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/time-off': typeof AuthenticatedTimeOffRoute
   '/today': typeof AuthenticatedTodayRoute
+  '/api/referral': typeof ApiReferralRoute
   '/api/slug': typeof ApiSlugRoute
   '/book/$slug': typeof BookSlugRoute
   '/booking/$token': typeof BookingTokenRoute
+  '/c/$code': typeof CCodeRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/account/export': typeof ApiAccountExportRoute
   '/api/appointments/cancelled': typeof ApiAppointmentsCancelledRoute
@@ -350,9 +366,11 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/time-off': typeof AuthenticatedTimeOffRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
+  '/api/referral': typeof ApiReferralRoute
   '/api/slug': typeof ApiSlugRoute
   '/book/$slug': typeof BookSlugRoute
   '/booking/$token': typeof BookingTokenRoute
+  '/c/$code': typeof CCodeRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/account/export': typeof ApiAccountExportRoute
   '/api/appointments/cancelled': typeof ApiAppointmentsCancelledRoute
@@ -392,9 +410,11 @@ export interface FileRouteTypes {
     | '/settings'
     | '/time-off'
     | '/today'
+    | '/api/referral'
     | '/api/slug'
     | '/book/$slug'
     | '/booking/$token'
+    | '/c/$code'
     | '/api/account/delete'
     | '/api/account/export'
     | '/api/appointments/cancelled'
@@ -432,9 +452,11 @@ export interface FileRouteTypes {
     | '/settings'
     | '/time-off'
     | '/today'
+    | '/api/referral'
     | '/api/slug'
     | '/book/$slug'
     | '/booking/$token'
+    | '/c/$code'
     | '/api/account/delete'
     | '/api/account/export'
     | '/api/appointments/cancelled'
@@ -473,9 +495,11 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/time-off'
     | '/_authenticated/today'
+    | '/api/referral'
     | '/api/slug'
     | '/book/$slug'
     | '/booking/$token'
+    | '/c/$code'
     | '/api/account/delete'
     | '/api/account/export'
     | '/api/appointments/cancelled'
@@ -503,9 +527,11 @@ export interface RootRouteChildren {
   PrivacidadeRoute: typeof PrivacidadeRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TermosRoute: typeof TermosRoute
+  ApiReferralRoute: typeof ApiReferralRoute
   ApiSlugRoute: typeof ApiSlugRoute
   BookSlugRoute: typeof BookSlugRoute
   BookingTokenRoute: typeof BookingTokenRoute
+  CCodeRoute: typeof CCodeRoute
   ApiAccountDeleteRoute: typeof ApiAccountDeleteRoute
   ApiAccountExportRoute: typeof ApiAccountExportRoute
   ApiAppointmentsCancelledRoute: typeof ApiAppointmentsCancelledRoute
@@ -672,6 +698,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTodayRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/referral': {
+      id: '/api/referral'
+      path: '/api/referral'
+      fullPath: '/api/referral'
+      preLoaderRoute: typeof ApiReferralRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/slug': {
       id: '/api/slug'
       path: '/api/slug'
@@ -691,6 +724,13 @@ declare module '@tanstack/react-router' {
       path: '/booking/$token'
       fullPath: '/booking/$token'
       preLoaderRoute: typeof BookingTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/c/$code': {
+      id: '/c/$code'
+      path: '/c/$code'
+      fullPath: '/c/$code'
+      preLoaderRoute: typeof CCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/account/delete': {
@@ -844,9 +884,11 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacidadeRoute: PrivacidadeRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TermosRoute: TermosRoute,
+  ApiReferralRoute: ApiReferralRoute,
   ApiSlugRoute: ApiSlugRoute,
   BookSlugRoute: BookSlugRoute,
   BookingTokenRoute: BookingTokenRoute,
+  CCodeRoute: CCodeRoute,
   ApiAccountDeleteRoute: ApiAccountDeleteRoute,
   ApiAccountExportRoute: ApiAccountExportRoute,
   ApiAppointmentsCancelledRoute: ApiAppointmentsCancelledRoute,

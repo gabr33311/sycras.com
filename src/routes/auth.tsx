@@ -8,6 +8,7 @@ import { emailHasAccount } from "@/lib/booking.functions";
 import { Captcha } from "@/components/captcha";
 import { needsSecondStep, passwordLogin } from "@/lib/password-login";
 import { isBreachedPassword } from "@/lib/password-breached";
+import { getInvite, setInvite } from "@/lib/invite";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -406,6 +407,16 @@ function RegisterForm({
   const [exists, setExists] = useState(false);
   const [captcha, setCaptcha] = useState<string | null>(null);
   const [captchaKey, setCaptchaKey] = useState(0);
+  // Invite code: from the invite link, or typed here; used when the business is created.
+  const [invite, setInviteCode] = useState("");
+  const [showInvite, setShowInvite] = useState(false);
+  useEffect(() => {
+    const saved = getInvite();
+    if (saved) {
+      setInviteCode(saved);
+      setShowInvite(true);
+    }
+  }, []);
   const passwordOk = PASSWORD_RULES.every((r) => r.test(password));
 
   async function submit(e: React.FormEvent) {
@@ -431,6 +442,7 @@ function RegisterForm({
         setError(t("auth.err.breached"));
         return;
       }
+      setInvite(invite);
       const redirect = redirectTo();
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: email.trim(),
@@ -534,6 +546,29 @@ function RegisterForm({
           </div>
         ) : (
           <FormError message={error} />
+        )}
+        {showInvite ? (
+          <div className="space-y-1.5">
+            <Label htmlFor="invite">{t("ref.signup.label")}</Label>
+            <Input
+              id="invite"
+              value={invite}
+              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+              placeholder="BARBEARIACENTRAL"
+              autoCapitalize="characters"
+              autoComplete="off"
+              maxLength={16}
+            />
+            <p className="text-xs text-muted-foreground">{t("ref.signup.hint")}</p>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowInvite(true)}
+            className="text-sm font-semibold text-brand-ink underline-offset-4 hover:underline"
+          >
+            {t("ref.signup.have")}
+          </button>
         )}
         <Captcha onToken={setCaptcha} resetKey={captchaKey} />
         <Button type="submit" size="lg" className="w-full" disabled={busy}>

@@ -347,7 +347,7 @@ function ProfilePage() {
             }
           : { title: t("pf.pro.ended"), sub: t("pf.pro.ended.sub"), warn: true, days: null }
     : null;
-  const used = pro?.days != null ? Math.min(1, Math.max(0.04, 1 - pro.days / TRIAL_DAYS)) : null;
+  const used = pro?.days != null ? Math.min(1, Math.max(0.04, 1 - pro.days / (access?.trialTotalDays ?? TRIAL_DAYS))) : null;
   const daysLine = pro?.days != null && (
     <span className="flex items-baseline gap-1.5">
       <span className="font-display text-3xl font-bold leading-none tabular-nums">{pro.days}</span>

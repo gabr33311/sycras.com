@@ -448,6 +448,10 @@ export type Database = {
           show_map: boolean
           suspended_at: string | null
           verify_bookings: boolean
+          referral_code: string | null
+          referral_code_changed: boolean
+          referred_by: string | null
+          trial_bonus_days: number
           whatsapp_reminders: boolean
           review_url: string | null
         }
@@ -492,6 +496,10 @@ export type Database = {
           show_map?: boolean
           suspended_at?: string | null
           verify_bookings?: boolean
+          referral_code?: string | null
+          referral_code_changed?: boolean
+          referred_by?: string | null
+          trial_bonus_days?: number
           whatsapp_reminders?: boolean
           review_url?: string | null
         }
@@ -536,6 +544,10 @@ export type Database = {
           show_map?: boolean
           suspended_at?: string | null
           verify_bookings?: boolean
+          referral_code?: string | null
+          referral_code_changed?: boolean
+          referred_by?: string | null
+          trial_bonus_days?: number
           whatsapp_reminders?: boolean
           review_url?: string | null
         }
@@ -707,6 +719,69 @@ export type Database = {
           id?: string
           phone?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      referral_payouts: {
+        Row: {
+          amount_cents: number
+          business_id: string
+          holder_name: string
+          iban: string
+          id: string
+          paid_at: string | null
+          requested_at: string
+          status: string
+        }
+        Insert: {
+          amount_cents: number
+          business_id: string
+          holder_name: string
+          iban: string
+          id?: string
+          paid_at?: string | null
+          requested_at?: string
+          status?: string
+        }
+        Update: {
+          amount_cents?: number
+          business_id?: string
+          holder_name?: string
+          iban?: string
+          id?: string
+          paid_at?: string | null
+          requested_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      referral_rewards: {
+        Row: {
+          amount_cents: number
+          available_at: string
+          created_at: string
+          id: string
+          referred_business_id: string
+          referrer_business_id: string
+          status: string
+        }
+        Insert: {
+          amount_cents?: number
+          available_at: string
+          created_at?: string
+          id?: string
+          referred_business_id: string
+          referrer_business_id: string
+          status?: string
+        }
+        Update: {
+          amount_cents?: number
+          available_at?: string
+          created_at?: string
+          id?: string
+          referred_business_id?: string
+          referrer_business_id?: string
+          status?: string
         }
         Relationships: []
       }

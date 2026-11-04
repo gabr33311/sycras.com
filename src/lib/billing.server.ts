@@ -90,7 +90,12 @@ export async function createCheckout(input: {
 
     // Subscribing during the free trial keeps the days left: the first charge
     // happens when the trial would have ended (Stripe needs 48h or more ahead).
-    const access = computeAccess(business.created_at, (sub ?? null) as SubscriptionRow);
+    const access = computeAccess(
+      business.created_at,
+      (sub ?? null) as SubscriptionRow,
+      new Date(),
+      await trialBonus(business.id),
+    );
     const trialEnd = Math.floor(access.trialEndsAt.getTime() / 1000);
     const keepTrial = access.state === "trial" && trialEnd - Date.now() / 1000 > 48 * 3600;
 
@@ -235,7 +240,19 @@ export async function businessAllowed(businessId: string, createdAt: string): Pr
     .select("plan, status, current_period_end, stripe_subscription_id")
     .eq("business_id", businessId)
     .maybeSingle();
-  return computeAccess(createdAt, (data ?? null) as SubscriptionRow).allowed;
+  return computeAccess(createdAt, (data ?? null) as SubscriptionRow, new Date(), await trialBonus(businessId))
+    .allowed;
+}
+
+/** Extra free days this business got (15 when it came with an invite). */
+async function trialBonus(businessId: string): Promise<number> {
+  const db = await admin();
+  const { data } = await db
+    .from("businesses")
+    .select("trial_bonus_days")
+    .eq("id", businessId)
+    .maybeSingle();
+  return data?.trial_bonus_days ?? 0;
 }
 
 /** Is this business paying? The Pro-only extras (reminders, blocking) need it; the trial does not count. */
@@ -261,6 +278,9 @@ export type StoreEvent = {
   expiration_at_ms?: number | null;
   original_transaction_id?: string | null;
   transaction_id?: string | null;
+  /** On CANCELLATION: "CUSTOMER_SUPPORT" means refunded. */
+  cancel_reason?: string | null;
+  price?: number | null;
 };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -300,6 +320,16 @@ export async function syncStoreSubscription(event: StoreEvent): Promise<void> {
             : "active"
           : null;
   if (!status) return;
+
+  // Invites: a real (not test, not trial) payment earns the inviter 10 €; a refund takes it back.
+  if (event.environment !== "SANDBOX") {
+    const ref = await import("@/lib/referral.server");
+    if ((event.type === "INITIAL_PURCHASE" || event.type === "RENEWAL") && event.period_type !== "TRIAL") {
+      await ref.rewardFirstPayment(businessId);
+    } else if (event.type === "CANCELLATION" && event.cancel_reason === "CUSTOMER_SUPPORT") {
+      await ref.cancelPendingReward(businessId);
+    }
+  }
 
   const db = await admin();
   const { data: row } = await db

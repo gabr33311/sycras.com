@@ -32,6 +32,8 @@ export type Access = {
   state: AccessState;
   /** When the free trial ends (or ended). */
   trialEndsAt: Date;
+  /** Length of this business's free trial (30, or more with an invite). */
+  trialTotalDays: number;
   /** Whole days left in the free trial (0 when over). */
   trialDaysLeft: number;
   /** Next renewal / end of the paid period, when subscribed. */
@@ -52,9 +54,12 @@ export function computeAccess(
   businessCreatedAt: string | Date,
   sub: SubscriptionRow,
   now: Date = new Date(),
+  /** Extra free days (an invite gives 15). */
+  bonusDays = 0,
 ): Access {
   const created = new Date(businessCreatedAt);
-  const trialEndsAt = new Date(created.getTime() + TRIAL_DAYS * 86_400_000);
+  const trialTotalDays = TRIAL_DAYS + Math.max(0, bonusDays);
+  const trialEndsAt = new Date(created.getTime() + trialTotalDays * 86_400_000);
   const msLeft = trialEndsAt.getTime() - now.getTime();
   const trialDaysLeft = Math.max(0, Math.ceil(msLeft / 86_400_000));
   const periodEnd = sub?.current_period_end ? new Date(sub.current_period_end) : null;
@@ -73,6 +78,7 @@ export function computeAccess(
   return {
     state,
     trialEndsAt,
+    trialTotalDays,
     trialDaysLeft,
     periodEnd,
     allowed: state !== "blocked",
