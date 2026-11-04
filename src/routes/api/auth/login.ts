@@ -26,7 +26,9 @@ export const Route = createFileRoute("/api/auth/login")({
           guard.hashEmail(email),
           guard.hashIp(guard.requestIp(request)),
         ]);
-        const locked = await guard.lockedFor(emailHash, ipHash);
+        // The lock needs the database; if it cannot be reached (e.g. on a computer without the
+        // server key), sign-in still works, it just is not counted.
+        const locked = await guard.lockedFor(emailHash, ipHash).catch(() => 0);
         if (locked) return Response.json({ code: "locked", minutes: locked }, { status: 429 });
 
         const { data, error } = await guard.anonAuth().signInWithPassword({
@@ -42,7 +44,7 @@ export const Route = createFileRoute("/api/auth/login")({
             return Response.json({ code: "unconfirmed" }, { status: 403 });
           }
           if (/Invalid login credentials/i.test(msg)) {
-            const left = await guard.recordFailure(emailHash, ipHash);
+            const left = await guard.recordFailure(emailHash, ipHash).catch(() => guard.MAX_TRIES);
             return left > 0
               ? Response.json({ code: "invalid", left }, { status: 401 })
               : Response.json({ code: "locked", minutes: 15 }, { status: 429 });
@@ -52,7 +54,7 @@ export const Route = createFileRoute("/api/auth/login")({
           return Response.json({ code: "error" }, { status: 500 });
         }
 
-        await guard.clearFailures(emailHash);
+        await guard.clearFailures(emailHash).catch(() => undefined);
         return Response.json({
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token,

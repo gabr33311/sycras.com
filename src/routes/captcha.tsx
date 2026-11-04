@@ -26,7 +26,7 @@ function CaptchaPage() {
     w.ReactNativeWebView?.postMessage(JSON.stringify(msg));
   };
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-transparent p-2">
+    <main className="bg-transparent p-0">
       <div className="w-full max-w-sm">
         <Captcha
           onToken={(token) => post({ captcha: token })}
