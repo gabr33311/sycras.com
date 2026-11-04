@@ -23,7 +23,14 @@ import { usePrefs } from "@/lib/prefs";
 import { cn } from "@/lib/utils";
 import { LegalLinks } from "@/components/legal-page";
 import { APP_ON_PLAY, inNativeShell, PLAY_STORE_URL } from "@/lib/app-store";
-import { BeforeAfter, LiveHero, Story, TryIt } from "@/components/landing-showcase";
+import {
+  BeforeAfter,
+  LiveHero,
+  Story,
+  StoryMobile,
+  TryIt,
+  TryItMobile,
+} from "@/components/landing-showcase";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -215,7 +222,7 @@ function Landing() {
 
         {/* Before / after */}
         <section className="border-y border-border bg-muted/40">
-          <div className="mx-auto grid max-w-5xl items-center gap-10 px-4 py-16 sm:px-6 sm:py-24 md:grid-cols-2">
+          <div className="mx-auto grid max-w-5xl items-center gap-10 px-4 py-12 sm:px-6 sm:py-24 md:grid-cols-2">
             <div className="text-center md:text-left">
               <h2 className="text-balance-tight text-3xl font-bold tracking-[-0.035em] sm:text-4xl">
                 {t("home.ba.title")}
@@ -229,9 +236,12 @@ function Landing() {
         </section>
 
         {/* Como funciona */}
-        <section className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-24">
+        <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-24">
           <SectionTitle>{t("home.story.title")}</SectionTitle>
-          <div className="mt-10">
+          <div className="mt-8 md:hidden">
+            <StoryMobile />
+          </div>
+          <div className="mt-10 hidden md:block">
             <Story />
           </div>
         </section>
@@ -239,10 +249,25 @@ function Landing() {
         {/* Funcionalidades */}
         <section
           id="funcionalidades"
-          className="scroll-mt-20 mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24"
+          className="scroll-mt-20 mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-24"
         >
           <SectionTitle>{t("home.features.title")}</SectionTitle>
-          <div className="mt-10 grid overflow-hidden rounded-3xl border border-border sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="surface mt-8 divide-y divide-border overflow-hidden md:hidden">
+            {FEATURES.map((f) => (
+              <li key={f.key} className="flex items-start gap-3.5 p-4">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand/12 text-brand-ink dark:bg-brand/25">
+                  <f.icon className="size-[17px]" strokeWidth={2.2} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[15px] font-bold">{t(`${f.key}.title`)}</span>
+                  <span className="mt-0.5 block text-sm font-medium leading-snug text-muted-foreground">
+                    {t(`${f.key}.body`)}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-10 hidden overflow-hidden rounded-3xl border border-border md:grid md:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((f) => (
               <article
                 key={f.key}
@@ -262,9 +287,12 @@ function Landing() {
 
         {/* Experimenta */}
         <section className="border-y border-border bg-muted/40">
-          <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24">
+          <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-24">
             <SectionTitle sub={t("home.try.body")}>{t("home.try.title")}</SectionTitle>
-            <div className="mt-10">
+            <div className="mt-8 md:hidden">
+              <TryItMobile />
+            </div>
+            <div className="mt-10 hidden md:block">
               <TryIt />
             </div>
           </div>
@@ -272,7 +300,7 @@ function Landing() {
 
         {/* Preços */}
         <section id="precos" className="scroll-mt-20">
-          <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24">
+          <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-24">
             <SectionTitle sub={t("home.pricing.body")}>{t("home.pricing.title")}</SectionTitle>
             <div className="mx-auto mt-10 max-w-md">
               <PlanCard
@@ -292,7 +320,7 @@ function Landing() {
         {/* Perguntas */}
         <section
           id="perguntas"
-          className="scroll-mt-20 mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24"
+          className="scroll-mt-20 mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-24"
         >
           <SectionTitle>{t("home.faq.title")}</SectionTitle>
           <Accordion type="single" collapsible className="mt-8">
@@ -310,7 +338,9 @@ function Landing() {
         </section>
       </main>
 
-      <footer className="border-t border-border">
+      <StickyStart />
+
+      <footer className="border-t border-border pb-24 md:pb-0">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-8 text-sm font-medium text-muted-foreground sm:flex-row sm:px-6">
           <span className="font-bold tracking-[0.14em] text-foreground">SYCRAS</span>
           <span>{t("home.footer")}</span>
@@ -323,6 +353,34 @@ function Landing() {
           </span>
         </div>
       </footer>
+    </div>
+  );
+}
+
+/** Phones: a "Start free" bar at the bottom once the hero is out of view. */
+function StickyStart() {
+  const { t } = usePrefs();
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const on = () => setShow(window.scrollY > 700);
+    on();
+    window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, []);
+  return (
+    <div
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/90 px-4 pt-3 backdrop-blur-md transition-transform duration-300 md:hidden",
+        "pb-[calc(0.75rem+var(--sab,0px))]",
+        show ? "translate-y-0" : "translate-y-full",
+      )}
+    >
+      <Button asChild size="lg" variant="brand" className="w-full">
+        <Link to="/auth" search={REGISTER}>
+          {t("home.cta.create")}
+        </Link>
+      </Button>
+      <p className="mt-1.5 text-center text-[11px] font-semibold text-muted-foreground">{t("home.reassure")}</p>
     </div>
   );
 }

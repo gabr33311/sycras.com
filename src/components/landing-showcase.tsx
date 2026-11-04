@@ -408,3 +408,124 @@ export function TryIt() {
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Phone-only versions (below md). The desktop ones above stay as they are. */
+
+/** How it works on a phone: swipe through four cards, each with its own screen. */
+export function StoryMobile() {
+  const { t } = usePrefs();
+  const track = useRef<HTMLDivElement>(null);
+  const [i, setI] = useState(0);
+  const go = (n: number) => {
+    const el = track.current?.children[n] as HTMLElement | undefined;
+    el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  };
+  return (
+    <div>
+      <div
+        ref={track}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          const n = Math.round(el.scrollLeft / (el.scrollWidth / STORY.length));
+          if (n !== i) setI(Math.max(0, Math.min(STORY.length - 1, n)));
+        }}
+        className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-[12%] pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {STORY.map((s, n) => (
+          <article
+            key={s.img}
+            className={cn(
+              "w-[76%] shrink-0 snap-center transition-[opacity,transform] duration-300",
+              i === n ? "opacity-100" : "scale-[0.96] opacity-60",
+            )}
+          >
+            <PhoneShot src={s.img} alt={t(`home.story.${n + 1}.title`)} light={s.light} className="max-w-[240px]" />
+            <div className="mt-5 text-center">
+              <span className="inline-flex size-7 items-center justify-center rounded-full bg-brand text-sm font-bold text-brand-foreground">
+                {n + 1}
+              </span>
+              <h3 className="mt-2 text-lg font-bold">{t(`home.story.${n + 1}.title`)}</h3>
+              <p className="mx-auto mt-1 max-w-[30ch] text-sm font-medium leading-relaxed text-muted-foreground">
+                {t(`home.story.${n + 1}.body`)}
+              </p>
+            </div>
+          </article>
+        ))}
+      </div>
+      <div className="mt-4 flex justify-center gap-2" role="tablist" aria-label={t("home.story.title")}>
+        {STORY.map((_, n) => (
+          <button
+            key={n}
+            type="button"
+            role="tab"
+            aria-selected={i === n}
+            aria-label={t(`home.story.${n + 1}.title`)}
+            onClick={() => go(n)}
+            className={cn("h-2 rounded-full transition-all", i === n ? "w-6 bg-brand" : "w-2 bg-border")}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const TRY_MOBILE = [
+  { img: IMG.servico, light: true, label: "home.try.s1" },
+  { img: IMG.hora, light: true, label: "home.try.s2" },
+  { img: IMG.dados, light: true, label: "home.try.s3" },
+  { img: IMG.agenda, light: false, label: "home.try.done" },
+] as const;
+
+/** Try it on a phone: one phone plays the booking by itself, then it lands in the agenda. Tap to skip ahead. */
+export function TryItMobile() {
+  const { t } = usePrefs();
+  const reduce = useReducedMotion();
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (reduce) return;
+    const id = window.setInterval(() => setI((n) => (n + 1) % TRY_MOBILE.length), i === TRY_MOBILE.length - 1 ? 4200 : 2600);
+    return () => window.clearInterval(id);
+  }, [i, reduce]);
+  const last = i === TRY_MOBILE.length - 1;
+  return (
+    <div>
+      {/* Where we are: client steps, then the owner. */}
+      <div className="mx-auto mb-4 flex max-w-[300px] items-center gap-1.5">
+        {TRY_MOBILE.map((_, n) => (
+          <span key={n} className={cn("h-1.5 flex-1 rounded-full transition-colors", n <= i ? "bg-brand" : "bg-border")} />
+        ))}
+      </div>
+      <p className="mb-4 text-center text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
+        {last ? t("home.try.owner") : t("home.try.client")}
+      </p>
+      <button
+        type="button"
+        onClick={() => setI((n) => (n + 1) % TRY_MOBILE.length)}
+        aria-label={t("home.try.next")}
+        className="relative mx-auto block w-full max-w-[260px]"
+      >
+        {TRY_MOBILE.map((s, n) => (
+          <div
+            key={s.img}
+            className={cn(
+              "transition-opacity duration-300",
+              n === 0 ? "relative" : "absolute inset-0",
+              i === n ? "opacity-100" : "pointer-events-none opacity-0",
+            )}
+            aria-hidden={i !== n}
+          >
+            <PhoneShot src={s.img} alt={t(s.label)} light={s.light}>
+              {s.img === IMG.agenda && (
+                <Notification show={last} title={t("home.live.notif")} body={t("home.try.notif")} />
+              )}
+            </PhoneShot>
+          </div>
+        ))}
+      </button>
+      <p className="mx-auto mt-4 min-h-10 max-w-[30ch] text-center text-sm font-semibold" aria-live="polite">
+        {t(TRY_MOBILE[i]!.label)}
+      </p>
+    </div>
+  );
+}
