@@ -5,7 +5,6 @@ import {
   CalendarCheck,
   Check,
   Clock,
-  Lock,
   Share2,
   ShieldCheck,
   Sparkles,
@@ -24,6 +23,7 @@ import { usePrefs } from "@/lib/prefs";
 import { cn } from "@/lib/utils";
 import { LegalLinks } from "@/components/legal-page";
 import { APP_ON_PLAY, inNativeShell, PLAY_STORE_URL } from "@/lib/app-store";
+import { BeforeAfter, LiveHero, Story, TryIt } from "@/components/landing-showcase";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -79,20 +79,8 @@ const FEATURES = [
   { icon: Sparkles, key: "f6" },
 ] as const;
 
-const AGENDA = [
-  { time: "09:30", name: "Inês Costa", svc: "home.mock.svc1", status: "confirmed" },
-  { time: "10:15", name: "Tiago Reis", svc: "home.mock.svc3", status: "confirmed" },
-  { time: "11:30", name: "Marta Lopes", svc: "home.mock.svc2", status: "pending" },
-  { time: "14:30", name: "Rui Santos", svc: "home.mock.svc1", status: "confirmed" },
-] as const;
 
-const SERVICES = [
-  { key: "home.mock.svc1", min: 30, price: "12 €" },
-  { key: "home.mock.svc2", min: 20, price: "8 €" },
-  { key: "home.mock.svc3", min: 45, price: "18 €" },
-] as const;
 
-const SLOTS = ["10:00", "10:30", "11:00", "14:30", "15:00", "16:30"];
 
 const PLAN_FEATURES = [
   "sub.feature.bookingPage",
@@ -220,52 +208,31 @@ function Landing() {
           </p>
         </section>
 
-        {/* Pré-visualização */}
-        <section className="mx-auto max-w-5xl px-4 pb-20 sm:px-6 sm:pb-28">
-          {/* Phones: just the two mocks. From sm up they sit on a soft panel. */}
-          <div className="relative sm:rounded-[2rem] sm:border sm:border-border sm:bg-muted/50 sm:px-10 sm:py-12">
-            <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 sm:gap-8 [&>*]:min-w-0">
-              <AgendaPreview />
-              <BookingPreview />
+        {/* The app at work: the client's page and the owner's Today, bookings arriving. */}
+        <section className="mx-auto max-w-4xl px-4 pb-20 sm:px-6 sm:pb-28">
+          <LiveHero />
+        </section>
+
+        {/* Before / after */}
+        <section className="border-y border-border bg-muted/40">
+          <div className="mx-auto grid max-w-5xl items-center gap-10 px-4 py-16 sm:px-6 sm:py-24 md:grid-cols-2">
+            <div className="text-center md:text-left">
+              <h2 className="text-balance-tight text-3xl font-bold tracking-[-0.035em] sm:text-4xl">
+                {t("home.ba.title")}
+              </h2>
+              <p className="mx-auto mt-3 max-w-md text-base font-medium text-muted-foreground md:mx-0">
+                {t("home.ba.body")}
+              </p>
             </div>
-            <FloatCard className="-top-6 left-6 lg:left-10">
-              <Check className="size-4" strokeWidth={3} />
-              <span>
-                <span className="block text-[13px] font-bold">{t("home.float.confirmed")}</span>
-                <span className="block text-xs text-muted-foreground">
-                  {t("home.mock.day")} · 14:30
-                </span>
-              </span>
-            </FloatCard>
-            <FloatCard className="-bottom-6 right-6 lg:right-10">
-              <Lock className="size-4" strokeWidth={2.5} />
-              <span>
-                <span className="block text-[13px] font-bold">{t("home.float.blocked")}</span>
-                <span className="block text-xs text-muted-foreground">
-                  {t("home.float.noOverlap")}
-                </span>
-              </span>
-            </FloatCard>
+            <BeforeAfter />
           </div>
         </section>
 
         {/* Como funciona */}
-        <section className="border-y border-border bg-muted/40">
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-            <SectionTitle>{t("home.steps.title")}</SectionTitle>
-            <ol className="animate-stagger mt-10 grid gap-4 sm:grid-cols-3">
-              {[1, 2, 3].map((n) => (
-                <li key={n} className="surface p-6">
-                  <span className="flex size-8 items-center justify-center rounded-full bg-foreground text-sm font-bold text-background">
-                    {n}
-                  </span>
-                  <h3 className="mt-4 text-base font-bold">{t(`home.steps.${n}.title`)}</h3>
-                  <p className="mt-1.5 text-sm font-medium leading-relaxed text-muted-foreground">
-                    {t(`home.steps.${n}.body`)}
-                  </p>
-                </li>
-              ))}
-            </ol>
+        <section className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-24">
+          <SectionTitle>{t("home.story.title")}</SectionTitle>
+          <div className="mt-10">
+            <Story />
           </div>
         </section>
 
@@ -293,8 +260,18 @@ function Landing() {
           </div>
         </section>
 
+        {/* Experimenta */}
+        <section className="border-y border-border bg-muted/40">
+          <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24">
+            <SectionTitle sub={t("home.try.body")}>{t("home.try.title")}</SectionTitle>
+            <div className="mt-10">
+              <TryIt />
+            </div>
+          </div>
+        </section>
+
         {/* Preços */}
-        <section id="precos" className="scroll-mt-20 border-y border-border bg-muted/40">
+        <section id="precos" className="scroll-mt-20">
           <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24">
             <SectionTitle sub={t("home.pricing.body")}>{t("home.pricing.title")}</SectionTitle>
             <div className="mx-auto mt-10 max-w-md">
@@ -360,117 +337,6 @@ function SectionTitle({ children, sub }: { children: ReactNode; sub?: string }) 
         <p className="mx-auto mt-3 max-w-md text-base font-medium text-muted-foreground">{sub}</p>
       )}
     </div>
-  );
-}
-
-function FloatCard({ className, children }: { className?: string; children: ReactNode }) {
-  return (
-    <div
-      aria-hidden
-      className={cn(
-        "surface absolute hidden items-center gap-3 px-4 py-3 md:flex [&>svg]:shrink-0",
-        className,
-      )}
-    >
-      {children}
-    </div>
-  );
-}
-
-function Phone({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <div
-      aria-hidden
-      className="mx-auto w-full max-w-[340px] overflow-hidden rounded-[2rem] border border-border bg-card p-4 shadow-[var(--shadow-lift)]"
-    >
-      <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-muted" />
-      <p className="px-1 text-sm font-bold">{title}</p>
-      <div className="mt-3">{children}</div>
-    </div>
-  );
-}
-
-function AgendaPreview() {
-  const { t } = usePrefs();
-  return (
-    <figure>
-      <Phone title={`${t("home.mock.today")} · ${t("home.mock.day")}`}>
-        <ul className="space-y-2">
-          {AGENDA.map((a) => (
-            <li
-              key={a.time}
-              className="flex items-center gap-3 rounded-2xl border border-border p-2.5"
-            >
-              <span className="w-11 shrink-0 text-xs font-bold tabular-nums">{a.time}</span>
-              <span className="hidden size-8 shrink-0 items-center justify-center rounded-full bg-brand/12 dark:bg-brand/25 text-xs font-bold text-brand-ink min-[420px]:flex">
-                {a.name[0]}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13px] font-bold">{a.name}</span>
-                <span className="block truncate text-xs text-muted-foreground">{t(a.svc)}</span>
-              </span>
-              <span
-                className={cn(
-                  "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold",
-                  a.status === "confirmed"
-                    ? "bg-st-confirmed/15 text-st-confirmed-fg"
-                    : "bg-st-pending/15 text-st-pending-fg",
-                )}
-              >
-                {t(a.status === "confirmed" ? "home.mock.confirmed" : "home.mock.pending")}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </Phone>
-      <figcaption className="mt-4 text-center text-sm font-bold">{t("showcase.agenda")}</figcaption>
-    </figure>
-  );
-}
-
-function BookingPreview() {
-  const { t } = usePrefs();
-  return (
-    <figure>
-      <Phone title={t("home.mock.services")}>
-        <ul className="space-y-2">
-          {SERVICES.map((s, i) => (
-            <li
-              key={s.key}
-              className={cn(
-                "flex items-center justify-between rounded-2xl border p-2.5 text-[13px]",
-                i === 0 ? "border-brand bg-brand/5" : "border-border",
-              )}
-            >
-              <span className="min-w-0 truncate font-bold">{t(s.key)}</span>
-              <span className="shrink-0 pl-2 text-xs text-muted-foreground">
-                {s.min} min · {s.price}
-              </span>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-4 px-1 text-xs font-bold text-muted-foreground">{t("home.mock.time")}</p>
-        <div className="mt-2 grid grid-cols-3 gap-1.5">
-          {SLOTS.map((s) => (
-            <span
-              key={s}
-              className={cn(
-                "rounded-xl border py-1.5 text-center text-xs font-bold tabular-nums",
-                s === "14:30" ? "border-brand bg-brand text-brand-foreground" : "border-border",
-              )}
-            >
-              {s}
-            </span>
-          ))}
-        </div>
-        <div className="mt-4 flex h-10 items-center justify-center rounded-xl bg-brand text-[13px] font-bold text-brand-foreground">
-          {t("home.mock.confirm")}
-        </div>
-      </Phone>
-      <figcaption className="mt-4 text-center text-sm font-bold">
-        {t("showcase.booking")}
-      </figcaption>
-    </figure>
   );
 }
 

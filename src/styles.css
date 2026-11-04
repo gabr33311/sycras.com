@@ -1231,3 +1231,13 @@ select,
 .map-dark .leaflet-tile-pane {
   filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9) saturate(0.6);
 }
+
+/* Landing "How it works": the bar that fills while a step is shown. */
+@keyframes storybar {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
