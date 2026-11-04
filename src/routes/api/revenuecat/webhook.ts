@@ -9,7 +9,8 @@ export const Route = createFileRoute("/api/revenuecat/webhook")({
         const secret = process.env["REVENUECAT_WEBHOOK_SECRET"];
         const auth = request.headers.get("authorization") ?? "";
         if (!secret) return Response.json({ error: "Not configured" }, { status: 400 });
-        if (auth !== secret && auth !== `Bearer ${secret}`) {
+        const { safeEqual } = await import("@/lib/safe-equal.server");
+        if (!safeEqual(auth, secret) && !safeEqual(auth, `Bearer ${secret}`)) {
           return Response.json({ error: "Unauthorized" }, { status: 401 });
         }
 

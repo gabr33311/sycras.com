@@ -83,6 +83,17 @@ export const emailHasAccount = createServerFn({ method: "POST" })
   .validator((d: unknown) => z.object({ email: z.string().trim().email().max(160) }).parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { hashIp, logSecurityEvent } = await import("./booking.server");
+    // Only 10 checks per network every 15 minutes: nobody can list who has an account.
+    const ipHash = await hashIp(clientIp());
+    const { count } = await supabaseAdmin
+      .from("security_events")
+      .select("id", { count: "exact", head: true })
+      .eq("kind", "email_check")
+      .eq("ip_hash", ipHash)
+      .gte("created_at", new Date(Date.now() - 15 * 60000).toISOString());
+    if ((count ?? 0) >= 10) return { known: false as const, registered: false };
+    await logSecurityEvent("email_check", ipHash, null, null);
     const { data: exists, error } = await supabaseAdmin.rpc("email_has_account", {
       _email: data.email,
     });

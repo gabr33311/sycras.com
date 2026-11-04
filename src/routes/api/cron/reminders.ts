@@ -8,7 +8,8 @@ export const Route = createFileRoute("/api/cron/reminders")({
       POST: async ({ request }) => {
         const secret = process.env["CRON_SECRET"];
         const auth = request.headers.get("authorization");
-        if (!secret || auth !== `Bearer ${secret}`) {
+        const { safeEqual } = await import("@/lib/safe-equal.server");
+        if (!secret || !safeEqual(auth ?? "", `Bearer ${secret}`)) {
           return Response.json({ error: "Unauthorized" }, { status: 401 });
         }
         try {
