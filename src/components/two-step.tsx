@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { CircleCheck, Loader2, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -80,6 +80,7 @@ export function TwoStep() {
         <div>
           <p className="flex items-center gap-2 text-sm font-bold">
             <ShieldCheck className="size-4 text-muted-foreground" /> {t("mfa.title")}
+            {factorId && <CircleCheck className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden />}
           </p>
           <p className="text-sm text-muted-foreground">
             {factorId ? t("mfa.status.on") : t("mfa.desc")}

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Download, KeyRound, Loader2, Mail, PauseCircle, PlayCircle, Trash2 } from "lucide-react";
+import { CircleCheck, Download, KeyRound, Loader2, Mail, PauseCircle, PlayCircle, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -164,6 +164,9 @@ export function AccountPanel() {
           <div className="min-w-0">
             <p className="flex items-center gap-2 text-sm font-bold">
               <Mail className="size-4 text-muted-foreground" /> {t("acc.email")}
+              {user?.email_confirmed_at && (
+                <CircleCheck className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden />
+              )}
             </p>
             <p className="truncate text-sm text-muted-foreground">{user?.email}</p>
           </div>
