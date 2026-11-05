@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Cloudflare Turnstile: proves a person (not a script) is behind a sign-in, sign-up,
@@ -54,12 +54,15 @@ export function Captcha({
   cb.current = onToken;
   const shown = useRef(onInteractive);
   shown.current = onInteractive;
+  // Out of the layout until a puzzle shows, so the form keeps its spacing.
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (!CAPTCHA_SITE_KEY || !box.current) return;
     let id: string | null = null;
     let gone = false;
     cb.current(null);
+    setOpen(false);
     void loadTurnstile()
       .then((t) => {
         if (gone || !box.current) return;
@@ -72,8 +75,14 @@ export function Captcha({
           callback: (token: string) => cb.current(token),
           "expired-callback": () => cb.current(null),
           "error-callback": () => cb.current(null),
-          "before-interactive-callback": () => shown.current?.(true),
-          "after-interactive-callback": () => shown.current?.(false),
+          "before-interactive-callback": () => {
+            setOpen(true);
+            shown.current?.(true);
+          },
+          "after-interactive-callback": () => {
+            setOpen(false);
+            shown.current?.(false);
+          },
         });
       })
       .catch(() => cb.current(null));
@@ -85,5 +94,14 @@ export function Captcha({
   }, [resetKey, lang]);
 
   if (!CAPTCHA_SITE_KEY) return null;
-  return <div ref={box} className="min-h-0 empty:hidden" />;
+  return (
+    <div
+      ref={box}
+      className={
+        open
+          ? "w-full overflow-hidden rounded-xl"
+          : "pointer-events-none absolute h-0 w-0 overflow-hidden opacity-0"
+      }
+    />
+  );
 }
