@@ -479,7 +479,6 @@ function Onboarding() {
                   id="bname"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder={t("onb.s1.name.placeholder")}
                   maxLength={80}
                   autoFocus
                 />
@@ -521,7 +520,6 @@ function Onboarding() {
                       setSlug(slugify(e.target.value));
                     }}
                     className="h-full min-w-0 flex-1 bg-transparent text-base outline-none md:text-sm"
-                    placeholder={t("onb.s1.slug.placeholder")}
                   />
                   <span className="flex w-10 justify-center">
                     {slugState === "checking" && (
@@ -595,7 +593,6 @@ function Onboarding() {
                   id="desc"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder={t("onb.s1.desc.placeholder")}
                   maxLength={280}
                 />
               </Field>

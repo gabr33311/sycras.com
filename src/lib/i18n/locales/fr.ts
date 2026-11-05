@@ -1166,7 +1166,7 @@ export const fr: Record<string, string> = {
   "ref.payout.name": "Indiquez le nom du titulaire du compte.",
   "ref.payout.open": "Vous avez déjà une demande en cours.",
   "ref.payout.low": "Il vous faut au moins 20 € disponibles.",
-  "ref.rules": "Les 10 € sont disponibles 14 jours après le premier paiement du commerce parrainé (le délai de remboursement). Si ce paiement est remboursé, les 10 € ne comptent pas. Parrainer votre propre commerce ne compte pas. Les montants reçus peuvent devoir être déclarés aux impôts.",
+  "ref.rules": "Les 10 € sont disponibles 14 jours après le premier paiement du commerce parrainé (le délai de remboursement). Si ce paiement est remboursé, les 10 € ne comptent pas. Parrainer votre propre commerce ne compte pas.",
   "ref.signup.have": "J'ai un code de parrainage",
   "ref.signup.label": "Code de parrainage (facultatif)",
   "ref.signup.hint": "Avec un code, vous gagnez 15 jours gratuits de plus.",

@@ -1152,7 +1152,7 @@ export const ptBR: Record<string, string> = {
   "ref.payout.name": "Digite o nome do titular da conta.",
   "ref.payout.open": "Você já tem um pedido em andamento.",
   "ref.payout.low": "Você precisa de pelo menos 20 € disponíveis.",
-  "ref.rules": "Os 10 € ficam disponíveis 14 dias depois do 1.º pagamento do negócio convidado (o prazo de reembolso). Se esse pagamento for reembolsado, os 10 € não contam. Convidar o próprio negócio não conta. Os valores recebidos podem ter de ser declarados à Receita.",
+  "ref.rules": "Os 10 € ficam disponíveis 14 dias depois do 1.º pagamento do negócio convidado (o prazo de reembolso). Se esse pagamento for reembolsado, os 10 € não contam. Convidar o próprio negócio não conta.",
   "ref.signup.have": "Tenho um código de convite",
   "ref.signup.label": "Código de convite (opcional)",
   "ref.signup.hint": "Com um código você ganha 15 dias grátis a mais.",

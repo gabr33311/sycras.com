@@ -160,7 +160,7 @@ export function ReferralPanel() {
                 value={newCode}
                 onChange={(e) => setNewCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16))}
                 aria-label={t("ref.code")}
-                className="font-mono font-bold tracking-wider"
+                className="font-display font-bold tracking-wider"
                 autoFocus
               />
               <Button onClick={() => void saveCode()} disabled={busy || newCode.length < 4}>
@@ -173,7 +173,7 @@ export function ReferralPanel() {
             </div>
           ) : (
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span className="font-mono text-2xl font-extrabold tracking-wider">{data.code}</span>
+              <span className="font-display text-2xl font-extrabold tracking-wider">{data.code}</span>
               {data.canChange && (
                 <button
                   type="button"
@@ -229,7 +229,7 @@ export function ReferralPanel() {
                 value={iban}
                 onChange={(e) => setIban(e.target.value.toUpperCase())}
                 placeholder="PT50 0000 0000 0000 0000 0000 0"
-                className="font-mono"
+                className="tabular-nums"
                 autoComplete="off"
               />
             </div>

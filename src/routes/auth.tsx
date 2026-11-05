@@ -554,7 +554,6 @@ function RegisterForm({
               id="invite"
               value={invite}
               onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-              placeholder="BARBEARIACENTRAL"
               autoCapitalize="characters"
               autoComplete="off"
               maxLength={16}

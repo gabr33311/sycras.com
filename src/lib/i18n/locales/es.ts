@@ -1150,7 +1150,7 @@ export const es: Record<string, string> = {
   "ref.payout.name": "Escribe el nombre del titular de la cuenta.",
   "ref.payout.open": "Ya tienes una solicitud en curso.",
   "ref.payout.low": "Necesitas al menos 20 € disponibles.",
-  "ref.rules": "Los 10 € quedan disponibles 14 días después del primer pago del negocio invitado (el plazo de reembolso). Si ese pago se reembolsa, los 10 € no cuentan. Invitar a tu propio negocio no cuenta. Puede que tengas que declarar lo recibido a Hacienda.",
+  "ref.rules": "Los 10 € quedan disponibles 14 días después del primer pago del negocio invitado (el plazo de reembolso). Si ese pago se reembolsa, los 10 € no cuentan. Invitar a tu propio negocio no cuenta.",
   "ref.signup.have": "Tengo un código de invitación",
   "ref.signup.label": "Código de invitación (opcional)",
   "ref.signup.hint": "Con un código ganas 15 días gratis más.",

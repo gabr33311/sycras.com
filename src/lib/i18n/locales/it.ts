@@ -1157,7 +1157,7 @@ export const it: Record<string, string> = {
   "ref.payout.name": "Scrivi il nome dell'intestatario.",
   "ref.payout.open": "Hai già una richiesta in corso.",
   "ref.payout.low": "Servono almeno 20 € disponibili.",
-  "ref.rules": "I 10 € diventano disponibili 14 giorni dopo il primo pagamento dell'attività invitata (il periodo di rimborso). Se quel pagamento viene rimborsato, i 10 € non contano. Invitare la tua stessa attività non conta. Gli importi ricevuti potrebbero dover essere dichiarati al fisco.",
+  "ref.rules": "I 10 € diventano disponibili 14 giorni dopo il primo pagamento dell'attività invitata (il periodo di rimborso). Se quel pagamento viene rimborsato, i 10 € non contano. Invitare la tua stessa attività non conta.",
   "ref.signup.have": "Ho un codice di invito",
   "ref.signup.label": "Codice di invito (facoltativo)",
   "ref.signup.hint": "Con un codice ottieni 15 giorni gratis in più.",

@@ -1164,7 +1164,7 @@ export const de: Record<string, string> = {
   "ref.payout.name": "Gib den Namen des Kontoinhabers ein.",
   "ref.payout.open": "Du hast bereits eine laufende Anfrage.",
   "ref.payout.low": "Du brauchst mindestens 20 € verfügbar.",
-  "ref.rules": "Die 10 € sind 14 Tage nach der ersten Zahlung des eingeladenen Geschäfts verfügbar (Erstattungsfrist). Wird diese Zahlung erstattet, zählen die 10 € nicht. Das eigene Geschäft einzuladen zählt nicht. Erhaltene Beträge müssen ggf. versteuert werden.",
+  "ref.rules": "Die 10 € sind 14 Tage nach der ersten Zahlung des eingeladenen Geschäfts verfügbar (Erstattungsfrist). Wird diese Zahlung erstattet, zählen die 10 € nicht. Das eigene Geschäft einzuladen zählt nicht.",
   "ref.signup.have": "Ich habe einen Einladungscode",
   "ref.signup.label": "Einladungscode (optional)",
   "ref.signup.hint": "Mit einem Code bekommst du 15 Gratistage extra.",
