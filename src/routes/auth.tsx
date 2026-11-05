@@ -6,7 +6,7 @@ import { ArrowLeft, Check, Eye, EyeOff, Loader2, MailCheck, ShieldCheck } from "
 import { supabase } from "@/integrations/supabase/client";
 import { emailHasAccount } from "@/lib/booking.functions";
 import { Captcha } from "@/components/captcha";
-import { needsSecondStep, passwordLogin } from "@/lib/password-login";
+import { mfaByEmail, needsSecondStep, passwordLogin } from "@/lib/password-login";
 import { isBreachedPassword } from "@/lib/password-breached";
 import { getInvite, setInvite } from "@/lib/invite";
 import { Button } from "@/components/ui/button";
@@ -727,11 +727,46 @@ function SecondStep({ onDone }: { onDone: () => void }) {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // "email": no authenticator app at hand, a code goes to the account's email instead.
+  const [byEmail, setByEmail] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  const emailError = (r: string) =>
+    t(
+      r === "too_many"
+        ? "auth.mfa.email.many"
+        : r === "locked"
+          ? "auth.mfa.email.locked"
+          : r === "wrong"
+            ? "auth.mfa.email.wrong"
+            : "acc.error",
+    );
+
+  async function sendEmail() {
+    setSending(true);
+    setError(null);
+    const r = await mfaByEmail("send");
+    setSending(false);
+    if (r !== "ok") return setError(emailError(r));
+    setByEmail(true);
+    setCode("");
+    toast.success(t("auth.mfa.email.sent"));
+  }
 
   async function verify(value: string) {
     if (value.length !== CODE_LENGTH || busy) return;
     setBusy(true);
     setError(null);
+    if (byEmail) {
+      const r = await mfaByEmail("verify", value);
+      setBusy(false);
+      if (r === "ok") {
+        toast.success(t("auth.mfa.email.done"));
+        return onDone();
+      }
+      setCode("");
+      return setError(emailError(r));
+    }
     try {
       const { data } = await supabase.auth.mfa.listFactors();
       const factor = data?.totp.find((x) => x.status === "verified");
@@ -756,7 +791,9 @@ function SecondStep({ onDone }: { onDone: () => void }) {
         <ShieldCheck className="size-7" />
       </span>
       <h1 className="mt-4 font-display text-2xl font-bold tracking-tight">{t("auth.mfa.title")}</h1>
-      <p className="mt-1.5 text-sm text-muted-foreground">{t("auth.mfa.body")}</p>
+      <p className="mt-1.5 text-sm text-muted-foreground">
+        {byEmail ? t("auth.mfa.email.body") : t("auth.mfa.body")}
+      </p>
 
       <div className="mt-6 flex justify-center">
         <InputOTP
@@ -793,9 +830,27 @@ function SecondStep({ onDone }: { onDone: () => void }) {
         )}
       </div>
 
-      <Button variant="ghost" className="mt-4" onClick={() => void supabase.auth.signOut()}>
-        <ArrowLeft /> {t("auth.mfa.other")}
-      </Button>
+      <div className="mt-4 flex flex-col items-center gap-1">
+        <Button variant="link" disabled={sending} onClick={() => void sendEmail()}>
+          {sending && <Loader2 className="animate-spin" />}
+          {byEmail ? t("auth.mfa.email.resend") : t("auth.mfa.email.ask")}
+        </Button>
+        {byEmail && (
+          <Button
+            variant="link"
+            onClick={() => {
+              setByEmail(false);
+              setCode("");
+              setError(null);
+            }}
+          >
+            {t("auth.mfa.email.back")}
+          </Button>
+        )}
+        <Button variant="ghost" onClick={() => void supabase.auth.signOut()}>
+          <ArrowLeft /> {t("auth.mfa.other")}
+        </Button>
+      </div>
     </section>
   );
 }

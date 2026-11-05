@@ -53,3 +53,43 @@ export async function needsSecondStep(): Promise<boolean> {
   const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   return data?.nextLevel === "aal2" && data.currentLevel !== "aal2";
 }
+
+/**
+ * No authenticator app at hand: "send" emails a code to the account; "verify" with the
+ * right code turns two-step off and signs in again with a fresh session.
+ */
+export async function mfaByEmail(
+  action: "send" | "verify",
+  code?: string,
+): Promise<"ok" | "too_many" | "wrong" | "locked" | "error"> {
+  const { data } = await supabase.auth.getSession();
+  try {
+    const res = await fetch("/api/auth/mfa-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${data.session?.access_token ?? ""}`,
+      },
+      body: JSON.stringify({ action, code }),
+    });
+    const body = (await res.json().catch(() => ({}))) as {
+      result?: string;
+      access_token?: string;
+      refresh_token?: string;
+    };
+    if (body.result === "ok" && body.access_token && body.refresh_token) {
+      const { error } = await supabase.auth.setSession({
+        access_token: body.access_token,
+        refresh_token: body.refresh_token,
+      });
+      return error ? "error" : "ok";
+    }
+    if (body.result === "ok" && action === "send") return "ok";
+    if (body.result === "too_many" || body.result === "wrong" || body.result === "locked") {
+      return body.result;
+    }
+    return "error";
+  } catch {
+    return "error";
+  }
+}

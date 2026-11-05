@@ -7,6 +7,7 @@ import { template as dataExport } from "./data-export";
 import { template as ownerNudge } from "./owner-nudge";
 import { template as errorSummary } from "./error-summary";
 import { template as ownerAlert } from "./owner-alert";
+import { codeTemplate as mfaEmailCode, offTemplate as mfaOff } from "./mfa-email";
 import { trialEnded, trialEnding, trialWeek } from "./trial-emails";
 import type { ComponentType } from "react";
 
@@ -34,6 +35,8 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   "appointment-confirmed": appointmentConfirmed,
   "appointment-reminder": appointmentReminder,
   "booking-code": bookingCode,
+  "mfa-email-code": mfaEmailCode,
+  "mfa-off": mfaOff,
   "appointment-cancelled": appointmentCancelled,
   "appointment-review": appointmentReview,
   "data-export": dataExport,

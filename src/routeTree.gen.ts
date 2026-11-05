@@ -41,6 +41,7 @@ import { Route as ApiAppointmentsCancelledRouteImport } from './routes/api/appoi
 import { Route as ApiAppointmentsConfirmedRouteImport } from './routes/api/appointments/confirmed'
 import { Route as ApiAppointmentsMovedRouteImport } from './routes/api/appointments/moved'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
+import { Route as ApiAuthMfaEmailRouteImport } from './routes/api/auth/mfa-email'
 import { Route as ApiAuthPasswordRouteImport } from './routes/api/auth/password'
 import { Route as ApiAuthPasswordCheckRouteImport } from './routes/api/auth/password-check'
 import { Route as ApiBillingCheckoutRouteImport } from './routes/api/billing/checkout'
@@ -213,6 +214,11 @@ const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
   path: '/api/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthMfaEmailRoute = ApiAuthMfaEmailRouteImport.update({
+  id: '/api/auth/mfa-email',
+  path: '/api/auth/mfa-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthPasswordRoute = ApiAuthPasswordRouteImport.update({
   id: '/api/auth/password',
   path: '/api/auth/password',
@@ -291,6 +297,7 @@ export interface FileRoutesByFullPath {
   '/api/appointments/confirmed': typeof ApiAppointmentsConfirmedRoute
   '/api/appointments/moved': typeof ApiAppointmentsMovedRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/mfa-email': typeof ApiAuthMfaEmailRoute
   '/api/auth/password': typeof ApiAuthPasswordRoute
   '/api/auth/password-check': typeof ApiAuthPasswordCheckRoute
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
@@ -333,6 +340,7 @@ export interface FileRoutesByTo {
   '/api/appointments/confirmed': typeof ApiAppointmentsConfirmedRoute
   '/api/appointments/moved': typeof ApiAppointmentsMovedRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/mfa-email': typeof ApiAuthMfaEmailRoute
   '/api/auth/password': typeof ApiAuthPasswordRoute
   '/api/auth/password-check': typeof ApiAuthPasswordCheckRoute
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
@@ -377,6 +385,7 @@ export interface FileRoutesById {
   '/api/appointments/confirmed': typeof ApiAppointmentsConfirmedRoute
   '/api/appointments/moved': typeof ApiAppointmentsMovedRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/mfa-email': typeof ApiAuthMfaEmailRoute
   '/api/auth/password': typeof ApiAuthPasswordRoute
   '/api/auth/password-check': typeof ApiAuthPasswordCheckRoute
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
@@ -421,6 +430,7 @@ export interface FileRouteTypes {
     | '/api/appointments/confirmed'
     | '/api/appointments/moved'
     | '/api/auth/login'
+    | '/api/auth/mfa-email'
     | '/api/auth/password'
     | '/api/auth/password-check'
     | '/api/billing/checkout'
@@ -463,6 +473,7 @@ export interface FileRouteTypes {
     | '/api/appointments/confirmed'
     | '/api/appointments/moved'
     | '/api/auth/login'
+    | '/api/auth/mfa-email'
     | '/api/auth/password'
     | '/api/auth/password-check'
     | '/api/billing/checkout'
@@ -506,6 +517,7 @@ export interface FileRouteTypes {
     | '/api/appointments/confirmed'
     | '/api/appointments/moved'
     | '/api/auth/login'
+    | '/api/auth/mfa-email'
     | '/api/auth/password'
     | '/api/auth/password-check'
     | '/api/billing/checkout'
@@ -538,6 +550,7 @@ export interface RootRouteChildren {
   ApiAppointmentsConfirmedRoute: typeof ApiAppointmentsConfirmedRoute
   ApiAppointmentsMovedRoute: typeof ApiAppointmentsMovedRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
+  ApiAuthMfaEmailRoute: typeof ApiAuthMfaEmailRoute
   ApiAuthPasswordRoute: typeof ApiAuthPasswordRoute
   ApiAuthPasswordCheckRoute: typeof ApiAuthPasswordCheckRoute
   ApiBillingCheckoutRoute: typeof ApiBillingCheckoutRoute
@@ -775,6 +788,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/mfa-email': {
+      id: '/api/auth/mfa-email'
+      path: '/api/auth/mfa-email'
+      fullPath: '/api/auth/mfa-email'
+      preLoaderRoute: typeof ApiAuthMfaEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/password': {
       id: '/api/auth/password'
       path: '/api/auth/password'
@@ -895,6 +915,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAppointmentsConfirmedRoute: ApiAppointmentsConfirmedRoute,
   ApiAppointmentsMovedRoute: ApiAppointmentsMovedRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
+  ApiAuthMfaEmailRoute: ApiAuthMfaEmailRoute,
   ApiAuthPasswordRoute: ApiAuthPasswordRoute,
   ApiAuthPasswordCheckRoute: ApiAuthPasswordCheckRoute,
   ApiBillingCheckoutRoute: ApiBillingCheckoutRoute,
