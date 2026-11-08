@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { BellRing, Loader2, Mail, RotateCcw, Send, MessageCircle } from "lucide-react";
+import { BellRing, Loader2, Mail, RotateCcw, Send, MessageCircle, Repeat } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,6 +95,21 @@ export function RemindersPanel({ withReview = true }: { withReview?: boolean } =
       .from("businesses")
       .update({ whatsapp_reminders: v })
       .eq("id", business.id);
+    setBusy(false);
+    if (error) {
+      toast.error(t("pf.common.saveError"));
+      return;
+    }
+    toast.success(t("ui.save.auto"));
+    qc.invalidateQueries({ queryKey: ["my-business"] });
+  }
+
+  // "Está na hora de voltar": null = off, else weeks after the visit.
+  const rebook = business?.rebook_weeks ?? null;
+  async function setRebook(v: number | null) {
+    if (!business) return;
+    setBusy(true);
+    const { error } = await supabase.from("businesses").update({ rebook_weeks: v }).eq("id", business.id);
     setBusy(false);
     if (error) {
       toast.error(t("pf.common.saveError"));
@@ -245,6 +260,51 @@ export function RemindersPanel({ withReview = true }: { withReview?: boolean } =
             onCheckedChange={(v) => void toggleWhatsapp(v)}
             aria-label={t("rm.wa.toggle")}
           />
+        </div>
+
+        {/* Some weeks after a visit, the client gets the link to book the next one. */}
+        <div className="space-y-4 p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand/12 dark:bg-brand/25 text-brand-ink">
+                <Repeat className="size-[17px]" />
+              </span>
+              <div>
+                <p className="flex items-center gap-2 text-sm font-bold">
+                  {t("rm.rebook.toggle")}
+                  <span className="rounded-full border border-subscription-accent px-2 py-px text-[10px] font-bold uppercase">
+                    Pro
+                  </span>
+                </p>
+                <p className="text-sm text-muted-foreground">{t("rm.rebook.desc")}</p>
+              </div>
+            </div>
+            <Switch
+              checked={rebook !== null}
+              disabled={busy || !business}
+              onCheckedChange={(v) => void setRebook(v ? 4 : null)}
+              aria-label={t("rm.rebook.toggle")}
+            />
+          </div>
+          {rebook !== null && (
+            <div className="space-y-3">
+              <p className="text-sm font-bold">{t("rm.rebook.when")}</p>
+              <div className="grid grid-cols-6 gap-2">
+                {[2, 3, 4, 5, 6, 8].map((w) => (
+                  <button
+                    key={w}
+                    type="button"
+                    aria-pressed={rebook === w}
+                    disabled={busy}
+                    onClick={() => void setRebook(w)}
+                    className={chip(rebook === w)}
+                  >
+                    {w} {t("rm.rebook.wk")}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className={cn("space-y-5 p-5", !enabled && "pointer-events-none opacity-50")}>

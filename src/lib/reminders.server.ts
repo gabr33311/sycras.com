@@ -158,13 +158,17 @@ export async function sendDueReminders(): Promise<{ sent: number; skipped: numbe
   }
 
   const reviews = await sendDueReviews(db, sendTemplateEmail);
+  const rebooks = await sendDueRebooks(db, sendTemplateEmail).catch((e) => {
+    console.error("[rebook] failed", e);
+    return 0;
+  });
   // Not part of the count: help for new owners and the weekly error report.
   await sendOwnerNudges(db, sendTemplateEmail).catch((e) => console.error("[nudge] failed", e));
   await sendTrialEmails(db, sendTemplateEmail).catch((e) => console.error("[trial] failed", e));
   await sendWeeklyErrorSummary(db, sendTemplateEmail).catch((e) =>
     console.error("[errors] summary failed", e),
   );
-  return { sent: sent + reviews, skipped };
+  return { sent: sent + reviews + rebooks, skipped };
 }
 
 type ReviewRow = {
@@ -244,6 +248,103 @@ async function sendDueReviews(
         .eq("appointment_id", appt.id)
         .eq("kind", "review");
       console.error("[reviews] send failed", appt.id, e);
+    }
+  }
+  return sent;
+}
+
+type RebookRow = {
+  id: string;
+  business_id: string;
+  customer_id: string | null;
+  customer_name: string;
+  customer_email: string | null;
+  service_name: string;
+  starts_at: string;
+  ends_at: string;
+  businesses: {
+    name: string;
+    slug: string;
+    brand_color: string;
+    created_at: string;
+    email: string | null;
+    rebook_weeks: number | null;
+  } | null;
+};
+
+/**
+ * "Está na hora de voltar": the chosen number of weeks after a finished visit, the
+ * client gets the booking link, unless they already booked again. A Pro extra; one
+ * email per visit at most (claimed in appointment_reminders as kind "rebook").
+ */
+export async function sendDueRebooks(
+  db: Awaited<typeof import("@/integrations/supabase/client.server")>["supabaseAdmin"],
+  sendTemplateEmail: Awaited<typeof import("@/lib/email-templates/send-email")>["sendTemplateEmail"],
+): Promise<number> {
+  const origin = appOrigin() ?? "https://sycras.com";
+  const now = Date.now();
+  const week = 7 * 86400000;
+  // Every business picks 2 to 12 weeks; the exact window is checked per business below.
+  const { data, error } = await db
+    .from("appointments")
+    .select(
+      "id, business_id, customer_id, customer_name, customer_email, service_name, starts_at, ends_at, businesses!inner(name, slug, brand_color, created_at, email, rebook_weeks)",
+    )
+    .eq("status", "completed")
+    .not("customer_email", "is", null)
+    .not("businesses.rebook_weeks", "is", null)
+    .lte("ends_at", new Date(now - 2 * week).toISOString())
+    .gte("ends_at", new Date(now - 12 * week - 2 * 86400000).toISOString())
+    .limit(500);
+  if (error) {
+    console.error("[rebook] query failed", error);
+    return 0;
+  }
+  let sent = 0;
+  const pro = new Map<string, boolean>();
+  for (const appt of (data ?? []) as unknown as RebookRow[]) {
+    const biz = appt.businesses;
+    const weeks = biz?.rebook_weeks;
+    if (!biz || !weeks || !appt.customer_email) continue;
+    // Due: between `weeks` and `weeks` + 2 days after the visit (a missed run still sends).
+    const due = new Date(appt.ends_at).getTime() + weeks * week;
+    if (now < due || now > due + 2 * 86400000) continue;
+    if (!pro.has(appt.business_id)) pro.set(appt.business_id, await businessHasPro(appt.business_id, biz.created_at));
+    if (!pro.get(appt.business_id)) continue;
+
+    // Booked again (any later visit, past or future, not cancelled)? Then no email.
+    const later = db
+      .from("appointments")
+      .select("id", { count: "exact", head: true })
+      .eq("business_id", appt.business_id)
+      .gt("starts_at", appt.starts_at)
+      .in("status", ["pending", "confirmed", "completed"]);
+    const { count } = await (appt.customer_id ? later.eq("customer_id", appt.customer_id) : later.eq("customer_email", appt.customer_email));
+    if ((count ?? 0) > 0) continue;
+
+    const { error: claimError } = await db
+      .from("appointment_reminders")
+      .insert({ appointment_id: appt.id, business_id: appt.business_id, kind: "rebook" });
+    if (claimError) continue;
+    const colors = brandColors(biz.brand_color);
+    try {
+      const res = await sendTemplateEmail("rebook", appt.customer_email, {
+        templateData: {
+          name: appt.customer_name.split(" ")[0],
+          businessName: biz.name,
+          serviceName: appt.service_name,
+          weeks: String(weeks),
+          bookUrl: `${origin}/${biz.slug}`,
+          brandColor: colors.brand,
+          brandText: colors.foreground,
+        },
+        ...(biz.email ? { replyTo: biz.email } : {}),
+        idempotencyKey: `rebook-${appt.id}`,
+      });
+      if (res.sent) sent++;
+    } catch (e) {
+      await db.from("appointment_reminders").delete().eq("appointment_id", appt.id).eq("kind", "rebook");
+      console.error("[rebook] send failed", appt.id, e);
     }
   }
   return sent;
