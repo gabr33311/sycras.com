@@ -21,6 +21,7 @@ import { ErrorState, LoadingRows, PageHeader, StatusBadge } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { useMyBusiness } from "@/hooks/use-business";
 import { useSubscription } from "@/hooks/use-subscription";
+import { ValueCard } from "@/components/value-card";
 import { HIDDEN_MONEY, useMoneyHidden } from "@/hooks/use-money-hidden";
 import { useAppointmentSheet } from "@/lib/appointment-sheet-context";
 import { invalidateAppointmentData, setAppointmentStatus } from "@/lib/appointment-status";
@@ -183,6 +184,8 @@ function TodayPage() {
                 hasDay={liveDay.length > 0}
                 onOpen={openAppointment}
               />
+
+              <ValueCard />
 
               <NeedsYou items={needs} tz={tz} onOpen={openAppointment} />
             </div>
