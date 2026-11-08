@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { BellRing, Loader2, Mail, RotateCcw, Send, MessageCircle, Repeat } from "lucide-react";
+import { BellRing, Gift, Loader2, Mail, RotateCcw, Send, MessageCircle, Repeat } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -110,6 +110,23 @@ export function RemindersPanel({ withReview = true }: { withReview?: boolean } =
     if (!business) return;
     setBusy(true);
     const { error } = await supabase.from("businesses").update({ rebook_weeks: v }).eq("id", business.id);
+    setBusy(false);
+    if (error) {
+      toast.error(t("pf.common.saveError"));
+      return;
+    }
+    toast.success(t("ui.save.auto"));
+    qc.invalidateQueries({ queryKey: ["my-business"] });
+  }
+
+  // Loyalty card: every N visits, the next one gets the reward (stored as the shown text).
+  const loyalty = business?.loyalty_every ?? null;
+  const rewards = [t("rm.loyal.r1"), t("rm.loyal.r2"), t("rm.loyal.r3")];
+  const reward = business?.loyalty_reward ?? rewards[0];
+  async function setLoyalty(patch: { loyalty_every?: number | null; loyalty_reward?: string }) {
+    if (!business) return;
+    setBusy(true);
+    const { error } = await supabase.from("businesses").update(patch).eq("id", business.id);
     setBusy(false);
     if (error) {
       toast.error(t("pf.common.saveError"));
@@ -300,6 +317,47 @@ export function RemindersPanel({ withReview = true }: { withReview?: boolean } =
                     className={chip(rebook === w)}
                   >
                     {w} {t("rm.rebook.wk")}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Loyalty card: counted on its own at every finished visit. */}
+        <div className="space-y-4 p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand/12 dark:bg-brand/25 text-brand-ink">
+                <Gift className="size-[17px]" />
+              </span>
+              <div>
+                <p className="text-sm font-bold">{t("rm.loyal.toggle")}</p>
+                <p className="text-sm text-muted-foreground">{t("rm.loyal.desc")}</p>
+              </div>
+            </div>
+            <Switch
+              checked={loyalty !== null}
+              disabled={busy || !business}
+              onCheckedChange={(v) => void setLoyalty({ loyalty_every: v ? 10 : null })}
+              aria-label={t("rm.loyal.toggle")}
+            />
+          </div>
+          {loyalty !== null && (
+            <div className="space-y-3">
+              <p className="text-sm font-bold">{t("rm.loyal.every")}</p>
+              <div className="grid grid-cols-5 gap-2">
+                {[5, 6, 8, 10, 12].map((n) => (
+                  <button key={n} type="button" aria-pressed={loyalty === n} disabled={busy} onClick={() => void setLoyalty({ loyalty_every: n })} className={chip(loyalty === n)}>
+                    {n} {t("rm.loyal.visits")}
+                  </button>
+                ))}
+              </div>
+              <p className="text-sm font-bold">{t("rm.loyal.reward")}</p>
+              <div className="grid grid-cols-3 gap-2">
+                {rewards.map((r) => (
+                  <button key={r} type="button" aria-pressed={reward === r} disabled={busy} onClick={() => void setLoyalty({ loyalty_reward: r })} className={chip(reward === r)}>
+                    {r}
                   </button>
                 ))}
               </div>

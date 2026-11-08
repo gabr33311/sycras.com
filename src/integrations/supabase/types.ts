@@ -455,6 +455,8 @@ export type Database = {
           whatsapp_reminders: boolean
           review_url: string | null
           rebook_weeks: number | null
+          loyalty_every: number | null
+          loyalty_reward: string | null
         }
         Insert: {
           address?: string | null
@@ -504,6 +506,8 @@ export type Database = {
           whatsapp_reminders?: boolean
           review_url?: string | null
           rebook_weeks?: number | null
+          loyalty_every?: number | null
+          loyalty_reward?: string | null
         }
         Update: {
           address?: string | null
@@ -553,6 +557,8 @@ export type Database = {
           whatsapp_reminders?: boolean
           review_url?: string | null
           rebook_weeks?: number | null
+          loyalty_every?: number | null
+          loyalty_reward?: string | null
         }
         Relationships: []
       }
