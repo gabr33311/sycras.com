@@ -35,6 +35,7 @@ import { Route as ApiSlugRouteImport } from './routes/api/slug'
 import { Route as BookSlugRouteImport } from './routes/book.$slug'
 import { Route as BookingTokenRouteImport } from './routes/booking.$token'
 import { Route as CCodeRouteImport } from './routes/c.$code'
+import { Route as ConnectDoneRouteImport } from './routes/connect.done'
 import { Route as ApiAccountDeleteRouteImport } from './routes/api/account/delete'
 import { Route as ApiAccountExportRouteImport } from './routes/api/account/export'
 import { Route as ApiAppointmentsCancelledRouteImport } from './routes/api/appointments/cancelled'
@@ -47,6 +48,8 @@ import { Route as ApiAuthPasswordCheckRouteImport } from './routes/api/auth/pass
 import { Route as ApiBillingCheckoutRouteImport } from './routes/api/billing/checkout'
 import { Route as ApiBillingReturnRouteImport } from './routes/api/billing/return'
 import { Route as ApiCronRemindersRouteImport } from './routes/api/cron/reminders'
+import { Route as ApiPaymentsConnectRouteImport } from './routes/api/payments/connect'
+import { Route as ApiPaymentsStatusRouteImport } from './routes/api/payments/status'
 import { Route as ApiPushTestRouteImport } from './routes/api/push/test'
 import { Route as ApiRemindersTestRouteImport } from './routes/api/reminders/test'
 import { Route as ApiRevenuecatWebhookRouteImport } from './routes/api/revenuecat/webhook'
@@ -182,6 +185,11 @@ const CCodeRoute = CCodeRouteImport.update({
   path: '/c/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConnectDoneRoute = ConnectDoneRouteImport.update({
+  id: '/connect/done',
+  path: '/connect/done',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAccountDeleteRoute = ApiAccountDeleteRouteImport.update({
   id: '/api/account/delete',
   path: '/api/account/delete',
@@ -244,6 +252,16 @@ const ApiCronRemindersRoute = ApiCronRemindersRouteImport.update({
   path: '/api/cron/reminders',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPaymentsConnectRoute = ApiPaymentsConnectRouteImport.update({
+  id: '/api/payments/connect',
+  path: '/api/payments/connect',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPaymentsStatusRoute = ApiPaymentsStatusRouteImport.update({
+  id: '/api/payments/status',
+  path: '/api/payments/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPushTestRoute = ApiPushTestRouteImport.update({
   id: '/api/push/test',
   path: '/api/push/test',
@@ -291,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/book/$slug': typeof BookSlugRoute
   '/booking/$token': typeof BookingTokenRoute
   '/c/$code': typeof CCodeRoute
+  '/connect/done': typeof ConnectDoneRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/account/export': typeof ApiAccountExportRoute
   '/api/appointments/cancelled': typeof ApiAppointmentsCancelledRoute
@@ -303,6 +322,8 @@ export interface FileRoutesByFullPath {
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/return': typeof ApiBillingReturnRoute
   '/api/cron/reminders': typeof ApiCronRemindersRoute
+  '/api/payments/connect': typeof ApiPaymentsConnectRoute
+  '/api/payments/status': typeof ApiPaymentsStatusRoute
   '/api/push/test': typeof ApiPushTestRoute
   '/api/reminders/test': typeof ApiRemindersTestRoute
   '/api/revenuecat/webhook': typeof ApiRevenuecatWebhookRoute
@@ -334,6 +355,7 @@ export interface FileRoutesByTo {
   '/book/$slug': typeof BookSlugRoute
   '/booking/$token': typeof BookingTokenRoute
   '/c/$code': typeof CCodeRoute
+  '/connect/done': typeof ConnectDoneRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/account/export': typeof ApiAccountExportRoute
   '/api/appointments/cancelled': typeof ApiAppointmentsCancelledRoute
@@ -346,6 +368,8 @@ export interface FileRoutesByTo {
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/return': typeof ApiBillingReturnRoute
   '/api/cron/reminders': typeof ApiCronRemindersRoute
+  '/api/payments/connect': typeof ApiPaymentsConnectRoute
+  '/api/payments/status': typeof ApiPaymentsStatusRoute
   '/api/push/test': typeof ApiPushTestRoute
   '/api/reminders/test': typeof ApiRemindersTestRoute
   '/api/revenuecat/webhook': typeof ApiRevenuecatWebhookRoute
@@ -379,6 +403,7 @@ export interface FileRoutesById {
   '/book/$slug': typeof BookSlugRoute
   '/booking/$token': typeof BookingTokenRoute
   '/c/$code': typeof CCodeRoute
+  '/connect/done': typeof ConnectDoneRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/account/export': typeof ApiAccountExportRoute
   '/api/appointments/cancelled': typeof ApiAppointmentsCancelledRoute
@@ -391,6 +416,8 @@ export interface FileRoutesById {
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/return': typeof ApiBillingReturnRoute
   '/api/cron/reminders': typeof ApiCronRemindersRoute
+  '/api/payments/connect': typeof ApiPaymentsConnectRoute
+  '/api/payments/status': typeof ApiPaymentsStatusRoute
   '/api/push/test': typeof ApiPushTestRoute
   '/api/reminders/test': typeof ApiRemindersTestRoute
   '/api/revenuecat/webhook': typeof ApiRevenuecatWebhookRoute
@@ -424,6 +451,7 @@ export interface FileRouteTypes {
     | '/book/$slug'
     | '/booking/$token'
     | '/c/$code'
+    | '/connect/done'
     | '/api/account/delete'
     | '/api/account/export'
     | '/api/appointments/cancelled'
@@ -436,6 +464,8 @@ export interface FileRouteTypes {
     | '/api/billing/checkout'
     | '/api/billing/return'
     | '/api/cron/reminders'
+    | '/api/payments/connect'
+    | '/api/payments/status'
     | '/api/push/test'
     | '/api/reminders/test'
     | '/api/revenuecat/webhook'
@@ -467,6 +497,7 @@ export interface FileRouteTypes {
     | '/book/$slug'
     | '/booking/$token'
     | '/c/$code'
+    | '/connect/done'
     | '/api/account/delete'
     | '/api/account/export'
     | '/api/appointments/cancelled'
@@ -479,6 +510,8 @@ export interface FileRouteTypes {
     | '/api/billing/checkout'
     | '/api/billing/return'
     | '/api/cron/reminders'
+    | '/api/payments/connect'
+    | '/api/payments/status'
     | '/api/push/test'
     | '/api/reminders/test'
     | '/api/revenuecat/webhook'
@@ -511,6 +544,7 @@ export interface FileRouteTypes {
     | '/book/$slug'
     | '/booking/$token'
     | '/c/$code'
+    | '/connect/done'
     | '/api/account/delete'
     | '/api/account/export'
     | '/api/appointments/cancelled'
@@ -523,6 +557,8 @@ export interface FileRouteTypes {
     | '/api/billing/checkout'
     | '/api/billing/return'
     | '/api/cron/reminders'
+    | '/api/payments/connect'
+    | '/api/payments/status'
     | '/api/push/test'
     | '/api/reminders/test'
     | '/api/revenuecat/webhook'
@@ -544,6 +580,7 @@ export interface RootRouteChildren {
   BookSlugRoute: typeof BookSlugRoute
   BookingTokenRoute: typeof BookingTokenRoute
   CCodeRoute: typeof CCodeRoute
+  ConnectDoneRoute: typeof ConnectDoneRoute
   ApiAccountDeleteRoute: typeof ApiAccountDeleteRoute
   ApiAccountExportRoute: typeof ApiAccountExportRoute
   ApiAppointmentsCancelledRoute: typeof ApiAppointmentsCancelledRoute
@@ -556,6 +593,8 @@ export interface RootRouteChildren {
   ApiBillingCheckoutRoute: typeof ApiBillingCheckoutRoute
   ApiBillingReturnRoute: typeof ApiBillingReturnRoute
   ApiCronRemindersRoute: typeof ApiCronRemindersRoute
+  ApiPaymentsConnectRoute: typeof ApiPaymentsConnectRoute
+  ApiPaymentsStatusRoute: typeof ApiPaymentsStatusRoute
   ApiPushTestRoute: typeof ApiPushTestRoute
   ApiRemindersTestRoute: typeof ApiRemindersTestRoute
   ApiRevenuecatWebhookRoute: typeof ApiRevenuecatWebhookRoute
@@ -746,6 +785,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/connect/done': {
+      id: '/connect/done'
+      path: '/connect/done'
+      fullPath: '/connect/done'
+      preLoaderRoute: typeof ConnectDoneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/account/delete': {
       id: '/api/account/delete'
       path: '/api/account/delete'
@@ -830,6 +876,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCronRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/payments/connect': {
+      id: '/api/payments/connect'
+      path: '/api/payments/connect'
+      fullPath: '/api/payments/connect'
+      preLoaderRoute: typeof ApiPaymentsConnectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/payments/status': {
+      id: '/api/payments/status'
+      path: '/api/payments/status'
+      fullPath: '/api/payments/status'
+      preLoaderRoute: typeof ApiPaymentsStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/push/test': {
       id: '/api/push/test'
       path: '/api/push/test'
@@ -909,6 +969,7 @@ const rootRouteChildren: RootRouteChildren = {
   BookSlugRoute: BookSlugRoute,
   BookingTokenRoute: BookingTokenRoute,
   CCodeRoute: CCodeRoute,
+  ConnectDoneRoute: ConnectDoneRoute,
   ApiAccountDeleteRoute: ApiAccountDeleteRoute,
   ApiAccountExportRoute: ApiAccountExportRoute,
   ApiAppointmentsCancelledRoute: ApiAppointmentsCancelledRoute,
@@ -921,6 +982,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBillingCheckoutRoute: ApiBillingCheckoutRoute,
   ApiBillingReturnRoute: ApiBillingReturnRoute,
   ApiCronRemindersRoute: ApiCronRemindersRoute,
+  ApiPaymentsConnectRoute: ApiPaymentsConnectRoute,
+  ApiPaymentsStatusRoute: ApiPaymentsStatusRoute,
   ApiPushTestRoute: ApiPushTestRoute,
   ApiRemindersTestRoute: ApiRemindersTestRoute,
   ApiRevenuecatWebhookRoute: ApiRevenuecatWebhookRoute,
