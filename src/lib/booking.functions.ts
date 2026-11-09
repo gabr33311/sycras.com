@@ -353,7 +353,7 @@ export const getBookingByToken = createServerFn({ method: "GET" })
     const { data: appt } = await supabaseAdmin
       .from("appointments")
       .select(
-        "id, service_name, customer_name, starts_at, ends_at, price_cents, status, staff_id, business_id, service_id",
+        "id, service_name, customer_name, starts_at, ends_at, price_cents, status, staff_id, business_id, service_id, deposit_cents, deposit_status",
       )
       .eq("id", row.appointment_id)
       .maybeSingle();
@@ -387,6 +387,9 @@ export const getBookingByToken = createServerFn({ method: "GET" })
         service_id: appt.service_id,
         business_id: appt.business_id,
         staff_id: appt.staff_id,
+        // The deposit paid when booking (null when none was asked).
+        deposit_cents: appt.deposit_cents as number | null,
+        deposit_status: appt.deposit_status as string | null,
       },
       staffName: staff?.name ?? null,
       business,

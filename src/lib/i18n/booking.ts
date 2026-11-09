@@ -98,6 +98,16 @@ export const bookingDict: Record<BaseLang, Record<string, string>> = {
     "bk.tk.invalidBody": "Esta marcação já não existe ou o link expirou.",
     "bk.tk.cancelled": "Marcação cancelada.",
     "bk.tk.refunded": "O sinal foi devolvido.",
+    "bk.dep.paid": "Sinal pago: {x}",
+    "bk.dep.refundedTitle": "Sinal de {x} devolvido",
+    "bk.dep.kept": "Sinal de {x} retido pelo negócio",
+    "bk.dep.delay":
+      "O dinheiro volta para o cartão com que pagaste, mas não é imediato: pode demorar 5 a 10 dias úteis a aparecer, conforme o teu banco.",
+    "bk.dep.before":
+      "Se cancelares até {h}h antes, o sinal de {x} é-te devolvido. O dinheiro pode demorar 5 a 10 dias úteis a chegar ao teu cartão.",
+    "bk.dep.confirm":
+      "O sinal de {x} é-te devolvido. Pode demorar 5 a 10 dias úteis a aparecer no teu cartão.",
+    "bk.dep.lateKeep": "A menos de {h}h da marcação, o negócio pode ficar com o sinal de {x}.",
     "bk.tk.rescheduled": "Marcação reagendada.",
     "bk.tk.title": "A tua marcação",
     "bk.done.pending.body":
@@ -263,6 +273,17 @@ export const bookingDict: Record<BaseLang, Record<string, string>> = {
     "bk.tk.invalidBody": "This booking no longer exists or the link has expired.",
     "bk.tk.cancelled": "Booking cancelled.",
     "bk.tk.refunded": "Your deposit was refunded.",
+    "bk.dep.paid": "Deposit paid: {x}",
+    "bk.dep.refundedTitle": "{x} deposit refunded",
+    "bk.dep.kept": "{x} deposit kept by the business",
+    "bk.dep.delay":
+      "The money goes back to the card you paid with, but not instantly: it can take 5 to 10 business days to show up, depending on your bank.",
+    "bk.dep.before":
+      "If you cancel up to {h}h before, your {x} deposit is refunded. It can take 5 to 10 business days to reach your card.",
+    "bk.dep.confirm":
+      "Your {x} deposit will be refunded. It can take 5 to 10 business days to show up on your card.",
+    "bk.dep.lateKeep":
+      "Less than {h}h before the appointment, the business may keep the {x} deposit.",
     "bk.tk.rescheduled": "Booking rescheduled.",
     "bk.tk.title": "Your booking",
     "bk.done.pending.body":

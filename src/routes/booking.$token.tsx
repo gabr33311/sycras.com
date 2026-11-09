@@ -116,7 +116,15 @@ function BookingPage() {
       }
       setConfirmCancel(false);
       setRescheduling(false);
-      setData({ ...data, appointment: { ...appt, status: "cancelled" } });
+      const refunded = "refundedCents" in res && !!res.refundedCents;
+      setData({
+        ...data,
+        appointment: {
+          ...appt,
+          status: "cancelled",
+          deposit_status: refunded ? "refunded" : appt.deposit_status,
+        },
+      });
       toast.success(
         "refundedCents" in res && res.refundedCents
           ? `${t("bk.tk.cancelled")} ${t("bk.tk.refunded")}`
@@ -170,6 +178,8 @@ function BookingPage() {
   }
 
   const cancelled = appt.status === "cancelled";
+  // The deposit paid when booking, as money ("1,00 €"), or null.
+  const deposit = appt.deposit_cents ? formatPrice(appt.deposit_cents) : null;
   // Only upcoming (pending/confirmed) bookings can still be changed by the client.
   const manageable = appt.status === "pending" || appt.status === "confirmed";
   const days = Array.from({ length: 14 }, (_, i) => addDays(todayIn(tz), i));
@@ -238,6 +248,16 @@ function BookingPage() {
           <AppointmentStatusIndicator status={appt.status} />
         </div>
         <p className="mt-4 text-sm font-semibold tabular-nums">{formatPrice(appt.price_cents)}</p>
+        {deposit && appt.deposit_status === "paid" && (
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t("bk.dep.paid").replace("{x}", deposit)}
+          </p>
+        )}
+        {deposit && appt.deposit_status === "kept" && (
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t("bk.dep.kept").replace("{x}", deposit)}
+          </p>
+        )}
         {data.business && (data.business.address || data.business.phone) && (
           <div className="mt-4 space-y-1.5 border-t border-border pt-4 text-sm text-muted-foreground">
             {data.business.address && (
@@ -281,6 +301,13 @@ function BookingPage() {
         </div>
       )}
 
+      {deposit && appt.deposit_status === "refunded" && (
+        <div className="mt-3 rounded-2xl bg-muted p-4">
+          <p className="text-sm font-bold">{t("bk.dep.refundedTitle").replace("{x}", deposit)}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("bk.dep.delay")}</p>
+        </div>
+      )}
+
       {slug && (
         <Button asChild size="lg" variant="brand" className="mt-6 w-full">
           <Link to="/$slug" params={{ slug }}>
@@ -310,6 +337,13 @@ function BookingPage() {
               <p className="text-sm text-muted-foreground">
                 {t("bk.tk.tooLate").replace("{h}", String(cancellationHours))}
               </p>
+              {deposit && appt.deposit_status === "paid" && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {t("bk.dep.lateKeep")
+                    .replace("{h}", String(cancellationHours))
+                    .replace("{x}", deposit)}
+                </p>
+              )}
               {data.business?.phone && (
                 <a
                   href={`tel:${data.business.phone}`}
@@ -348,6 +382,13 @@ function BookingPage() {
                 {cancellationHours}
                 {t("bk.tk.policy2")}
               </p>
+              {deposit && appt.deposit_status === "paid" && (
+                <p className="mx-auto mt-2 max-w-sm text-xs font-semibold text-foreground">
+                  {t("bk.dep.before")
+                    .replace("{h}", String(cancellationHours))
+                    .replace("{x}", deposit)}
+                </p>
+              )}
             </>
           )}
         </section>
@@ -449,6 +490,11 @@ function BookingPage() {
             <AlertDialogDescription>
               {appt.service_name} · {formatDateLong(appt.starts_at, tz)} ·{" "}
               {formatTime(appt.starts_at, tz)}
+              {deposit && appt.deposit_status === "paid" && (
+                <span className="mt-3 block font-semibold text-foreground">
+                  {t("bk.dep.confirm").replace("{x}", deposit)}
+                </span>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
