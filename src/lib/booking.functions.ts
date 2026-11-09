@@ -218,8 +218,20 @@ export const createPublicBooking = createServerFn({ method: "POST" })
       };
     }
 
-    // The business asks for a code: email it first, book once the client types it.
-    if (owner.verify_bookings) {
+    // The business asks for a code from new clients: email it first, book once the client
+    // types it. Someone who already had a confirmed or finished visit here books straight away.
+    let known = false;
+    if (owner.verify_bookings && data.email) {
+      const { data: seen } = await supabaseAdmin
+        .from("appointments")
+        .select("id")
+        .eq("business_id", data.businessId)
+        .in("status", ["confirmed", "completed"])
+        .ilike("customer_email", data.email.replace(/[\\%_]/g, (m) => "\\" + m))
+        .limit(1);
+      known = !!seen?.length;
+    }
+    if (owner.verify_bookings && !known) {
       if (!data.code) {
         const sent = await issueBookingCode(data.businessId, owner.name, data.email);
         if (!sent) {

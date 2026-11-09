@@ -366,9 +366,9 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "pf.av.notice": "Antecedência mínima para marcar",
     "pf.av.notice.hint": "Até quanto tempo antes de um horário o cliente ainda o pode marcar.",
     "pf.av.notice.none": "Sem mínimo",
-    "pf.av.verify": "Pedir código por email",
+    "pf.av.verify": "Código por email para clientes novos",
     "pf.av.verify.desc":
-      "O cliente recebe um código de 6 dígitos e só depois a marcação fica feita. Evita marcações falsas.",
+      "Quem marca pela primeira vez recebe um código de 6 dígitos antes de a marcação ficar feita. Quem já cá veio marca direto.",
     "loc.show": "Mostrar no mapa",
     "loc.show.desc": 'Os clientes veem o botão "Ver no mapa" na página e nos emails.',
     "acc.title": "Conta",
@@ -942,9 +942,9 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "pf.av.notice": "Minimum notice to book",
     "pf.av.notice.hint": "How long before a time slot a client can still book it.",
     "pf.av.notice.none": "No minimum",
-    "pf.av.verify": "Ask for an email code",
+    "pf.av.verify": "Email code for new clients",
     "pf.av.verify.desc":
-      "The client gets a 6-digit code and only then is the booking made. Stops fake bookings.",
+      "First-time clients get a 6-digit code before the booking is made. Clients who have been before book straight away.",
     "loc.show": "Show on the map",
     "loc.show.desc": 'Clients see the "Map" button on the page and in emails.',
     "acc.title": "Account",

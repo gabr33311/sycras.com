@@ -936,9 +936,9 @@ export const de: Record<string, string> = {
   "pf.av.notice": "Mindestvorlauf für Buchungen",
   "pf.av.notice.hint": "Wie lange vor einem Termin ein Kunde ihn noch buchen kann.",
   "pf.av.notice.none": "Kein Minimum",
-  "pf.av.verify": "E-Mail-Code verlangen",
+  "pf.av.verify": "E-Mail-Code für neue Kunden",
   "pf.av.verify.desc":
-    "Der Kunde erhält einen 6-stelligen Code und erst dann wird gebucht. Verhindert falsche Buchungen.",
+    "Wer zum ersten Mal bucht, erhält einen 6-stelligen Code, bevor die Buchung erfolgt. Wer schon da war, bucht direkt.",
   "loc.show": "Auf der Karte zeigen",
   "loc.show.desc": "Kunden sehen den Button „Karte“ auf der Seite und in E-Mails.",
   "acc.title": "Konto",

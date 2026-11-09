@@ -938,9 +938,9 @@ export const fr: Record<string, string> = {
   "pf.av.notice": "Délai minimum pour réserver",
   "pf.av.notice.hint": "Combien de temps avant un créneau un client peut encore le réserver.",
   "pf.av.notice.none": "Aucun minimum",
-  "pf.av.verify": "Demander un code par email",
+  "pf.av.verify": "Code par email pour les nouveaux clients",
   "pf.av.verify.desc":
-    "Le client reçoit un code à 6 chiffres et la réservation n'est faite qu'ensuite. Évite les fausses réservations.",
+    "Les nouveaux clients reçoivent un code à 6 chiffres avant que la réservation soit faite. Ceux qui sont déjà venus réservent directement.",
   "loc.show": "Afficher sur la carte",
   "loc.show.desc": "Les clients voient le bouton « Carte » sur la page et dans les emails.",
   "acc.title": "Compte",

@@ -928,9 +928,9 @@ export const ptBR: Record<string, string> = {
   "pf.av.notice": "Antecedência mínima para agendar",
   "pf.av.notice.hint": "Até quanto tempo antes de um horário o cliente ainda pode agendá-lo.",
   "pf.av.notice.none": "Sem mínimo",
-  "pf.av.verify": "Pedir código por email",
+  "pf.av.verify": "Código por email para clientes novos",
   "pf.av.verify.desc":
-    "O cliente recebe um código de 6 dígitos e só depois o agendamento é feito. Evita agendamentos falsos.",
+    "Quem agenda pela primeira vez recebe um código de 6 dígitos antes de o agendamento ser feito. Quem já veio agenda direto.",
   "loc.show": "Mostrar no mapa",
   "loc.show.desc": 'Os clientes veem o botão "Ver no mapa" na página e nos emails.',
   "acc.title": "Conta",

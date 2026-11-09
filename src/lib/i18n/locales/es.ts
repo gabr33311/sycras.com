@@ -925,9 +925,9 @@ export const es: Record<string, string> = {
   "pf.av.notice": "Antelación mínima para reservar",
   "pf.av.notice.hint": "Cuánto tiempo antes de un horario el cliente aún puede reservarlo.",
   "pf.av.notice.none": "Sin mínimo",
-  "pf.av.verify": "Pedir código por email",
+  "pf.av.verify": "Código por email para clientes nuevos",
   "pf.av.verify.desc":
-    "El cliente recibe un código de 6 dígitos y solo entonces se hace la reserva. Evita reservas falsas.",
+    "Quien reserva por primera vez recibe un código de 6 dígitos antes de hacer la reserva. Quien ya vino reserva directamente.",
   "loc.show": "Mostrar en el mapa",
   "loc.show.desc": 'Los clientes ven el botón "Mapa" en la página y en los emails.',
   "acc.title": "Cuenta",

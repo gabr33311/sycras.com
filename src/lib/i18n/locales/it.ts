@@ -932,9 +932,9 @@ export const it: Record<string, string> = {
   "pf.av.notice": "Preavviso minimo per prenotare",
   "pf.av.notice.hint": "Quanto tempo prima di un orario il cliente può ancora prenotarlo.",
   "pf.av.notice.none": "Nessun minimo",
-  "pf.av.verify": "Chiedere un codice via email",
+  "pf.av.verify": "Codice via email per i nuovi clienti",
   "pf.av.verify.desc":
-    "Il cliente riceve un codice di 6 cifre e solo dopo la prenotazione viene fatta. Evita prenotazioni false.",
+    "Chi prenota per la prima volta riceve un codice di 6 cifre prima che la prenotazione sia fatta. Chi è già venuto prenota subito.",
   "loc.show": "Mostra sulla mappa",
   "loc.show.desc": 'I clienti vedono il pulsante "Mappa" nella pagina e nelle email.',
   "acc.title": "Account",
