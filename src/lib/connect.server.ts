@@ -9,7 +9,10 @@ async function admin() {
 }
 
 /** The Supabase user behind a Bearer token, when they manage this business (owner or manager). */
-export async function managerFromRequest(request: Request, businessId: string): Promise<string | null> {
+export async function managerFromRequest(
+  request: Request,
+  businessId: string,
+): Promise<string | null> {
   const token = (request.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
   if (!token || !businessId) return null;
   const db = await admin();
@@ -34,7 +37,8 @@ export async function startConnectOnboarding(input: {
   from: "web" | "app";
   origin: string;
 }): Promise<{ ok: true; url: string } | { ok: false; message: string }> {
-  if (!process.env["STRIPE_SECRET_KEY"]) return { ok: false, message: "Os pagamentos ainda não estão configurados." };
+  if (!process.env["STRIPE_SECRET_KEY"])
+    return { ok: false, message: "Os pagamentos ainda não estão configurados." };
   const db = await admin();
   const { data: business } = await db
     .from("businesses")
@@ -61,7 +65,8 @@ export async function startConnectOnboarding(input: {
     await db.from("businesses").update({ stripe_account_id: accountId }).eq("id", business.id);
   }
 
-  const back = input.from === "app" ? `${input.origin}/connect/done` : `${input.origin}/profile?pagamentos=1`;
+  const back =
+    input.from === "app" ? `${input.origin}/connect/done` : `${input.origin}/profile?pagamentos=1`;
   const link = await stripe().accountLinks.create({
     account: accountId,
     type: "account_onboarding",
@@ -72,7 +77,9 @@ export async function startConnectOnboarding(input: {
 }
 
 /** Asks Stripe whether the business's account can take payments now, and remembers it. */
-export async function refreshConnectStatus(businessId: string): Promise<{ connected: boolean; chargesEnabled: boolean }> {
+export async function refreshConnectStatus(
+  businessId: string,
+): Promise<{ connected: boolean; chargesEnabled: boolean }> {
   const db = await admin();
   const { data: business } = await db
     .from("businesses")
@@ -82,6 +89,9 @@ export async function refreshConnectStatus(businessId: string): Promise<{ connec
   if (!business?.stripe_account_id) return { connected: false, chargesEnabled: false };
   const account = await stripe().accounts.retrieve(business.stripe_account_id);
   const chargesEnabled = account.charges_enabled === true;
-  await db.from("businesses").update({ stripe_charges_enabled: chargesEnabled }).eq("id", businessId);
+  await db
+    .from("businesses")
+    .update({ stripe_charges_enabled: chargesEnabled })
+    .eq("id", businessId);
   return { connected: true, chargesEnabled };
 }

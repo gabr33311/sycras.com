@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { computeDeposit } from "@/lib/deposit";
 import { Captcha } from "@/components/captcha";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -332,6 +333,15 @@ function BookPage() {
           setTimeout(() => document.getElementById("code")?.focus(), 50);
           return;
         }
+        if (res.code === "needs_payment" && "url" in res) {
+          // To Stripe's payment page; the booking is made when the client comes back paid.
+          window.location.href = res.url;
+          return;
+        }
+        if (res.code === "payment_error") {
+          setSubmitError(t("bk.err.payment"));
+          return;
+        }
         if (res.code === "captcha") {
           setSubmitError(t("auth.err.captcha"));
           return;
@@ -587,6 +597,25 @@ function BookPage() {
                         <span className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                           <Clock className="size-3.5" /> {formatDuration(s.duration_minutes)}
                         </span>
+                        {business.deposit &&
+                        computeDeposit(
+                          s.price_cents,
+                          business.deposit.mode,
+                          business.deposit.value,
+                        ) > 0 ? (
+                          <span className="mt-1 block text-xs font-semibold text-muted-foreground">
+                            {t("bk.deposit.before")}
+                            {formatPrice(
+                              computeDeposit(
+                                s.price_cents,
+                                business.deposit.mode,
+                                business.deposit.value,
+                              ),
+                              business.currency,
+                            )}
+                            {t("bk.deposit.after")}
+                          </span>
+                        ) : null}
                       </span>
                       <span className="shrink-0 text-[15px] font-bold tabular-nums">
                         {formatPrice(s.price_cents, business.currency)}
@@ -852,7 +881,9 @@ function BookPage() {
                         />
                         <span>
                           <span className="block font-semibold">{t("bk.wa.label")}</span>
-                          <span className="block text-xs text-muted-foreground">{t("bk.wa.hint")}</span>
+                          <span className="block text-xs text-muted-foreground">
+                            {t("bk.wa.hint")}
+                          </span>
                         </span>
                       </label>
                     )}

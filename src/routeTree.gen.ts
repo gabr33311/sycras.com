@@ -53,7 +53,9 @@ import { Route as ApiPaymentsStatusRouteImport } from './routes/api/payments/sta
 import { Route as ApiPushTestRouteImport } from './routes/api/push/test'
 import { Route as ApiRemindersTestRouteImport } from './routes/api/reminders/test'
 import { Route as ApiRevenuecatWebhookRouteImport } from './routes/api/revenuecat/webhook'
+import { Route as ApiStripeConnectWebhookRouteImport } from './routes/api/stripe/connect-webhook'
 import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
+import { Route as BookingPayHoldRouteImport } from './routes/booking.pay.$hold'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -277,9 +279,19 @@ const ApiRevenuecatWebhookRoute = ApiRevenuecatWebhookRouteImport.update({
   path: '/api/revenuecat/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStripeConnectWebhookRoute = ApiStripeConnectWebhookRouteImport.update({
+  id: '/api/stripe/connect-webhook',
+  path: '/api/stripe/connect-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
   id: '/api/stripe/webhook',
   path: '/api/stripe/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookingPayHoldRoute = BookingPayHoldRouteImport.update({
+  id: '/booking/pay/$hold',
+  path: '/booking/pay/$hold',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -327,7 +339,9 @@ export interface FileRoutesByFullPath {
   '/api/push/test': typeof ApiPushTestRoute
   '/api/reminders/test': typeof ApiRemindersTestRoute
   '/api/revenuecat/webhook': typeof ApiRevenuecatWebhookRoute
+  '/api/stripe/connect-webhook': typeof ApiStripeConnectWebhookRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
+  '/booking/pay/$hold': typeof BookingPayHoldRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -373,7 +387,9 @@ export interface FileRoutesByTo {
   '/api/push/test': typeof ApiPushTestRoute
   '/api/reminders/test': typeof ApiRemindersTestRoute
   '/api/revenuecat/webhook': typeof ApiRevenuecatWebhookRoute
+  '/api/stripe/connect-webhook': typeof ApiStripeConnectWebhookRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
+  '/booking/pay/$hold': typeof BookingPayHoldRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -421,7 +437,9 @@ export interface FileRoutesById {
   '/api/push/test': typeof ApiPushTestRoute
   '/api/reminders/test': typeof ApiRemindersTestRoute
   '/api/revenuecat/webhook': typeof ApiRevenuecatWebhookRoute
+  '/api/stripe/connect-webhook': typeof ApiStripeConnectWebhookRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
+  '/booking/pay/$hold': typeof BookingPayHoldRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -469,7 +487,9 @@ export interface FileRouteTypes {
     | '/api/push/test'
     | '/api/reminders/test'
     | '/api/revenuecat/webhook'
+    | '/api/stripe/connect-webhook'
     | '/api/stripe/webhook'
+    | '/booking/pay/$hold'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -515,7 +535,9 @@ export interface FileRouteTypes {
     | '/api/push/test'
     | '/api/reminders/test'
     | '/api/revenuecat/webhook'
+    | '/api/stripe/connect-webhook'
     | '/api/stripe/webhook'
+    | '/booking/pay/$hold'
   id:
     | '__root__'
     | '/'
@@ -562,7 +584,9 @@ export interface FileRouteTypes {
     | '/api/push/test'
     | '/api/reminders/test'
     | '/api/revenuecat/webhook'
+    | '/api/stripe/connect-webhook'
     | '/api/stripe/webhook'
+    | '/booking/pay/$hold'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -598,7 +622,9 @@ export interface RootRouteChildren {
   ApiPushTestRoute: typeof ApiPushTestRoute
   ApiRemindersTestRoute: typeof ApiRemindersTestRoute
   ApiRevenuecatWebhookRoute: typeof ApiRevenuecatWebhookRoute
+  ApiStripeConnectWebhookRoute: typeof ApiStripeConnectWebhookRoute
   ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
+  BookingPayHoldRoute: typeof BookingPayHoldRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -911,11 +937,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRevenuecatWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/stripe/connect-webhook': {
+      id: '/api/stripe/connect-webhook'
+      path: '/api/stripe/connect-webhook'
+      fullPath: '/api/stripe/connect-webhook'
+      preLoaderRoute: typeof ApiStripeConnectWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/stripe/webhook': {
       id: '/api/stripe/webhook'
       path: '/api/stripe/webhook'
       fullPath: '/api/stripe/webhook'
       preLoaderRoute: typeof ApiStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/booking/pay/$hold': {
+      id: '/booking/pay/$hold'
+      path: '/booking/pay/$hold'
+      fullPath: '/booking/pay/$hold'
+      preLoaderRoute: typeof BookingPayHoldRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -987,7 +1027,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPushTestRoute: ApiPushTestRoute,
   ApiRemindersTestRoute: ApiRemindersTestRoute,
   ApiRevenuecatWebhookRoute: ApiRevenuecatWebhookRoute,
+  ApiStripeConnectWebhookRoute: ApiStripeConnectWebhookRoute,
   ApiStripeWebhookRoute: ApiStripeWebhookRoute,
+  BookingPayHoldRoute: BookingPayHoldRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

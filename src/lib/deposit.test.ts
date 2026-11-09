@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeDeposit, depositFor, ownerCancelRefund } from "@/lib/deposit";
+import { computeDeposit, depositFor, finalizeOutcome, ownerCancelRefund } from "@/lib/deposit";
 
 describe("computeDeposit", () => {
   it("fixed value", () => expect(computeDeposit(1500, "fixed", 500)).toBe(500));
@@ -22,7 +22,24 @@ describe("depositFor", () => {
 
 describe("ownerCancelRefund", () => {
   it("refunds without asking when cancelled in time", () =>
-    expect(ownerCancelRefund("2026-11-10T10:00:00Z", new Date("2026-11-09T09:00:00Z"), 24)).toBe("always"));
+    expect(ownerCancelRefund("2026-11-10T10:00:00Z", new Date("2026-11-09T09:00:00Z"), 24)).toBe(
+      "always",
+    ));
   it("asks when cancelled late", () =>
-    expect(ownerCancelRefund("2026-11-10T10:00:00Z", new Date("2026-11-09T11:00:00Z"), 24)).toBe("ask"));
+    expect(ownerCancelRefund("2026-11-10T10:00:00Z", new Date("2026-11-09T11:00:00Z"), 24)).toBe(
+      "ask",
+    ));
+});
+
+describe("finalizeOutcome", () => {
+  it("not paid yet", () =>
+    expect(finalizeOutcome({ paid: false, existingToken: null, created: null })).toBe("not_paid"));
+  it("already booked → reuse", () =>
+    expect(finalizeOutcome({ paid: true, existingToken: "t1", created: null })).toBe("reuse"));
+  it("booked now", () =>
+    expect(finalizeOutcome({ paid: true, existingToken: null, created: "ok" })).toBe("booked"));
+  it("slot lost → refund", () =>
+    expect(finalizeOutcome({ paid: true, existingToken: null, created: "slot_taken" })).toBe(
+      "refund",
+    ));
 });

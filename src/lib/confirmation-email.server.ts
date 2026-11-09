@@ -2,12 +2,21 @@
 import { brandColors } from "@/lib/brand";
 import { mapsUrl } from "@/lib/maps";
 
+/** "5 €", "12,50 €" (no decimals when whole), as on the booking page. */
+function euros(cents: number): string {
+  const v = cents / 100;
+  return `${Number.isInteger(v) ? v : v.toFixed(2).replace(".", ",")} €`;
+}
+
 type Row = {
   id: string;
   customer_name: string;
   customer_email: string | null;
   service_name: string;
   starts_at: string;
+  price_cents?: number;
+  deposit_cents?: number | null;
+  deposit_status?: string | null;
   businesses: {
     name: string;
     timezone: string;
@@ -111,7 +120,7 @@ export async function sendConfirmedEmail(
     db
       .from("appointments")
       .select(
-        "id, customer_name, customer_email, service_name, starts_at, businesses(name, timezone, address, city, latitude, longitude, brand_color, show_map, email)",
+        "id, customer_name, customer_email, service_name, starts_at, price_cents, deposit_cents, deposit_status, businesses(name, timezone, address, city, latitude, longitude, brand_color, show_map, email)",
       )
       .eq("id", appointmentId)
       .maybeSingle(),
@@ -156,6 +165,11 @@ export async function sendConfirmedEmail(
         brandColor: colors.brand,
         brandText: colors.foreground,
         changed: opts.changed ? "1" : undefined,
+        // "Sinal pago: 5 € · falta pagar 10 €", when a deposit was paid when booking.
+        deposit:
+          appt.deposit_status === "paid" && appt.deposit_cents
+            ? `${euros(appt.deposit_cents)} · falta pagar ${euros(Math.max(0, (appt.price_cents ?? 0) - appt.deposit_cents))}`
+            : undefined,
       },
       ...(biz?.email ? { replyTo: biz.email } : {}),
       // A move sends one email per new time; a confirmation only once.

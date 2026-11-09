@@ -26,7 +26,26 @@ export function depositFor(
  * The business cancels a booking with a paid deposit: in time it is always returned; late
  * (inside the cancellation window) the owner chooses whether to return it.
  */
-export function ownerCancelRefund(startsAt: string, now: Date, cancellationHours: number): "always" | "ask" {
+export function ownerCancelRefund(
+  startsAt: string,
+  now: Date,
+  cancellationHours: number,
+): "always" | "ask" {
   const left = new Date(startsAt).getTime() - now.getTime();
   return left < cancellationHours * 3600000 ? "ask" : "always";
+}
+
+/**
+ * What to do when a deposit payment comes back (return page or webhook, possibly both):
+ * nothing until it is paid; reuse the booking that already exists; or, when the time was
+ * taken meanwhile, give the money back.
+ */
+export function finalizeOutcome(s: {
+  paid: boolean;
+  existingToken: string | null;
+  created: "ok" | "slot_taken" | null;
+}): "not_paid" | "reuse" | "booked" | "refund" {
+  if (!s.paid) return "not_paid";
+  if (s.existingToken) return "reuse";
+  return s.created === "ok" ? "booked" : "refund";
 }

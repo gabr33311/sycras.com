@@ -22,7 +22,10 @@ export const Route = createFileRoute("/api/payments/connect")({
           origin,
         }).catch((e: unknown) => {
           console.error("[connect] onboarding failed", e);
-          return { ok: false as const, message: "Não foi possível abrir a Stripe. Tenta novamente." };
+          return {
+            ok: false as const,
+            message: "Não foi possível abrir a Stripe. Tenta novamente.",
+          };
         });
         return Response.json(result, { status: result.ok ? 200 : 400 });
       },

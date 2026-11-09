@@ -27,6 +27,8 @@ interface Props {
   brandText?: string;
   /** "1" when the business moved the appointment to a new day/time. */
   changed?: string;
+  /** "5 € · falta pagar 10 €" when a deposit was paid. */
+  deposit?: string;
 }
 
 const Email = ({
@@ -41,6 +43,7 @@ const Email = ({
   brandColor,
   brandText,
   changed,
+  deposit,
 }: Props) => (
   <Html lang="pt" dir="ltr">
     <Head />
@@ -67,6 +70,11 @@ const Email = ({
           <Text style={row}>
             <b>Hora:</b> {time || "—"}
           </Text>
+          {deposit && (
+            <Text style={row}>
+              <b>Sinal pago:</b> {deposit}
+            </Text>
+          )}
           {address && (
             <Text style={row}>
               <b>Local:</b>{" "}

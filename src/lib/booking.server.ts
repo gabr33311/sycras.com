@@ -43,6 +43,8 @@ export type PublicBusiness = {
   is_demo: boolean;
   /** Clients can ask for the confirmation and reminder on WhatsApp (Pro, turned on). */
   whatsapp: boolean;
+  /** The deposit asked when booking (paying Pro, switched on, payments account ready), or null. */
+  deposit: { mode: "fixed" | "percent"; value: number } | null;
   /** The shop's map card (OpenStreetMap), when the owner shows the map and placed the pin. */
   map: { lat: number; lng: number; directions: string; label: string } | null;
 };
@@ -206,7 +208,9 @@ export async function loadPublicBusiness(slug: string): Promise<{
   const contacts =
     showContacts && process.env["SUPABASE_SERVICE_ROLE_KEY"]
       ? (
-          await (await admin())
+          await (
+            await admin()
+          )
             .from("businesses")
             .select("phone, email")
             .eq("id", business.id)
@@ -229,9 +233,27 @@ export async function loadPublicBusiness(slug: string): Promise<{
     !!created &&
     (await businessHasPro(business.id, created.created_at));
 
+  // The deposit hint on the services (the server checks it again when booking).
+  const { data: pay } = await db
+    .from("businesses")
+    .select("deposit_enabled, deposit_mode, deposit_value, stripe_charges_enabled")
+    .eq("id", business.id)
+    .maybeSingle();
+  const deposit =
+    pay?.deposit_enabled &&
+    pay.stripe_charges_enabled &&
+    !!created &&
+    (await businessHasPro(business.id, created.created_at))
+      ? {
+          mode: pay.deposit_mode === "percent" ? ("percent" as const) : ("fixed" as const),
+          value: pay.deposit_value,
+        }
+      : null;
+
   return {
     business: {
       ...business,
+      deposit,
       logo_url,
       cover_url,
       gallery: gallery.filter((u): u is string => !!u),

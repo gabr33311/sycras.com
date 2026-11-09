@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 
 // Where Stripe sends a barber back after the payments sign-up started in the phone app.
 export const Route = createFileRoute("/connect/done")({
-  head: () => ({ meta: [{ title: "Pagamentos — SYCRAS" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Pagamentos — SYCRAS" }, { name: "robots", content: "noindex" }],
+  }),
   component: ConnectDone,
 });
 

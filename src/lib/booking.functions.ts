@@ -227,7 +227,10 @@ export const createPublicBooking = createServerFn({ method: "POST" })
         .select("id")
         .eq("business_id", data.businessId)
         .in("status", ["confirmed", "completed"])
-        .ilike("customer_email", data.email.replace(/[\\%_]/g, (m) => "\\" + m))
+        .ilike(
+          "customer_email",
+          data.email.replace(/[\\%_]/g, (m) => "\\" + m),
+        )
         .limit(1);
       known = !!seen?.length;
     }
@@ -261,107 +264,78 @@ export const createPublicBooking = createServerFn({ method: "POST" })
       }
     }
 
-    // Find or create the customer for this business only.
-    let customerId: string | null = null;
-    const { data: existing } = await supabaseAdmin
-      .from("customers")
-      .select("id")
-      .eq("business_id", data.businessId)
-      .eq("phone", data.phone)
+    const request = {
+      businessId: data.businessId,
+      serviceId: service.id,
+      staffId: slot.staffId,
+      startsAt: slot.startsAt,
+      endsAt: slot.endsAt,
+      name: data.name,
+      phone: data.phone,
+      email: data.email,
+      notes: data.notes ?? "",
+      whatsapp: data.whatsapp === true,
+      ipHash,
+    };
+
+    // A deposit (sinal) when the business asks for one: the time is kept while the client
+    // pays on Stripe, and the booking is made once the payment is confirmed.
+    const { data: pay } = await supabaseAdmin
+      .from("businesses")
+      .select(
+        "slug, deposit_enabled, deposit_mode, deposit_value, stripe_account_id, stripe_charges_enabled",
+      )
+      .eq("id", data.businessId)
       .maybeSingle();
-    if (existing) {
-      // Same phone = same person: keep one record and refresh name/email.
-      customerId = existing.id;
-      await supabaseAdmin
-        .from("customers")
-        .update({ name: data.name, email: data.email || null })
-        .eq("id", existing.id);
-    } else {
-      const { data: created } = await supabaseAdmin
-        .from("customers")
-        .insert({
-          business_id: data.businessId,
-          name: data.name,
-          phone: data.phone,
-          email: data.email || null,
-        })
-        .select("id")
-        .single();
-      customerId = created?.id ?? null;
+    if (pay?.deposit_enabled && pay.stripe_account_id) {
+      const { businessHasPro } = await import("@/lib/billing.server");
+      const { depositFor } = await import("@/lib/deposit");
+      const cents = depositFor(
+        {
+          pro: await businessHasPro(data.businessId, owner.created_at),
+          enabled: true,
+          chargesEnabled: pay.stripe_charges_enabled,
+          mode: pay.deposit_mode === "percent" ? "percent" : "fixed",
+          value: pay.deposit_value,
+        },
+        service.price_cents,
+      );
+      if (cents > 0) {
+        const { startDepositCheckout } = await import("@/lib/deposit.server");
+        const started = await startDepositCheckout(request, {
+          slug: pay.slug,
+          origin: new URL(getRequest().url).origin,
+          serviceName: service.name,
+          depositCents: cents,
+          stripeAccount: pay.stripe_account_id,
+        });
+        if (started.ok)
+          return { ok: false as const, code: "needs_payment", url: started.url, message: "" };
+        if (started.code === "slot_taken") {
+          return {
+            ok: false as const,
+            code: "slot_taken",
+            message: "Este horário acabou de ser reservado. Escolhe outro horário.",
+          };
+        }
+        return {
+          ok: false as const,
+          code: "payment_error",
+          message: "Não foi possível abrir o pagamento do sinal. Tenta novamente.",
+        };
+      }
     }
 
-    // Services that need approval arrive as requests; the others are confirmed at once.
-    const status = service.requires_confirmation ? ("pending" as const) : ("confirmed" as const);
-    const { data: appointment, error } = await supabaseAdmin
-      .from("appointments")
-      .insert({
-        business_id: data.businessId,
-        service_id: service.id,
-        staff_id: slot.staffId,
-        customer_id: customerId,
-        service_name: service.name,
-        customer_name: data.name,
-
-        customer_phone: data.phone,
-        customer_email: data.email || null,
-        starts_at: slot.startsAt,
-        ends_at: slot.endsAt,
-        price_cents: service.price_cents,
-        status,
-        notes: data.notes || null,
-        source: "public",
-        // The client ticked "WhatsApp": consent to get the confirmation and reminder there.
-        whatsapp_ok: data.whatsapp === true,
-      })
-      .select("id, starts_at, ends_at, status")
-      .single();
-
-    if (error || !appointment) {
+    const { createAppointment } = await import("@/lib/appointment-create.server");
+    const created = await createAppointment(request);
+    if (!created.ok) {
       return {
         ok: false as const,
         code: "slot_taken",
         message: "Este horário acabou de ser reservado. Escolhe outro horário.",
       };
     }
-
-    const token = makeToken();
-    await supabaseAdmin.from("booking_tokens").insert({
-      token,
-      appointment_id: appointment.id,
-      expires_at: new Date(new Date(appointment.ends_at).getTime() + 90 * 86400000).toISOString(),
-    });
-
-    const note = {
-      business_id: data.businessId,
-      type: "appointment_requested",
-      title: appointment.status === "confirmed" ? "Nova marcação" : "Novo pedido de marcação",
-      body: `${data.name} — ${service.name}`,
-      appointment_id: appointment.id,
-    };
-    await supabaseAdmin.from("notifications").insert(note);
-    // The business's phones get it as a push notification, and its people an email.
-    const { alertBusiness } = await import("@/lib/owner-alerts.server");
-    await alertBusiness(note.business_id, {
-      title: note.title,
-      body: note.body,
-      appointmentId: note.appointment_id,
-      kind: appointment.status === "confirmed" ? "booking" : "request",
-    });
-
-    await logSecurityEvent("booking_created", ipHash, data.phone, data.businessId);
-
-    // Confirmed straight away: the client gets the confirmation email now.
-    if (appointment.status === "confirmed" && data.email) {
-      const { sendConfirmedEmail } = await import("@/lib/confirmation-email.server");
-      await sendConfirmedEmail(appointment.id);
-    }
-    // And on WhatsApp, when they asked for it and the business has it (Pro).
-    if (appointment.status === "confirmed" && data.whatsapp) {
-      const { sendWhatsApp } = await import("@/lib/whatsapp.server");
-      await sendWhatsApp(appointment.id, "confirmed").catch(() => false);
-    }
-
-    return { ok: true as const, token, status: appointment.status };
+    return { ok: true as const, token: created.token, status: created.status };
   });
 
 export const getBookingByToken = createServerFn({ method: "GET" })
@@ -590,4 +564,19 @@ export const rescheduleBookingByToken = createServerFn({ method: "POST" })
       kind: "rescheduled",
     });
     return { ok: true as const };
+  });
+
+/** Back from Stripe after paying the deposit: make (or find) the booking. */
+export const finalizeDepositBooking = createServerFn({ method: "POST" })
+  .validator((d: unknown) =>
+    z.object({ holdId: z.string().uuid(), sessionId: z.string().trim().min(8).max(255) }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { finalizeDeposit } = await import("@/lib/deposit.server");
+    try {
+      return await finalizeDeposit(data.holdId, data.sessionId);
+    } catch (e) {
+      console.error("[deposit] finalize failed", e);
+      return { ok: false as const, code: "not_paid" as const };
+    }
   });
