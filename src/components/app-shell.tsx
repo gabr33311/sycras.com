@@ -1,5 +1,14 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { CalendarDays, ExternalLink, House, Users, Store, LogOut, Plus } from "lucide-react";
+import {
+  CalendarDays,
+  ExternalLink,
+  House,
+  Users,
+  Store,
+  LogOut,
+  Plus,
+  Settings,
+} from "lucide-react";
 import { useEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -304,10 +313,16 @@ export function AppShell({
             to={item.to}
             label={t(item.label)}
             Icon={item.icon}
-            active={isTabActive(pathname, item.to)}
+            active={isTabActive(pathname, item.to) && !isTabActive(pathname, "/settings")}
           />
         ))}
         <div className="mt-auto flex flex-col items-center gap-1">
+          <RailLink
+            to="/settings"
+            label={t("pf.s.settings")}
+            Icon={Settings}
+            active={isTabActive(pathname, "/settings")}
+          />
           <RailButton
             label={t("nav.viewPageShort")}
             Icon={ExternalLink}

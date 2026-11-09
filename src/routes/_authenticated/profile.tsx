@@ -457,7 +457,12 @@ function ProfilePage() {
         title={section && isPhone ? label(shown) : t("pf.manage.title")}
         action={
           !section || !isPhone ? (
-            <Button size="sm" variant="outline" onClick={() => void navigate({ to: "/settings" })}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="lg:hidden"
+              onClick={() => void navigate({ to: "/settings" })}
+            >
               <Settings className="size-4" />
               {t("pf.s.settings")}
             </Button>
