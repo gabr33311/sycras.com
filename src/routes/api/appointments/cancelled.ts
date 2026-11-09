@@ -35,10 +35,10 @@ export const Route = createFileRoute("/api/appointments/cancelled")({
 
         // A paid deposit goes back, unless the owner chose to keep it (late cancel). Even
         // when the client left no email.
-        const { refundDeposit } = await import("@/lib/deposit.server");
+        const { keepDeposit, refundDeposit } = await import("@/lib/deposit.server");
         const refund =
           body.refund === false
-            ? { refunded: false, cents: 0 }
+            ? await keepDeposit(appt.id)
             : await refundDeposit(appt.id).catch((e: unknown) => {
                 console.error("[deposit] refund on cancel failed", e);
                 return { refunded: false, cents: 0 };

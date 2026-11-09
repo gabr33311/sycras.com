@@ -2,7 +2,7 @@
 // 15 minutes while the client pays; the booking is made once the payment is confirmed, by the
 // return page or by the Stripe webhook (whichever comes first; the other reuses it).
 import { stripe } from "@/lib/billing.server";
-import { finalizeOutcome } from "@/lib/deposit";
+import { depositSweep, finalizeOutcome, staleHoldAction } from "@/lib/deposit";
 import type { PublicBookingRequest } from "@/lib/appointment-create.server";
 
 const HOLD_MINUTES = 15;
@@ -77,6 +77,9 @@ export async function startDepositCheckout(
     const session = await stripe().checkout.sessions.create(
       {
         mode: "payment",
+        // Paid on the spot only (cards, Apple Pay, Google Pay): a method paid days later would
+        // leave the client waiting for a time that is no longer kept.
+        payment_method_types: ["card"],
         ...(req.email ? { customer_email: req.email } : {}),
         line_items: [
           {
@@ -92,7 +95,7 @@ export async function startDepositCheckout(
         payment_intent_data: { metadata: { hold_id: hold.id } },
         expires_at: Math.floor(now.getTime() / 1000) + CHECKOUT_MINUTES * 60,
         success_url: `${ctx.origin}/booking/pay/${hold.id}?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${ctx.origin}/${ctx.slug}`,
+        cancel_url: `${ctx.origin}/booking/pay/${hold.id}?cancel=1`,
         locale: "pt",
       },
       { stripeAccount: ctx.stripeAccount },
@@ -140,14 +143,15 @@ export async function finalizeDeposit(
     typeof session.payment_intent === "string"
       ? session.payment_intent
       : (session.payment_intent?.id ?? "");
-  const { createAppointment, tokenForPayment } = await import("@/lib/appointment-create.server");
+  const { createAppointment, appointmentForPayment } =
+    await import("@/lib/appointment-create.server");
 
-  const existingToken = paid && paymentIntent ? await tokenForPayment(paymentIntent) : null;
-  const first = finalizeOutcome({ paid, existingToken, created: null });
+  const existing = paid ? await appointmentForPayment(paymentIntent) : null;
+  const first = finalizeOutcome({ paid, existing: !!existing, created: null });
   if (first === "not_paid") return { ok: false, code: "not_paid" };
-  if (first === "reuse" && existingToken) {
-    await keep(hold.id, { ...payload, token: existingToken });
-    return { ok: true, token: existingToken };
+  if (first === "reuse" && existing) {
+    await keep(hold.id, { ...payload, token: existing.token });
+    return { ok: true, token: existing.token };
   }
 
   const created = await createAppointment(
@@ -162,10 +166,10 @@ export async function finalizeDeposit(
     { cents: hold.deposit_cents, paymentIntent },
   );
   // The other caller may have booked it a moment ago: that is the same booking, not a lost time.
-  const raced = created.ok ? null : await tokenForPayment(paymentIntent);
+  const raced = created.ok ? null : await appointmentForPayment(paymentIntent);
   const outcome = finalizeOutcome({
     paid,
-    existingToken: raced,
+    existing: !!raced,
     created: created.ok ? "ok" : "slot_taken",
   });
 
@@ -174,8 +178,8 @@ export async function finalizeDeposit(
     return { ok: true, token: created.token };
   }
   if (outcome === "reuse" && raced) {
-    await keep(hold.id, { ...payload, token: raced });
-    return { ok: true, token: raced };
+    await keep(hold.id, { ...payload, token: raced.token });
+    return { ok: true, token: raced.token };
   }
   // The time went to someone else while the client was paying: give the money back.
   await stripe().refunds.create({ payment_intent: paymentIntent }, { stripeAccount });
@@ -194,8 +198,8 @@ async function keep(holdId: string, payload: HoldPayload) {
 
 /**
  * Every few minutes: payments that were left half way. A time whose 15 minutes ran out is
- * booked if it was paid after all, otherwise its payment page is closed and the time freed.
- * Finished holds (kept as receipts) go after a day.
+ * booked if it was paid after all; otherwise its payment page is closed and, once Stripe says
+ * it is closed, the time is freed. Finished holds (receipts) are removed after a day.
  */
 export async function expireStaleHolds(): Promise<{ finalized: number; expired: number }> {
   const db = await admin();
@@ -205,48 +209,162 @@ export async function expireStaleHolds(): Promise<{ finalized: number; expired: 
 
   const { data: stale } = await db
     .from("booking_holds")
-    .select("id, business_id, checkout_session_id, payload")
+    .select("id, business_id, checkout_session_id")
     .lt("hold_until", now.toISOString())
+    .is("payload->>token", null)
+    .is("payload->>refunded", null)
+    .order("hold_until")
     .limit(50);
   for (const hold of stale ?? []) {
-    const payload = hold.payload as HoldPayload;
-    if (payload.token || payload.refunded) continue; // a receipt, handled below
     try {
       const { data: business } = await db
         .from("businesses")
         .select("stripe_account_id")
         .eq("id", hold.business_id)
         .maybeSingle();
-      if (hold.checkout_session_id && business?.stripe_account_id) {
-        const stripeAccount = business.stripe_account_id;
-        const session = await stripe().checkout.sessions.retrieve(
+      if (!hold.checkout_session_id || !business?.stripe_account_id) {
+        await db.from("booking_holds").delete().eq("id", hold.id);
+        expired++;
+        continue;
+      }
+      const stripeAccount = business.stripe_account_id;
+      const session = await stripe().checkout.sessions.retrieve(
+        hold.checkout_session_id,
+        {},
+        { stripeAccount },
+      );
+      let after: "paid" | "expired" | "open" | "complete" | null = null;
+      if (session.status === "open" && session.payment_status !== "paid") {
+        await stripe()
+          .checkout.sessions.expire(hold.checkout_session_id, {}, { stripeAccount })
+          .catch(() => null);
+        const again = await stripe().checkout.sessions.retrieve(
           hold.checkout_session_id,
           {},
           { stripeAccount },
         );
-        if (session.payment_status === "paid") {
-          await finalizeDeposit(hold.id, hold.checkout_session_id);
-          finalized++;
-          continue;
-        }
-        if (session.status === "open") {
-          await stripe()
-            .checkout.sessions.expire(hold.checkout_session_id, {}, { stripeAccount })
-            .catch(() => null);
-        }
+        after = again.payment_status === "paid" ? "paid" : again.status;
       }
-      await db.from("booking_holds").delete().eq("id", hold.id);
-      expired++;
+      const action = staleHoldAction(
+        { payment_status: session.payment_status, status: session.status },
+        after,
+      );
+      if (action === "finalize") {
+        await finalizeDeposit(hold.id, hold.checkout_session_id);
+        finalized++;
+      } else if (action === "delete") {
+        await db.from("booking_holds").delete().eq("id", hold.id);
+        expired++;
+      }
     } catch (e) {
       console.error("[deposit] expiring hold failed", hold.id, e);
     }
   }
 
+  // Receipts only: a hold that never finished stays until Stripe says its page is closed.
   await db
     .from("booking_holds")
     .delete()
-    .lt("hold_until", new Date(now.getTime() - 86400000).toISOString());
+    .lt("hold_until", new Date(now.getTime() - 86400000).toISOString())
+    .or("payload->>token.not.is.null,payload->>refunded.not.is.null");
   return { finalized, expired };
+}
+
+/**
+ * Every few minutes: deposits still held on bookings that should not keep them (cancelled and
+ * not kept by the owner, or a request nobody answered before its time) are refunded. This also
+ * retries a refund that failed when the booking was cancelled.
+ */
+export async function sweepDeposits(): Promise<number> {
+  const db = await admin();
+  const now = new Date();
+  const { data: rows } = await db
+    .from("appointments")
+    .select("id, status, deposit_status, starts_at, updated_at")
+    .eq("deposit_status", "paid")
+    .in("status", ["cancelled", "pending"])
+    .limit(50);
+  let refunded = 0;
+  for (const a of rows ?? []) {
+    const action = depositSweep(
+      {
+        status: a.status,
+        depositStatus: a.deposit_status,
+        startsAt: a.starts_at,
+        updatedAt: a.updated_at,
+      },
+      now,
+    );
+    if (action !== "refund") continue;
+    const res = await refundDeposit(a.id).catch((e: unknown) => {
+      console.error("[deposit] sweep refund failed", a.id, e);
+      return { refunded: false, cents: 0 };
+    });
+    if (res.refunded) refunded++;
+  }
+  return refunded;
+}
+
+/** The client backed out of Stripe's page: close it and free their time at once. */
+export async function releaseHold(holdId: string): Promise<{ slug: string | null }> {
+  const db = await admin();
+  const { data: hold } = await db
+    .from("booking_holds")
+    .select("id, business_id, checkout_session_id, payload")
+    .eq("id", holdId)
+    .maybeSingle();
+  if (!hold) return { slug: null };
+  const { data: business } = await db
+    .from("businesses")
+    .select("slug, stripe_account_id")
+    .eq("id", hold.business_id)
+    .maybeSingle();
+  const payload = hold.payload as HoldPayload;
+  if (payload.token || payload.refunded || !business) return { slug: business?.slug ?? null };
+  if (hold.checkout_session_id && business.stripe_account_id) {
+    const stripeAccount = business.stripe_account_id;
+    await stripe()
+      .checkout.sessions.expire(hold.checkout_session_id, {}, { stripeAccount })
+      .catch(() => null);
+    const session = await stripe().checkout.sessions.retrieve(
+      hold.checkout_session_id,
+      {},
+      { stripeAccount },
+    );
+    // Paid after all (in another tab): book it instead of freeing it.
+    if (session.payment_status === "paid") {
+      await finalizeDeposit(hold.id, hold.checkout_session_id);
+      return { slug: business.slug };
+    }
+    if (session.status !== "expired") return { slug: business.slug };
+  }
+  await db.from("booking_holds").delete().eq("id", hold.id);
+  return { slug: business.slug };
+}
+
+/** A paid deposit with no booking behind it (its hold is gone): give it back. */
+export async function refundOrphanPayment(
+  paymentIntent: string,
+  stripeAccount: string,
+): Promise<void> {
+  if (!paymentIntent) return;
+  const { appointmentForPayment } = await import("@/lib/appointment-create.server");
+  if (await appointmentForPayment(paymentIntent)) return;
+  await stripe().refunds.create(
+    { payment_intent: paymentIntent },
+    { stripeAccount, idempotencyKey: `deposit-orphan-${paymentIntent}` },
+  );
+}
+
+/** The owner keeps the deposit (late cancel): remembered so the automatic sweep leaves it. */
+export async function keepDeposit(appointmentId: string): Promise<{ refunded: false; cents: 0 }> {
+  const db = await admin();
+  await db
+    .from("appointments")
+    .update({ deposit_status: "kept" })
+    .eq("id", appointmentId)
+    .eq("deposit_status", "paid");
+  return { refunded: false, cents: 0 };
 }
 
 /** Gives a paid deposit back (on the business's account). Safe to call twice. */

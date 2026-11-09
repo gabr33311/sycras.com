@@ -40,10 +40,10 @@ export const sendAppointmentCancelledEmail = createServerFn({ method: "POST" })
       .eq("id", data.appointmentId)
       .maybeSingle();
     if (!appt || appt.status !== "cancelled") return { status: "failed" as const, refunded: false };
-    const { refundDeposit } = await import("@/lib/deposit.server");
+    const { keepDeposit, refundDeposit } = await import("@/lib/deposit.server");
     const refund =
       data.refund === false
-        ? { refunded: false, cents: 0 }
+        ? await keepDeposit(appt.id)
         : await refundDeposit(appt.id).catch((e: unknown) => {
             console.error("[deposit] refund on cancel failed", e);
             return { refunded: false, cents: 0 };

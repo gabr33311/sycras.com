@@ -2,13 +2,19 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { z } from "zod";
-import { finalizeDepositBooking } from "@/lib/booking.functions";
+import { finalizeDepositBooking, releaseDepositHold } from "@/lib/booking.functions";
 import { usePrefs } from "@/lib/prefs";
 import { Button } from "@/components/ui/button";
 
 // The client is back from paying the deposit on Stripe: make (or find) the booking and open it.
 export const Route = createFileRoute("/booking/pay/$hold")({
-  validateSearch: (s) => z.object({ session_id: z.string().optional().default("") }).parse(s),
+  validateSearch: (s) =>
+    z
+      .object({
+        session_id: z.string().optional().default(""),
+        cancel: z.coerce.string().optional(),
+      })
+      .parse(s),
   head: () => ({ meta: [{ title: "Pagamento do sinal" }, { name: "robots", content: "noindex" }] }),
   component: PayReturn,
 });
@@ -18,7 +24,7 @@ const TRIES = 10;
 
 function PayReturn() {
   const { hold } = Route.useParams();
-  const { session_id } = Route.useSearch();
+  const { session_id, cancel } = Route.useSearch();
   const navigate = useNavigate();
   const { t } = usePrefs();
   const [state, setState] = useState<"checking" | "waiting" | "lost" | "missing">("checking");
@@ -27,6 +33,16 @@ function PayReturn() {
   useEffect(() => {
     let stop = false;
     void (async () => {
+      // Backed out of Stripe: free the time at once and go back to the business page.
+      if (cancel) {
+        const res = await releaseDepositHold({ data: { holdId: hold } }).catch(() => ({
+          slug: null,
+        }));
+        if (stop) return;
+        if (res.slug) await navigate({ to: "/$slug", params: { slug: res.slug }, replace: true });
+        else setState("missing");
+        return;
+      }
       for (let i = 0; i < TRIES && !stop; i++) {
         const res = await finalizeDepositBooking({
           data: { holdId: hold, sessionId: session_id },
@@ -48,7 +64,7 @@ function PayReturn() {
     return () => {
       stop = true;
     };
-  }, [hold, session_id, navigate]);
+  }, [hold, session_id, cancel, navigate]);
 
   const box = (title: string, body?: string, action?: React.ReactNode) => (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-4 px-6 text-center">

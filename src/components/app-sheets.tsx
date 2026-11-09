@@ -302,7 +302,7 @@ function AppointmentSheetBody({
               <span className="mt-0.5 block text-xs font-semibold text-muted-foreground">
                 {appt.deposit_status === "refunded"
                   ? t("dp.refunded")
-                  : appt.status === "no_show"
+                  : appt.status === "no_show" || appt.deposit_status === "kept"
                     ? t("dp.kept").replace(
                         "{x}",
                         money(appt.deposit_cents, business?.currency ?? "EUR"),

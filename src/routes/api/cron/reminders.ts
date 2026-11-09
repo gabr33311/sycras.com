@@ -21,12 +21,17 @@ export const Route = createFileRoute("/api/cron/reminders")({
             return { sent: 0 };
           });
           // Deposits left half way: book the paid ones, free the others.
-          const { expireStaleHolds } = await import("@/lib/deposit.server");
+          const { expireStaleHolds, sweepDeposits } = await import("@/lib/deposit.server");
           const holds = await expireStaleHolds().catch((e) => {
             console.error("[cron reminders] deposit holds failed", e);
             return { finalized: 0, expired: 0 };
           });
-          return Response.json({ ...email, whatsapp: whatsapp.sent, holds });
+          // Deposits that should go back (cancelled, unanswered requests, failed refunds).
+          const refunds = await sweepDeposits().catch((e) => {
+            console.error("[cron reminders] deposit sweep failed", e);
+            return 0;
+          });
+          return Response.json({ ...email, whatsapp: whatsapp.sent, holds, refunds });
         } catch (e) {
           console.error("[cron reminders] failed", e);
           return Response.json({ error: "Failed" }, { status: 500 });

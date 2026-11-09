@@ -39,8 +39,39 @@ export const Route = createFileRoute("/api/stripe/connect-webhook")({
             const session = event.data.object;
             const holdId = session.metadata?.["hold_id"];
             if (holdId) {
-              const { finalizeDeposit } = await import("@/lib/deposit.server");
-              await finalizeDeposit(holdId, session.id);
+              const { finalizeDeposit, refundOrphanPayment } = await import("@/lib/deposit.server");
+              const result = await finalizeDeposit(holdId, session.id);
+              // Paid, but its hold is gone: never keep money without a booking.
+              if (
+                !result.ok &&
+                result.code === "not_found" &&
+                session.payment_status === "paid" &&
+                event.account
+              ) {
+                const pi =
+                  typeof session.payment_intent === "string"
+                    ? session.payment_intent
+                    : (session.payment_intent?.id ?? "");
+                await refundOrphanPayment(pi, event.account);
+              }
+            }
+          } else if (event.type === "charge.refunded") {
+            // A refund made in the barber's own Stripe dashboard: show it in SYCRAS too.
+            const charge = event.data.object;
+            const pi =
+              typeof charge.payment_intent === "string"
+                ? charge.payment_intent
+                : (charge.payment_intent?.id ?? "");
+            if (pi && charge.refunded) {
+              const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+              await supabaseAdmin
+                .from("appointments")
+                .update({
+                  deposit_status: "refunded",
+                  deposit_refunded_at: new Date().toISOString(),
+                })
+                .eq("deposit_payment_intent", pi)
+                .in("deposit_status", ["paid", "kept"]);
             }
           } else if (event.type === "account.updated") {
             const account = event.data.object;

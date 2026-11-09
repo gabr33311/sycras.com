@@ -73,7 +73,8 @@ export function useAppointmentCommands(target: AppointmentCommandTarget, onDone?
     confirm: status === "pending",
     // Completing an appointment that hasn't started yet makes no sense.
     complete: (live || status === "no_show") && !isFuture,
-    noShow: live && !isFuture,
+    // Only a confirmed booking can be a no-show (a request with a deposit is refunded instead).
+    noShow: status === "confirmed" && !isFuture,
     revert: status === "completed" || status === "no_show",
     reschedule: !!startsAt && live,
     cancel: live,

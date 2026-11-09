@@ -572,6 +572,19 @@ export const rescheduleBookingByToken = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+/** The client backed out of the deposit payment: free their time and go back to the page. */
+export const releaseDepositHold = createServerFn({ method: "POST" })
+  .validator((d: unknown) => z.object({ holdId: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const { releaseHold } = await import("@/lib/deposit.server");
+    try {
+      return await releaseHold(data.holdId);
+    } catch (e) {
+      console.error("[deposit] release failed", e);
+      return { slug: null };
+    }
+  });
+
 /** Back from Stripe after paying the deposit: make (or find) the booking. */
 export const finalizeDepositBooking = createServerFn({ method: "POST" })
   .validator((d: unknown) =>

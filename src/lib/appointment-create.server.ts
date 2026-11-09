@@ -96,7 +96,13 @@ export async function createAppointment(
     .select("id, starts_at, ends_at, status")
     .single();
 
-  if (error || !appointment) return { ok: false, code: "slot_taken" };
+  if (error || !appointment) {
+    // Only a real overlap (or the same payment booked twice) means the time is taken; any other
+    // failure is thrown so the page, the webhook or the cron try again instead of refunding.
+    const { isSlotConflict } = await import("@/lib/deposit");
+    if (isSlotConflict(error?.code)) return { ok: false, code: "slot_taken" };
+    throw new Error(`Booking insert failed: ${error?.message ?? "no row"}`);
+  }
 
   const token = makeToken();
   await supabaseAdmin.from("booking_tokens").insert({
@@ -143,12 +149,19 @@ export async function createAppointment(
   };
 }
 
-/** The manage token of the appointment paid with this deposit, if it already exists. */
-export async function tokenForPayment(paymentIntent: string): Promise<string | null> {
+/**
+ * The appointment already booked with this deposit payment, with its manage token (made here
+ * when the other caller has not written it yet). Null when there is none.
+ */
+export async function appointmentForPayment(
+  paymentIntent: string,
+): Promise<{ token: string } | null> {
+  if (!paymentIntent) return null;
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { makeToken } = await import("./booking.server");
   const { data: appt } = await supabaseAdmin
     .from("appointments")
-    .select("id")
+    .select("id, ends_at")
     .eq("deposit_payment_intent", paymentIntent)
     .maybeSingle();
   if (!appt) return null;
@@ -159,5 +172,12 @@ export async function tokenForPayment(paymentIntent: string): Promise<string | n
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  return row?.token ?? null;
+  if (row?.token) return { token: row.token };
+  const token = makeToken();
+  await supabaseAdmin.from("booking_tokens").insert({
+    token,
+    appointment_id: appt.id,
+    expires_at: new Date(new Date(appt.ends_at).getTime() + 90 * 86400000).toISOString(),
+  });
+  return { token };
 }
