@@ -25,8 +25,8 @@ export const landingDict: Record<BaseLang, Record<string, string>> = {
     "lp.diario.title": "O teu dia, num relance.",
     "lp.diario.body":
       "Abres a app e sabes logo quem vem a seguir, quanto já faturaste hoje e o que precisa de ti.",
-    "lp.diario.1": "A próxima marcação em destaque, com ligar e WhatsApp num toque",
-    "lp.diario.2": "Pedidos para aceitar ou recusar sem abrir mais nada",
+    "lp.diario.1": "Vês logo quem é o próximo cliente e contacta-o caso necessário.",
+    "lp.diario.2": "Aceita ou recusa pedidos pendentes.",
     "lp.diario.3": "Quanto a SYCRAS já te trouxe este mês, em euros",
 
     "lp.agenda.kicker": "Agenda",
@@ -35,13 +35,13 @@ export const landingDict: Record<BaseLang, Record<string, string>> = {
       "Todas as marcações, dia a dia, com cores por estado. Mudar uma hora é arrastar com o dedo.",
     "lp.agenda.1": "Toca num espaço livre para marcar; mantém premido para bloquear",
     "lp.agenda.2": "Salta para qualquer dia ou mês com o calendário",
-    "lp.agenda.3": "Folgas, férias e dias fechados que a página respeita sozinha",
+    "lp.agenda.3": "Marca as tuas folgas e férias, os clientes não conseguem marcar nesses dias.",
 
     "lp.share.kicker": "A tua página",
     "lp.share.title": "A tua página de marcações, pronta a partilhar.",
     "lp.share.body":
       "Um link só teu, sycras.com/o-teu-nome, com serviços, preços, fotos, equipa e mapa. Os clientes só veem horas livres.",
-    "lp.share.1": "Partilha no WhatsApp, Instagram ou Google Maps com um toque",
+    "lp.share.1": "Partilha a tua página com um toque.",
     "lp.share.2": "Os clientes marcam a qualquer hora, sem criar conta",
     "lp.share.3": "Confirmação automática ou pedidos que tu aprovas",
 
@@ -161,8 +161,8 @@ export const landingDict: Record<BaseLang, Record<string, string>> = {
     "lp.diario.title": "Your day at a glance.",
     "lp.diario.body":
       "Open the app and see who is next, what you have earned today and what needs you.",
-    "lp.diario.1": "Your next booking up front, with call and WhatsApp in one tap",
-    "lp.diario.2": "Requests to accept or decline right there",
+    "lp.diario.1": "See your next client at once and get in touch if needed.",
+    "lp.diario.2": "Accept or decline pending requests.",
     "lp.diario.3": "What SYCRAS brought you this month, in euros",
 
     "lp.agenda.kicker": "Diary",
@@ -171,13 +171,13 @@ export const landingDict: Record<BaseLang, Record<string, string>> = {
       "Every booking, day by day, coloured by status. Moving one is a drag of the finger.",
     "lp.agenda.1": "Tap a free slot to book; hold it to block time",
     "lp.agenda.2": "Jump to any day or month with the calendar",
-    "lp.agenda.3": "Days off, holidays and closed days your page respects on its own",
+    "lp.agenda.3": "Mark your days off and holidays; clients cannot book on those days.",
 
     "lp.share.kicker": "Your page",
     "lp.share.title": "Your booking page, ready to share.",
     "lp.share.body":
       "A link of your own, sycras.com/your-name, with services, prices, photos, team and map. Clients only see free times.",
-    "lp.share.1": "Share on WhatsApp, Instagram or Google Maps in one tap",
+    "lp.share.1": "Share your page in one tap.",
     "lp.share.2": "Clients book any time, no account needed",
     "lp.share.3": "Instant confirmation, or requests you approve",
 
