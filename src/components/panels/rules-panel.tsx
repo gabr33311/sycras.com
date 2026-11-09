@@ -74,17 +74,19 @@ export function RulesPanel() {
         title={t("dp.title")}
         badge={hasPro === false ? pro : undefined}
         summary={
-          business.deposit_enabled
-            ? business.deposit_mode === "percent"
-              ? t("dp.onPercent").replace("{n}", String(business.deposit_value))
-              : t("dp.onFixed").replace(
-                  "{x}",
-                  formatPrice(
-                    computeDeposit(1_000_000, "fixed", business.deposit_value),
-                    business.currency,
-                  ),
-                )
-            : t("dp.off")
+          business.deposit_enabled && !business.stripe_charges_enabled
+            ? t("dp.broken")
+            : business.deposit_enabled
+              ? business.deposit_mode === "percent"
+                ? t("dp.onPercent").replace("{n}", String(business.deposit_value))
+                : t("dp.onFixed").replace(
+                    "{x}",
+                    formatPrice(
+                      computeDeposit(1_000_000, "fixed", business.deposit_value),
+                      business.currency,
+                    ),
+                  )
+              : t("dp.off")
         }
         flatten
       >

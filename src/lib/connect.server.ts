@@ -49,18 +49,21 @@ export async function startConnectOnboarding(input: {
 
   let accountId = business.stripe_account_id;
   if (!accountId) {
-    const account = await stripe().accounts.create({
-      country: "PT",
-      email: business.email ?? undefined,
-      business_profile: { name: business.name },
-      controller: {
-        stripe_dashboard: { type: "full" },
-        fees: { payer: "account" },
-        losses: { payments: "stripe" },
-        requirement_collection: "stripe",
-      },
-      metadata: { business_id: business.id },
-    } as Stripe.AccountCreateParams);
+    const account = await stripe().accounts.create(
+      {
+        country: "PT",
+        email: business.email ?? undefined,
+        business_profile: { name: business.name },
+        controller: {
+          stripe_dashboard: { type: "full" },
+          fees: { payer: "account" },
+          losses: { payments: "stripe" },
+          requirement_collection: "stripe",
+        },
+        metadata: { business_id: business.id },
+      } as Stripe.AccountCreateParams,
+      { idempotencyKey: `connect-account-${business.id}` },
+    );
     accountId = account.id;
     await db.from("businesses").update({ stripe_account_id: accountId }).eq("id", business.id);
   }

@@ -383,6 +383,7 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "dp.onFixed": "sinal de {x}",
     "dp.onPercent": "sinal de {n}%",
     "dp.off": "Desligado",
+    "dp.broken": "Termina o registo de pagamentos para voltares a receber sinais",
     "dp.keepTitle": "Devolver o sinal?",
     "dp.keepBody":
       "Estás a cancelar em cima da hora. Podes devolver o sinal ao cliente ou ficar com ele.",
@@ -991,6 +992,7 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "dp.onFixed": "{x} deposit",
     "dp.onPercent": "{n}% deposit",
     "dp.off": "Off",
+    "dp.broken": "Finish your payments sign-up to take deposits again",
     "dp.keepTitle": "Refund the deposit?",
     "dp.keepBody": "You are cancelling at the last minute. You can refund the deposit or keep it.",
     "dp.refund": "Refund",

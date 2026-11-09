@@ -100,7 +100,16 @@ export async function startDepositCheckout(
       },
       { stripeAccount: ctx.stripeAccount },
     );
-    await db.from("booking_holds").update({ checkout_session_id: session.id }).eq("id", hold.id);
+    const { error: saveError } = await db
+      .from("booking_holds")
+      .update({ checkout_session_id: session.id })
+      .eq("id", hold.id);
+    if (saveError) {
+      await stripe()
+        .checkout.sessions.expire(session.id, {}, { stripeAccount: ctx.stripeAccount })
+        .catch(() => null);
+      throw new Error(`Hold ${hold.id} could not store its session: ${saveError.message}`);
+    }
     if (!session.url) throw new Error("Checkout session without url");
     return { ok: true, url: session.url };
   } catch (e) {
@@ -182,7 +191,10 @@ export async function finalizeDeposit(
     return { ok: true, token: raced.token };
   }
   // The time went to someone else while the client was paying: give the money back.
-  await stripe().refunds.create({ payment_intent: paymentIntent }, { stripeAccount });
+  await stripe().refunds.create(
+    { payment_intent: paymentIntent },
+    { stripeAccount, idempotencyKey: `deposit-slotlost-${paymentIntent}` },
+  );
   await keep(hold.id, { ...payload, refunded: true });
   return { ok: false, code: "slot_lost", slug: business.slug };
 }
@@ -357,8 +369,29 @@ export async function refundOrphanPayment(
 }
 
 /** The owner keeps the deposit (late cancel): remembered so the automatic sweep leaves it. */
-export async function keepDeposit(appointmentId: string): Promise<{ refunded: false; cents: 0 }> {
+export async function keepDeposit(
+  appointmentId: string,
+): Promise<{ refunded: boolean; cents: number }> {
   const db = await admin();
+  const { data: appt } = await db
+    .from("appointments")
+    .select("starts_at, business_id")
+    .eq("id", appointmentId)
+    .maybeSingle();
+  const { data: business } = appt
+    ? await db
+        .from("businesses")
+        .select("cancellation_hours")
+        .eq("id", appt.business_id)
+        .maybeSingle()
+    : { data: null };
+  const { ownerCancelRefund } = await import("@/lib/deposit");
+  // Keeping is only for a late cancel; in time, the money always goes back.
+  if (
+    !appt ||
+    ownerCancelRefund(appt.starts_at, new Date(), business?.cancellation_hours ?? 24) !== "ask"
+  )
+    return refundDeposit(appointmentId);
   await db
     .from("appointments")
     .update({ deposit_status: "kept" })
