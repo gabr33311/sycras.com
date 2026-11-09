@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -26,6 +26,7 @@ import { FormError } from "@/components/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyBusiness } from "@/hooks/use-business";
 import { invalidateAppointmentData, setAppointmentStatus } from "@/lib/appointment-status";
+import { ownerCancelRefund } from "@/lib/deposit";
 import { normalizePhonePt } from "@/lib/phone";
 import { formatDateLong, formatTime } from "@/lib/format";
 import { timeToMinutes, zonedToUtc } from "@/lib/time";
@@ -80,7 +81,27 @@ export function useAppointmentCommands(target: AppointmentCommandTarget, onDone?
     remind: !!phone && !!startsAt && isFuture && live,
   };
 
-  async function setStatus(next: ApptStatusValue): Promise<boolean> {
+  // A confirmed booking with a paid deposit, cancelled late: the owner chooses whether to refund.
+  const [askDeposit, setAskDeposit] = useState(false);
+  useEffect(() => {
+    if (!cancelOpen || !business || status !== "confirmed" || !startsAt) {
+      setAskDeposit(false);
+      return;
+    }
+    void supabase
+      .from("appointments")
+      .select("deposit_status")
+      .eq("id", id)
+      .maybeSingle()
+      .then(({ data }) =>
+        setAskDeposit(
+          data?.deposit_status === "paid" &&
+            ownerCancelRefund(startsAt, new Date(), business.cancellation_hours) === "ask",
+        ),
+      );
+  }, [cancelOpen, business, status, startsAt, id]);
+
+  async function setStatus(next: ApptStatusValue, refundDeposit = true): Promise<boolean> {
     if (!business || busy) return false;
     setBusy(true);
     const result = await setAppointmentStatus({
@@ -88,6 +109,7 @@ export function useAppointmentCommands(target: AppointmentCommandTarget, onDone?
       businessId: business.id,
       status: next,
       note: next === "cancelled" ? t("acts.note.cancelled") : t("acts.note.changed"),
+      refundDeposit,
     });
     setBusy(false);
     if (!result.ok) {
@@ -203,10 +225,24 @@ export function useAppointmentCommands(target: AppointmentCommandTarget, onDone?
               {t("acts.dialog.cancelTitle")}
               {customerName}?
             </AlertDialogTitle>
-            <AlertDialogDescription>{t("acts.dialog.cancelDesc")}</AlertDialogDescription>
+            <AlertDialogDescription>
+              {askDeposit ? t("dp.keepBody") : t("acts.dialog.cancelDesc")}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={busy}>{t("acts.dialog.keep")}</AlertDialogCancel>
+            {askDeposit ? (
+              <AlertDialogAction
+                disabled={busy}
+                className="bg-muted text-foreground hover:bg-muted/80"
+                onClick={(e) => {
+                  e.preventDefault();
+                  void setStatus("cancelled", false).then((ok) => ok && setCancelOpen(false));
+                }}
+              >
+                {t("dp.keep")}
+              </AlertDialogAction>
+            ) : null}
             <AlertDialogAction
               disabled={busy}
               onClick={(e) => {
@@ -216,7 +252,7 @@ export function useAppointmentCommands(target: AppointmentCommandTarget, onDone?
               }}
             >
               {busy && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {t("acts.cancelAppt")}
+              {askDeposit ? t("dp.refund") : t("acts.cancelAppt")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

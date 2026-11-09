@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { BellRing, Clock, Star, UserCheck } from "lucide-react";
+import { BellRing, Clock, Star, UserCheck, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyBusiness } from "@/hooks/use-business";
 import { useHasPro } from "@/hooks/use-subscription";
 import { usePrefs } from "@/lib/prefs";
 import { SettingBlock, SettingBlocks } from "@/components/setting-block";
 import { ApprovalSetting, BookingRules } from "@/components/panels/availability-panel";
+import { DepositSettings } from "@/components/panels/deposit-settings";
+import { computeDeposit } from "@/lib/deposit";
+import { formatPrice } from "@/lib/format";
 import { RemindersPanel, ReviewLink } from "@/components/panels/reminders-panel";
 
 /**
@@ -63,6 +66,29 @@ export function RulesPanel() {
         flatten
       >
         <BookingRules />
+      </SettingBlock>
+
+      <SettingBlock
+        value="deposit"
+        icon={Wallet}
+        title={t("dp.title")}
+        badge={hasPro === false ? pro : undefined}
+        summary={
+          business.deposit_enabled
+            ? business.deposit_mode === "percent"
+              ? t("dp.onPercent").replace("{n}", String(business.deposit_value))
+              : t("dp.onFixed").replace(
+                  "{x}",
+                  formatPrice(
+                    computeDeposit(1_000_000, "fixed", business.deposit_value),
+                    business.currency,
+                  ),
+                )
+            : t("dp.off")
+        }
+        flatten
+      >
+        <DepositSettings />
       </SettingBlock>
 
       <SettingBlock

@@ -66,7 +66,7 @@ export async function startConnectOnboarding(input: {
   }
 
   const back =
-    input.from === "app" ? `${input.origin}/connect/done` : `${input.origin}/profile?pagamentos=1`;
+    input.from === "app" ? `${input.origin}/connect/done` : `${input.origin}/profile?section=rules`;
   const link = await stripe().accountLinks.create({
     account: accountId,
     type: "account_onboarding",

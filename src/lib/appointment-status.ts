@@ -59,6 +59,8 @@ export async function setAppointmentStatus(input: {
   businessId: string;
   status: ApptStatus;
   note?: string;
+  /** False when the owner keeps a paid deposit (late cancel). Requests not accepted always refund. */
+  refundDeposit?: boolean;
 }): Promise<{ ok: true; emailed?: boolean } | { ok: false; message: string }> {
   let wasPending = false;
   if (input.status === "confirmed" || input.status === "cancelled") {
@@ -97,7 +99,11 @@ export async function setAppointmentStatus(input: {
   if (input.status === "cancelled") {
     try {
       const res = await sendAppointmentCancelledEmail({
-        data: { appointmentId: input.id, declined: wasPending },
+        data: {
+          appointmentId: input.id,
+          declined: wasPending,
+          refund: wasPending || input.refundDeposit !== false,
+        },
       });
       if (res.status === "sent") toast.success("Cancelada. O cliente recebeu um email.");
       else if (res.status === "no_email") toast.success("Marcação cancelada.");

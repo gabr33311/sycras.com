@@ -124,6 +124,8 @@ type SheetAppointment = {
   notes: string | null;
   staff_id: string | null;
   source: string;
+  deposit_cents?: number | null;
+  deposit_status?: string | null;
 };
 
 function useSheetAppointment(id: string | null) {
@@ -134,7 +136,7 @@ function useSheetAppointment(id: string | null) {
       const { data, error } = await supabase
         .from("appointments")
         .select(
-          "id, starts_at, ends_at, customer_name, customer_phone, customer_email, customer_id, service_name, price_cents, status, notes, staff_id, source",
+          "id, starts_at, ends_at, customer_name, customer_phone, customer_email, customer_id, service_name, price_cents, status, notes, staff_id, source, deposit_cents, deposit_status",
         )
         .eq("id", id!)
         .maybeSingle();
@@ -296,6 +298,26 @@ function AppointmentSheetBody({
             <span className="tabular-nums">
               {money(appt.price_cents, business?.currency ?? "EUR")}
             </span>
+            {appt.deposit_status && appt.deposit_cents ? (
+              <span className="mt-0.5 block text-xs font-semibold text-muted-foreground">
+                {appt.deposit_status === "refunded"
+                  ? t("dp.refunded")
+                  : appt.status === "no_show"
+                    ? t("dp.kept").replace(
+                        "{x}",
+                        money(appt.deposit_cents, business?.currency ?? "EUR"),
+                      )
+                    : t("dp.paid")
+                        .replace("{x}", money(appt.deposit_cents, business?.currency ?? "EUR"))
+                        .replace(
+                          "{y}",
+                          money(
+                            Math.max(0, (appt.price_cents ?? 0) - appt.deposit_cents),
+                            business?.currency ?? "EUR",
+                          ),
+                        )}
+              </span>
+            ) : null}
           </InfoRow>
         )}
         {appt.customer_phone && (
