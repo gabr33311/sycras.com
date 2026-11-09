@@ -101,7 +101,7 @@ const BASE: Record<BaseLang, Record<string, string>> = {
     "showcase.body": "A tua agenda e a página que os clientes veem — simples nos dois lados.",
     "showcase.agenda": "Agenda do dia, sempre organizada",
     "showcase.booking": "Página pública de marcações",
-    "nav.today": "Hoje",
+    "nav.today": "Diário",
     "nav.calendar": "Agenda",
     "nav.customers": "Clientes",
     "nav.share": "Partilhar",

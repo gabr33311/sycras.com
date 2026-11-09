@@ -34,25 +34,26 @@ export function PageHeader({
   inline?: boolean;
 }) {
   const row = (
+    // As in the app: the title centred in the classic serif, its buttons in the corners.
     <div
-      className={
-        inline
-          ? "mb-3 flex items-center justify-between gap-3"
-          : "flex items-center justify-between gap-3"
-      }
+      className={cn(
+        "grid min-h-11 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3",
+        inline && "mb-3",
+      )}
     >
-      {leading && <div className="-ml-2 shrink-0">{leading}</div>}
-      <div className="flex min-w-0 flex-1 items-baseline gap-2">
-        <h1 className="truncate font-display text-[24px] font-bold leading-tight tracking-tight sm:text-[28px]">
-          {title}
-        </h1>
-        {meta && (
-          <span className="shrink-0 truncate text-xs font-semibold text-muted-foreground first-letter:uppercase sm:text-sm">
+      <div className="flex min-w-0 items-center justify-start">
+        {leading ? (
+          <div className="-ml-2 shrink-0">{leading}</div>
+        ) : meta ? (
+          <span className="truncate rounded-full bg-card px-3.5 py-2 text-xs font-semibold shadow-[var(--shadow-soft)] first-letter:uppercase sm:text-sm">
             {meta}
           </span>
-        )}
+        ) : null}
       </div>
-      {action && <div className="shrink-0">{action}</div>}
+      <h1 className="truncate text-center font-classic text-[28px] font-semibold leading-tight sm:text-[32px]">
+        {title}
+      </h1>
+      <div className="flex min-w-0 items-center justify-end">{action}</div>
     </div>
   );
   if (inline) return row;

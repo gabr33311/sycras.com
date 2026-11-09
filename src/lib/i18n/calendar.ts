@@ -45,7 +45,7 @@ export const calendarDict: Record<BaseLang, Record<string, string>> = {
     "cal.view": "Vista",
     "cal.view.day": "Dia",
     "cal.view.week": "Semana",
-    "today.title": "Hoje",
+    "today.title": "Diário",
     "today.next": "A seguir",
     "today.now": "A decorrer",
     "today.inMin": "daqui a {n} min",

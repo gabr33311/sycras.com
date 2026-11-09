@@ -25,6 +25,7 @@ import { RulesPanel } from "@/components/panels/rules-panel";
 import {
   ArrowLeft,
   ArrowUpRight,
+  Globe,
   Crown,
   Pencil,
   Check,
@@ -347,7 +348,10 @@ function ProfilePage() {
             }
           : { title: t("pf.pro.ended"), sub: t("pf.pro.ended.sub"), warn: true, days: null }
     : null;
-  const used = pro?.days != null ? Math.min(1, Math.max(0.04, 1 - pro.days / (access?.trialTotalDays ?? TRIAL_DAYS))) : null;
+  const used =
+    pro?.days != null
+      ? Math.min(1, Math.max(0.04, 1 - pro.days / (access?.trialTotalDays ?? TRIAL_DAYS)))
+      : null;
   const daysLine = pro?.days != null && (
     <span className="flex items-baseline gap-1.5">
       <span className="font-display text-3xl font-bold leading-none tabular-nums">{pro.days}</span>
@@ -512,33 +516,12 @@ function ProfilePage() {
                       <Copy className="size-3.5 shrink-0" strokeWidth={2.5} />
                     )}
                   </button>
-                  <span className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] font-semibold">
-                    <span
-                      aria-hidden
-                      className={cn(
-                        "size-1.5 shrink-0 rounded-full",
-                        pageStatus?.warn ? "bg-st-pending" : "bg-st-confirmed",
-                      )}
-                    />
-                    <span
-                      className={cn(
-                        "shrink-0",
-                        pageStatus?.warn ? "text-st-pending-fg" : "text-muted-foreground",
-                      )}
-                    >
-                      {pageStatus?.text}
+                  {/* Only a problem is worth a line here (page not live, details missing). */}
+                  {pageStatus?.warn || infoStatus?.warn ? (
+                    <span className="mt-1 block truncate text-[11px] font-semibold text-st-pending-fg">
+                      {pageStatus?.warn ? pageStatus.text : infoStatus?.text}
                     </span>
-                    {infoStatus && (
-                      <span
-                        className={cn(
-                          "truncate",
-                          infoStatus.warn ? "text-st-pending-fg" : "text-muted-foreground",
-                        )}
-                      >
-                        · {infoStatus.text}
-                      </span>
-                    )}
-                  </span>
+                  ) : null}
                 </span>
                 {/* The page's QR code: tap for the big one, to download or show. */}
                 <QrThumb
@@ -547,41 +530,39 @@ function ProfilePage() {
                 />
               </div>
               {/* Three actions, each named: edit the business and its page, share, open. */}
-              <div className="mt-3 grid grid-cols-3 gap-1.5">
-                {([["info", Pencil, t("pf.biz.edit")]] as const).map(([id, Icon, text]) => (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => setSection(id)}
-                    aria-current={!isPhone && shown === id ? "page" : undefined}
-                    className={cn(
-                      "flex h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-xl bg-muted px-1 text-[11px] font-bold transition-[background-color,transform] active:scale-95",
-                      !isPhone && shown === id && "ring-2 ring-brand",
-                    )}
-                  >
-                    <Icon className="size-4" />
-                    <span className="max-w-full truncate">{text}</span>
-                  </button>
-                ))}
+              {/* As in the app: share is the wide blue one (it brings bookings); edit and
+                  view the page are two round buttons beside it. */}
+              <div className="mt-3.5 flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => void shareLink()}
-                  className="flex h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-xl bg-muted px-1 text-[11px] font-bold transition-[background-color,transform] active:scale-95"
+                  className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-brand px-4 text-sm font-bold text-white transition-transform active:scale-95"
                 >
                   <Share2 className="size-4" />
-                  <span className="max-w-full truncate">{t("pf.s.share")}</span>
+                  <span className="truncate">{t("pf.s.share")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSection("info")}
+                  aria-label={t("pf.biz.edit")}
+                  title={t("pf.biz.edit")}
+                  aria-current={!isPhone && shown === "info" ? "page" : undefined}
+                  className={cn(
+                    "flex size-12 shrink-0 items-center justify-center rounded-full bg-muted transition-transform active:scale-95",
+                    !isPhone && shown === "info" && "ring-2 ring-brand",
+                  )}
+                >
+                  <Pencil className="size-[18px]" />
                 </button>
                 <a
                   href={`/${business.slug}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-xl bg-primary px-1 text-[11px] font-bold text-primary-foreground transition-transform active:scale-95"
+                  aria-label={t("pf.biz.open")}
+                  title={t("pf.biz.open")}
+                  className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted transition-transform active:scale-95"
                 >
-                  <ArrowUpRight className="size-4" />
-                  <span className="max-w-full truncate md:hidden">{t("pf.biz.open")}</span>
-                  <span className="hidden max-w-full truncate md:inline">
-                    {t("pf.biz.openShort")}
-                  </span>
+                  <Globe className="size-[18px]" />
                 </a>
               </div>
             </div>
