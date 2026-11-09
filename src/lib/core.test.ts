@@ -25,6 +25,15 @@ describe("plan access", () => {
     expect(a.trialDaysLeft).toBe(TRIAL_DAYS - 1);
   });
 
+  it("the free trial is 14 days; with an invite, 21", () => {
+    expect(TRIAL_DAYS).toBe(14);
+    expect(computeAccess(daysAgo(15), null, now).state).toBe("blocked");
+    const invited = computeAccess(daysAgo(15), null, now, 7);
+    expect(invited.state).toBe("trial");
+    expect(invited.trialTotalDays).toBe(21);
+    expect(computeAccess(daysAgo(22), null, now, 7).state).toBe("blocked");
+  });
+
   it("after the trial with no subscription, the business is blocked", () => {
     const a = computeAccess(daysAgo(TRIAL_DAYS + 1), null, now);
     expect(a.state).toBe("blocked");

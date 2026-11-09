@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 // Invites, for the site and the phone app (Bearer token of the signed-in owner).
 // GET: the owner's code, counts and balance. POST { action }:
 //   "code"   { code }            change the code (once)
-//   "apply"  { code }            a new business joins with an invite (+15 free days)
+//   "apply"  { code }            a new business joins with an invite (+7 free days)
 //   "payout" { holder, iban }    ask for a bank transfer of the balance (from 20 €)
 async function ownerBusiness(request: Request): Promise<{ userId: string; businessId: string } | null> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

@@ -21,7 +21,7 @@ export function setInvite(code: string) {
   }
 }
 
-/** Right after the business is created: +15 free days when the code is valid. True if applied. */
+/** Right after the business is created: +7 free days when the code is valid. True if applied. */
 export async function applyInvite(): Promise<boolean> {
   const code = getInvite();
   if (!code) return false;

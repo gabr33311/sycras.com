@@ -4,7 +4,7 @@
  * live subscription is required: Stripe (site) or Google Play / App Store (phone app). Shared by the browser and the server.
  */
 
-export const TRIAL_DAYS = 30;
+export const TRIAL_DAYS = 14;
 
 export type SubscriptionRow = {
   plan: "free" | "pro" | "business";
@@ -32,7 +32,7 @@ export type Access = {
   state: AccessState;
   /** When the free trial ends (or ended). */
   trialEndsAt: Date;
-  /** Length of this business's free trial (30, or more with an invite). */
+  /** Length of this business's free trial (14, or more with an invite). */
   trialTotalDays: number;
   /** Whole days left in the free trial (0 when over). */
   trialDaysLeft: number;
@@ -54,7 +54,7 @@ export function computeAccess(
   businessCreatedAt: string | Date,
   sub: SubscriptionRow,
   now: Date = new Date(),
-  /** Extra free days (an invite gives 15). */
+  /** Extra free days (an invite gives 7). */
   bonusDays = 0,
 ): Access {
   const created = new Date(businessCreatedAt);

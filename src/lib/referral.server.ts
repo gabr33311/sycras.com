@@ -1,10 +1,10 @@
 // Server-only: invites ("Convida e ganha").
 // - Each business has a code made from its name (changeable once).
-// - A new business that signs up with a code gets 15 more free days.
+// - A new business that signs up with a code gets 7 more free days.
 // - When it pays its first month, the inviter earns 10 €, withdrawable after the 14-day
 //   refund window. From 20 € the inviter asks for a bank transfer, done by SYCRAS.
 
-export const INVITE_BONUS_DAYS = 15;
+export const INVITE_BONUS_DAYS = 7;
 export const REWARD_CENTS = 1000;
 export const MIN_PAYOUT_CENTS = 2000;
 const HOLD_DAYS = 14;
@@ -80,7 +80,7 @@ export async function changeCode(businessId: string, raw: string): Promise<Chang
 export type ApplyResult = "ok" | "invalid" | "own" | "too_late" | "already";
 
 /**
- * A new business joins with an invite: 15 more free days, and the inviter is noted so
+ * A new business joins with an invite: 7 more free days, and the inviter is noted so
  * they can be rewarded when this business pays. Only in its first 7 days, only once.
  */
 export async function applyCode(businessId: string, userId: string, raw: string): Promise<ApplyResult> {

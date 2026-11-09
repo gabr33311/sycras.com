@@ -8,7 +8,7 @@ export const landingDict: Record<BaseLang, Record<string, string>> = {
     "lp.title.b": "Sem telefonemas.",
     "lp.subtitle":
       "Os clientes marcam sozinhos na tua página, 24 horas por dia. Tu vês tudo numa app simples: o dia, a agenda, os clientes e o dinheiro que entra.",
-    "lp.trust.1": "30 dias grátis",
+    "lp.trust.1": "14 dias grátis",
     "lp.trust.2": "Sem cartão",
     "lp.trust.3": "Pronto em 5 minutos",
     "lp.chips.title": "Tudo numa só app",
@@ -136,7 +136,7 @@ export const landingDict: Record<BaseLang, Record<string, string>> = {
       "Não. Tudo funciona no telemóvel, na app SYCRAS. Se preferires, também podes gerir tudo pelo site, no computador.",
 
     "lp.final.title": "A tua próxima marcação pode chegar hoje.",
-    "lp.final.body": "30 dias grátis, sem cartão. Cancelas quando quiseres.",
+    "lp.final.body": "14 dias grátis, sem cartão. Cancelas quando quiseres.",
   },
   en: {
     "lp.eyebrow": "For barbers, salons and clinics",
@@ -144,7 +144,7 @@ export const landingDict: Record<BaseLang, Record<string, string>> = {
     "lp.title.b": "No phone calls.",
     "lp.subtitle":
       "Clients book themselves on your page, around the clock. You see everything in one simple app: your day, your diary, your clients and the money coming in.",
-    "lp.trust.1": "30 days free",
+    "lp.trust.1": "14 days free",
     "lp.trust.2": "No card",
     "lp.trust.3": "Ready in 5 minutes",
     "lp.chips.title": "All in one app",
@@ -272,6 +272,6 @@ export const landingDict: Record<BaseLang, Record<string, string>> = {
       "No. Everything works on your phone, in the SYCRAS app. If you prefer, you can also manage it all on the website, on a computer.",
 
     "lp.final.title": "Your next booking could come today.",
-    "lp.final.body": "30 days free, no card. Cancel any time.",
+    "lp.final.body": "14 days free, no card. Cancel any time.",
   },
 };

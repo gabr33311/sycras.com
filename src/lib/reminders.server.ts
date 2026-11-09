@@ -3,6 +3,8 @@ import { brandColors } from "@/lib/brand";
 import { mapsUrl } from "@/lib/maps";
 import { renderReminderMessage } from "@/lib/reminder-message";
 import { businessHasPro } from "@/lib/billing.server";
+import { INVITE_BONUS_DAYS } from "@/lib/referral.server";
+import { TRIAL_DAYS } from "@/lib/subscription";
 
 type DueRow = {
   id: string;
@@ -453,22 +455,26 @@ async function sendOwnerNudges(db: Db, send: Send): Promise<void> {
 }
 
 /**
- * The free month, told by email: day 7 (how it is going), day 25 (5 days left) and
- * day 30 (it ended). Never to someone already paying; each one once per business.
+ * The free trial, told by email: day 5 (how it is going), 3 days before the end, and the
+ * day it ends (an invite makes it longer). Never to someone already paying; each one once.
  */
 async function sendTrialEmails(db: Db, send: Send): Promise<void> {
   const origin = appOrigin();
-  const STAGES = [
-    { day: 7, template: "trial-week" },
-    { day: 25, template: "trial-ending" },
-    { day: 30, template: "trial-ended" },
-  ] as const;
-  for (const stage of STAGES) {
+  const WEEK_DAY = 5;
+  for (const bonus of [0, INVITE_BONUS_DAYS]) {
+    const total = TRIAL_DAYS + bonus;
+    const STAGES = [
+      { day: WEEK_DAY, template: "trial-week" },
+      { day: total - 3, template: "trial-ending" },
+      { day: total, template: "trial-ended" },
+    ] as const;
+    for (const stage of STAGES) {
     const at = Date.now() - stage.day * 86_400_000;
     const { data: due } = await db
       .from("businesses")
       .select("id, name, slug, created_by")
       .eq("is_demo", false)
+      .eq("trial_bonus_days", bonus)
       .is("deleted_at", null)
       .gte("created_at", new Date(at - WINDOW_MS).toISOString())
       .lt("created_at", new Date(at).toISOString())
@@ -498,11 +504,13 @@ async function sendTrialEmails(db: Db, send: Send): Promise<void> {
         templateData: {
           businessName: biz.name,
           bookings,
+          daysLeft: String(total - WEEK_DAY),
           plansUrl: origin ? `${origin}/plans` : undefined,
           pageUrl: origin ? `${origin}/${biz.slug}` : undefined,
         },
         idempotencyKey: `${stage.template}-${biz.id}`,
       });
+    }
     }
   }
 }

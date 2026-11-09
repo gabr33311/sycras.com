@@ -11,13 +11,15 @@ import {
 } from "@react-email/components";
 import type { TemplateEntry } from "./registry";
 
-// The three emails of the free month: day 7 (how it is going), day 25 (5 days left)
-// and day 30 (it ended). Same look as the other owner emails.
+// The three emails of the free trial: day 5 (how it is going), 3 days before the end,
+// and the day it ends. Same look as the other owner emails.
 
 interface Props {
   businessName?: string;
   /** Bookings received so far (day 7). */
   bookings?: string;
+  /** Free days still left (day 5). */
+  daysLeft?: string;
   plansUrl?: string;
   pageUrl?: string;
 }
@@ -38,18 +40,18 @@ const Shell = ({ preview, children }: { preview: string; children: React.ReactNo
   </Html>
 );
 
-const Week = ({ businessName, bookings, pageUrl }: Props) => {
+const Week = ({ businessName, bookings, daysLeft, pageUrl }: Props) => {
   const n = Number(bookings ?? 0);
   return (
-    <Shell preview="A tua primeira semana com a SYCRAS">
-      <Heading style={h1}>Uma semana de SYCRAS</Heading>
+    <Shell preview="Os teus primeiros dias com a SYCRAS">
+      <Heading style={h1}>Os primeiros dias de SYCRAS</Heading>
       <Text style={text}>
         {n > 0
           ? `${businessName ?? "O teu negócio"} já recebeu ${n} ${n === 1 ? "marcação" : "marcações"} pela SYCRAS. Cada uma é um telefonema a menos.`
           : `A página ${businessName ? `de ${businessName} ` : ""}está pronta, mas ainda não recebeu marcações. Põe o link na bio do Instagram e envia-o aos teus clientes habituais por WhatsApp.`}
       </Text>
       <Text style={text}>
-        Ainda tens 23 dias grátis. Dica: em Gestão → Marcações escolhes se aprovas cada pedido ou se
+        Ainda tens {daysLeft ?? "9"} dias grátis. Dica: em Gestão → Marcações escolhes se aprovas cada pedido ou se
         ficam logo confirmados.
       </Text>
       {pageUrl && (
@@ -62,14 +64,14 @@ const Week = ({ businessName, bookings, pageUrl }: Props) => {
 };
 
 const Ending = ({ businessName, plansUrl }: Props) => (
-  <Shell preview="Faltam 5 dias do teu SYCRAS Pro grátis">
-    <Heading style={h1}>Faltam 5 dias</Heading>
+  <Shell preview="Faltam 3 dias do teu SYCRAS Pro grátis">
+    <Heading style={h1}>Faltam 3 dias</Heading>
     <Text style={text}>
-      O teu mês grátis {businessName ? `de ${businessName} ` : ""}acaba daqui a 5 dias. Para a tua
+      O teu período grátis {businessName ? `de ${businessName} ` : ""}acaba daqui a 3 dias. Para a tua
       página continuar a receber marcações, subscreve o SYCRAS Pro: {PRICE}.
     </Text>
     <Text style={text}>
-      Se subscreveres agora, a primeira cobrança só acontece no fim do mês grátis.
+      Se subscreveres agora, a primeira cobrança só acontece no fim do período grátis.
     </Text>
     {plansUrl && (
       <Button href={plansUrl} style={button}>
@@ -80,8 +82,8 @@ const Ending = ({ businessName, plansUrl }: Props) => (
 );
 
 const Ended = ({ businessName, plansUrl }: Props) => (
-  <Shell preview="O teu mês grátis da SYCRAS acabou">
-    <Heading style={h1}>O teu mês grátis acabou</Heading>
+  <Shell preview="O teu período grátis da SYCRAS acabou">
+    <Heading style={h1}>O teu período grátis acabou</Heading>
     <Text style={text}>
       A página {businessName ? `de ${businessName} ` : ""}deixou de aceitar marcações novas. As tuas
       marcações, clientes e definições ficam todos guardados.
@@ -98,27 +100,28 @@ const Ended = ({ businessName, plansUrl }: Props) => (
 const preview = {
   businessName: "Barbearia Lisboa",
   bookings: "12",
+  daysLeft: "9",
   plansUrl: "https://sycras.com/plans",
   pageUrl: "https://sycras.com/exemplo",
 };
 
 export const trialWeek = {
   component: Week,
-  subject: "A tua primeira semana com a SYCRAS",
-  displayName: "Teste grátis: dia 7",
+  subject: "Os teus primeiros dias com a SYCRAS",
+  displayName: "Teste grátis: dia 5",
   previewData: preview,
 } satisfies TemplateEntry;
 
 export const trialEnding = {
   component: Ending,
-  subject: "Faltam 5 dias do teu SYCRAS Pro grátis",
-  displayName: "Teste grátis: faltam 5 dias",
+  subject: "Faltam 3 dias do teu SYCRAS Pro grátis",
+  displayName: "Teste grátis: faltam 3 dias",
   previewData: preview,
 } satisfies TemplateEntry;
 
 export const trialEnded = {
   component: Ended,
-  subject: "O teu mês grátis da SYCRAS acabou",
+  subject: "O teu período grátis da SYCRAS acabou",
   displayName: "Teste grátis: acabou",
   previewData: preview,
 } satisfies TemplateEntry;
