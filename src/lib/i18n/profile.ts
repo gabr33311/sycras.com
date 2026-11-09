@@ -1044,7 +1044,7 @@ export const profileDict: Record<BaseLang, Record<string, string>> = {
     "acc.delete.done": "Account deleted.",
     "acc.error": "Could not save. Try again.",
     "sub.only.title": "Paid Pro only",
-    "sub.only.sub": "Not included in the 30 free days.",
+    "sub.only.sub": "Not included in the 14 free days.",
     "sub.only.yours": "Included in your plan.",
     "sub.only.reminders": "Automatic email reminders to clients",
     "sub.only.block": "Block clients who no-show or abuse",

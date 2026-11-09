@@ -976,7 +976,7 @@ export const de: Record<string, string> = {
   "acc.delete.done": "Konto gelöscht.",
   "acc.error": "Speichern nicht möglich. Versuch es erneut.",
   "sub.only.title": "Nur im bezahlten Pro",
-  "sub.only.sub": "Nicht in den 30 kostenlosen Tagen enthalten.",
+  "sub.only.sub": "Nicht in den 14 kostenlosen Tagen enthalten.",
   "sub.only.yours": "In deinem Plan enthalten.",
   "sub.only.reminders": "Automatische E-Mail-Erinnerungen an Kunden",
   "sub.only.block": "Kunden sperren, die nicht erscheinen oder Missbrauch treiben",

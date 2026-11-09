@@ -498,7 +498,7 @@ export const onboardingDict: Record<BaseLang, Record<string, string>> = {
     "ob.done.trialTitle": "14 days of SYCRAS Pro for free",
     "ob.done.trialBody":
       "No card needed. Then €19 a month or €180 a year (−20%), and nothing is charged unless you decide. Automatic reminders, blocking clients and full stats are for subscribers.",
-    "ob.done.start": "Start the 30 free days",
+    "ob.done.start": "Start the 14 free days",
     "ob.pay.title": "You have 14 days for free",
     "ob.pay.body":
       "Your calendar, booking page and notifications are already working. Try everything for 14 days.",
@@ -506,11 +506,11 @@ export const onboardingDict: Record<BaseLang, Record<string, string>> = {
     "ob.pay.price": "€19 a month",
     "ob.pay.priceYear": "or €180 a year (−20%)",
     "ob.pay.subscribe": "Subscribe to SYCRAS Pro",
-    "ob.pay.skip": "Not now, keep the 30 free days",
+    "ob.pay.skip": "Not now, keep the 14 free days",
     "ob.pay.noCard": "No card needed. Nothing is charged unless you decide.",
     "ob.done.subscribe": "Subscribe now",
     "ob.done.subscribeNote":
-      "If you subscribe now, the first charge only happens when the 30 free days end.",
+      "If you subscribe now, the first charge only happens when the 14 free days end.",
     "onb.continue": "Continue",
     "onb.create": "Create my page",
 
