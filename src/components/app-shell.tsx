@@ -123,6 +123,82 @@ function DockTab({
   );
 }
 
+type RailIcon = ComponentType<{ className?: string | undefined; strokeWidth?: number | undefined }>;
+
+const railItem =
+  "group flex w-[88px] flex-col items-center gap-1.5 rounded-2xl py-2 text-[12px] font-semibold transition-colors";
+const railBox =
+  "flex size-12 items-center justify-center rounded-2xl transition-[background-color,transform] duration-200 group-active:scale-95";
+
+function RailLink({
+  to,
+  label,
+  Icon,
+  active,
+}: {
+  to: string;
+  label: string;
+  Icon: RailIcon;
+  active: boolean;
+}) {
+  return (
+    <Link
+      to={to}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        railItem,
+        active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+      )}
+    >
+      <span className={cn(railBox, active ? "bg-brand text-white" : "group-hover:bg-muted")}>
+        <Icon className="size-6" strokeWidth={2.2} />
+      </span>
+      <span className={active ? "font-bold" : undefined}>{label}</span>
+    </Link>
+  );
+}
+
+function RailButton({
+  label,
+  Icon,
+  onClick,
+  href,
+  primary,
+}: {
+  label: string;
+  Icon: RailIcon;
+  onClick?: () => void;
+  href?: string;
+  primary?: boolean;
+}) {
+  const inner = (
+    <>
+      <span
+        className={cn(
+          railBox,
+          primary ? "dock-action rounded-full text-white" : "group-hover:bg-muted",
+        )}
+      >
+        <Icon className="size-6" strokeWidth={primary ? 3 : 2.2} />
+      </span>
+      <span>{label}</span>
+    </>
+  );
+  const cls = cn(
+    railItem,
+    primary ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+  );
+  return href ? (
+    <a href={href} target="_blank" rel="noreferrer" className={cls}>
+      {inner}
+    </a>
+  ) : (
+    <button type="button" onClick={onClick} className={cls}>
+      {inner}
+    </button>
+  );
+}
+
 export function AppShell({
   children,
   onPrimaryAction,
@@ -196,55 +272,53 @@ export function AppShell({
 
   return (
     <div className="min-h-screen bg-background">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-sidebar px-3 py-4 lg:flex">
-        <div className="flex items-center gap-2.5 px-2 pb-4">
+      {/* Computers: a slim rail of big icons, each with its name under it (the dock is for phones). */}
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[104px] flex-col items-center gap-1 bg-sidebar py-5 lg:flex">
+        <Link
+          to="/profile"
+          title={business.name}
+          className="mb-3 transition-transform hover:scale-105"
+        >
           {logoUrl ? (
             <img
               src={logoUrl}
-              alt={`${t("ui.photoOf")} ${business?.name ?? t("ui.photoOfProfile")}`}
-              className="size-9 rounded-xl object-cover ring-1 ring-border"
+              alt={`${t("ui.photoOf")} ${business.name}`}
+              className="size-12 rounded-2xl object-cover"
             />
-          ) : business ? (
-            <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
-              {initials(business.name)}
-            </div>
           ) : (
-            <SycrasLogo className="size-9" />
+            <span className="flex size-12 items-center justify-center rounded-2xl bg-primary text-sm font-bold text-primary-foreground">
+              {initials(business.name)}
+            </span>
           )}
-          <div className="min-w-0">
-            <p className="truncate text-sm font-bold">{business?.name ?? "SYCRAS"}</p>
-            <p className="truncate text-xs text-muted-foreground">
-              {business ? `/${business.slug}` : t("ui.loading")}
-            </p>
-          </div>
-        </div>
-        {/* The main action, always one click away on desktop too. */}
-        <Button
-          className="mb-4 w-full"
+        </Link>
+        <RailButton
+          label={t("dock.newShort")}
+          Icon={Plus}
+          primary
           onClick={() => (onPrimaryAction ? onPrimaryAction() : setNewOpen(true))}
-        >
-          <Plus strokeWidth={3} /> {t("dock.new")}
-        </Button>
-        <NavList />
-        <div className="mt-auto space-y-1 px-1 pt-4">
-          <Button variant="ghost" size="sm" className="w-full justify-start gap-3" asChild>
-            <a href={`/${business.slug}`} target="_blank" rel="noreferrer">
-              <ExternalLink className="size-4" /> {t("nav.viewPage")}
-            </a>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start gap-3"
-            onClick={signOut}
-          >
-            <LogOut className="size-4" /> {t("nav.logout")}
-          </Button>
+        />
+        <div className="my-2 h-px w-10 bg-border" />
+        {NAV.map((item) => (
+          <RailLink
+            key={item.to}
+            to={item.to}
+            label={t(item.label)}
+            Icon={item.icon}
+            active={isTabActive(pathname, item.to)}
+          />
+        ))}
+        <div className="mt-auto flex flex-col items-center gap-1">
+          <RailButton
+            label={t("nav.viewPageShort")}
+            Icon={ExternalLink}
+            href={`/${business.slug}`}
+          />
+          <RailButton label={t("nav.logoutShort")} Icon={LogOut} onClick={() => void signOut()} />
         </div>
       </aside>
 
-      <div className="lg:pl-64">
-        <main className="animate-enter mx-auto w-full max-w-5xl px-4 pb-[calc(5.75rem+var(--sab))] pt-6 sm:px-5 lg:px-8 lg:pb-12 xl:max-w-6xl 2xl:max-w-7xl">
+      <div className="lg:pl-[104px]">
+        <main className="animate-enter mx-auto w-full max-w-5xl px-4 pb-[calc(5.75rem+var(--sab))] pt-6 sm:px-5 lg:max-w-none lg:px-10 lg:pb-12 2xl:px-16">
           <AppPrompt />
           <SuspendedBanner />
           <SubscriptionBanner />

@@ -35,7 +35,11 @@ export function SubPage({
           </Button>
         }
       />
-      <div className="mx-auto w-full max-w-3xl">{children}</div>
+      {/* Phones and small screens: one column. Wide screens: the cards flow in two columns,
+          so the page uses the width instead of a narrow strip in the middle. */}
+      <div className="mx-auto w-full max-w-3xl xl:max-w-6xl xl:columns-2 xl:gap-6 xl:[&>*]:mb-6 xl:[&>*]:break-inside-avoid xl:[&>*]:mt-0">
+        {children}
+      </div>
     </AppShell>
   );
 }
