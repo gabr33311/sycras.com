@@ -139,6 +139,10 @@ export type Database = {
           customer_id: string | null
           customer_name: string
           customer_phone: string | null
+          deposit_cents: number | null
+          deposit_payment_intent: string | null
+          deposit_refunded_at: string | null
+          deposit_status: string | null
           ends_at: string
           id: string
           notes: string | null
@@ -160,6 +164,10 @@ export type Database = {
           customer_id?: string | null
           customer_name: string
           customer_phone?: string | null
+          deposit_cents?: number | null
+          deposit_payment_intent?: string | null
+          deposit_refunded_at?: string | null
+          deposit_status?: string | null
           ends_at: string
           id?: string
           notes?: string | null
@@ -181,6 +189,10 @@ export type Database = {
           customer_id?: string | null
           customer_name?: string
           customer_phone?: string | null
+          deposit_cents?: number | null
+          deposit_payment_intent?: string | null
+          deposit_refunded_at?: string | null
+          deposit_status?: string | null
           ends_at?: string
           id?: string
           notes?: string | null
@@ -345,6 +357,56 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_holds: {
+        Row: {
+          business_id: string
+          checkout_session_id: string | null
+          created_at: string
+          deposit_cents: number
+          ends_at: string
+          hold_until: string
+          id: string
+          payload: Json
+          service_id: string
+          staff_id: string | null
+          starts_at: string
+        }
+        Insert: {
+          business_id: string
+          checkout_session_id?: string | null
+          created_at?: string
+          deposit_cents: number
+          ends_at: string
+          hold_until: string
+          id?: string
+          payload: Json
+          service_id: string
+          staff_id?: string | null
+          starts_at: string
+        }
+        Update: {
+          business_id?: string
+          checkout_session_id?: string | null
+          created_at?: string
+          deposit_cents?: number
+          ends_at?: string
+          hold_until?: string
+          id?: string
+          payload?: Json
+          service_id?: string
+          staff_id?: string | null
+          starts_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_holds_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_tokens: {
         Row: {
           appointment_id: string
@@ -421,6 +483,9 @@ export type Database = {
           created_by: string
           currency: string
           deleted_at: string | null
+          deposit_enabled: boolean
+          deposit_mode: string
+          deposit_value: number
           description: string | null
           email: string | null
           id: string
@@ -441,6 +506,8 @@ export type Database = {
           show_team: boolean
           slot_interval_minutes: number
           slug: string
+          stripe_account_id: string | null
+          stripe_charges_enabled: boolean
           timezone: string
           updated_at: string
           website: string | null
@@ -472,6 +539,9 @@ export type Database = {
           created_by: string
           currency?: string
           deleted_at?: string | null
+          deposit_enabled?: boolean
+          deposit_mode?: string
+          deposit_value?: number
           description?: string | null
           email?: string | null
           id?: string
@@ -492,6 +562,8 @@ export type Database = {
           show_team?: boolean
           slot_interval_minutes?: number
           slug: string
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean
           timezone?: string
           updated_at?: string
           website?: string | null
@@ -523,6 +595,9 @@ export type Database = {
           created_by?: string
           currency?: string
           deleted_at?: string | null
+          deposit_enabled?: boolean
+          deposit_mode?: string
+          deposit_value?: number
           description?: string | null
           email?: string | null
           id?: string
@@ -543,6 +618,8 @@ export type Database = {
           show_team?: boolean
           slot_interval_minutes?: number
           slug?: string
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean
           timezone?: string
           updated_at?: string
           website?: string | null
