@@ -191,3 +191,60 @@ async function keep(holdId: string, payload: HoldPayload) {
     .update({ payload, hold_until: new Date().toISOString() })
     .eq("id", holdId);
 }
+
+/**
+ * Every few minutes: payments that were left half way. A time whose 15 minutes ran out is
+ * booked if it was paid after all, otherwise its payment page is closed and the time freed.
+ * Finished holds (kept as receipts) go after a day.
+ */
+export async function expireStaleHolds(): Promise<{ finalized: number; expired: number }> {
+  const db = await admin();
+  const now = new Date();
+  let finalized = 0;
+  let expired = 0;
+
+  const { data: stale } = await db
+    .from("booking_holds")
+    .select("id, business_id, checkout_session_id, payload")
+    .lt("hold_until", now.toISOString())
+    .limit(50);
+  for (const hold of stale ?? []) {
+    const payload = hold.payload as HoldPayload;
+    if (payload.token || payload.refunded) continue; // a receipt, handled below
+    try {
+      const { data: business } = await db
+        .from("businesses")
+        .select("stripe_account_id")
+        .eq("id", hold.business_id)
+        .maybeSingle();
+      if (hold.checkout_session_id && business?.stripe_account_id) {
+        const stripeAccount = business.stripe_account_id;
+        const session = await stripe().checkout.sessions.retrieve(
+          hold.checkout_session_id,
+          {},
+          { stripeAccount },
+        );
+        if (session.payment_status === "paid") {
+          await finalizeDeposit(hold.id, hold.checkout_session_id);
+          finalized++;
+          continue;
+        }
+        if (session.status === "open") {
+          await stripe()
+            .checkout.sessions.expire(hold.checkout_session_id, {}, { stripeAccount })
+            .catch(() => null);
+        }
+      }
+      await db.from("booking_holds").delete().eq("id", hold.id);
+      expired++;
+    } catch (e) {
+      console.error("[deposit] expiring hold failed", hold.id, e);
+    }
+  }
+
+  await db
+    .from("booking_holds")
+    .delete()
+    .lt("hold_until", new Date(now.getTime() - 86400000).toISOString());
+  return { finalized, expired };
+}

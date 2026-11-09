@@ -20,7 +20,13 @@ export const Route = createFileRoute("/api/cron/reminders")({
             console.error("[cron reminders] whatsapp failed", e);
             return { sent: 0 };
           });
-          return Response.json({ ...email, whatsapp: whatsapp.sent });
+          // Deposits left half way: book the paid ones, free the others.
+          const { expireStaleHolds } = await import("@/lib/deposit.server");
+          const holds = await expireStaleHolds().catch((e) => {
+            console.error("[cron reminders] deposit holds failed", e);
+            return { finalized: 0, expired: 0 };
+          });
+          return Response.json({ ...email, whatsapp: whatsapp.sent, holds });
         } catch (e) {
           console.error("[cron reminders] failed", e);
           return Response.json({ error: "Failed" }, { status: 500 });
