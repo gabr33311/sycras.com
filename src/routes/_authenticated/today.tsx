@@ -143,21 +143,19 @@ function TodayPage() {
   return (
     <AppShell>
       <PageHeader
-        title={greetingPt(new Date(now), lang)}
+        title={t("today.title")}
+        // As in the app: the short date in the corner opens today in the agenda.
         meta={
-          <>
-            <span className="sm:hidden">
-              {new Intl.DateTimeFormat(currentLocale(), {
-                weekday: "short",
-                day: "numeric",
-                month: "short",
-                timeZone: tz,
-              }).format(new Date(now))}
-            </span>
-            <span className="hidden sm:inline">
-              {formatDateLong(new Date(now).toISOString(), tz)}
-            </span>
-          </>
+          <Link to="/calendar" className="hover:text-brand-ink">
+            {new Intl.DateTimeFormat(currentLocale(), {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+              timeZone: tz,
+            })
+              .format(new Date(now))
+              .replace(/\./g, "")}
+          </Link>
         }
         action={
           business && data ? (
@@ -293,8 +291,6 @@ function TrialEnding() {
  * many are done. Tapping it opens the statistics.
  */
 function DayPill({
-  total,
-  done,
   money,
   currency,
 }: {
@@ -304,50 +300,18 @@ function DayPill({
   currency: string;
 }) {
   const { t } = usePrefs();
-  const [hidden, setHidden] = useMoneyHidden();
-  const pct = total ? done / total : 0;
-  const r = 6.5;
-  const len = 2 * Math.PI * r;
+  const [hidden] = useMoneyHidden();
   return (
-    <div className="flex h-10 items-center rounded-full border border-border bg-card pl-1 pr-1 shadow-sm">
-      <button
-        type="button"
-        onClick={() => setHidden(!hidden)}
-        aria-label={hidden ? t("money.show") : t("money.hide")}
-        title={hidden ? t("money.show") : t("money.hide")}
-        className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-      >
-        {hidden ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-      </button>
-      <Link
-        to="/analytics"
-        aria-label={t("pf.s.analytics")}
-        className="flex h-8 items-center gap-2 rounded-full pl-1 pr-2.5 transition-colors hover:bg-muted"
-      >
-        <span className="font-display text-sm font-bold tabular-nums">
-          {hidden ? HIDDEN_MONEY : formatPrice(money, currency)}
-        </span>
-        <span aria-hidden className="h-4 w-px bg-border" />
-        <svg viewBox="0 0 16 16" className="size-4 -rotate-90" aria-hidden>
-          <circle cx="8" cy="8" r={r} fill="none" strokeWidth="2.5" className="stroke-muted" />
-          <circle
-            cx="8"
-            cy="8"
-            r={r}
-            fill="none"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            stroke="var(--brand)"
-            strokeDasharray={len}
-            strokeDashoffset={len * (1 - pct)}
-            className="transition-[stroke-dashoffset] duration-700"
-          />
-        </svg>
-        <span className="text-xs font-bold tabular-nums text-muted-foreground">
-          {done}/{total}
-        </span>
-      </Link>
-    </div>
+    <Link
+      to="/analytics"
+      aria-label={t("pf.s.analytics")}
+      title={t("pf.s.analytics")}
+      className="flex h-11 min-w-11 items-center justify-center rounded-full bg-card px-3.5 shadow-[var(--shadow-soft)] transition-transform active:scale-95"
+    >
+      <span className="font-display text-sm font-bold tabular-nums">
+        {hidden ? HIDDEN_MONEY : formatPrice(money, currency)}
+      </span>
+    </Link>
   );
 }
 
