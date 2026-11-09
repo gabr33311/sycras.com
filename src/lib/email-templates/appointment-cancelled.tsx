@@ -22,6 +22,8 @@ interface Props {
   declined?: string;
   /** The business page, to book another time. */
   bookUrl?: string;
+  /** "5 €" when the deposit paid when booking was given back. */
+  refunded?: string;
   brandColor?: string;
   brandText?: string;
 }
@@ -35,6 +37,7 @@ const Email = ({
   time,
   declined,
   bookUrl,
+  refunded,
   brandColor,
   brandText,
 }: Props) => (
@@ -63,6 +66,11 @@ const Email = ({
           <Text style={row}>
             <b>Hora:</b> {time || "—"}
           </Text>
+          {refunded && (
+            <Text style={row}>
+              O sinal de {refunded} foi devolvido. Pode levar alguns dias a aparecer na sua conta.
+            </Text>
+          )}
         </Section>
         {bookUrl && (
           <Button

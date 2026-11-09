@@ -117,7 +117,11 @@ function BookingPage() {
       setConfirmCancel(false);
       setRescheduling(false);
       setData({ ...data, appointment: { ...appt, status: "cancelled" } });
-      toast.success(t("bk.tk.cancelled"));
+      toast.success(
+        "refundedCents" in res && res.refundedCents
+          ? `${t("bk.tk.cancelled")} ${t("bk.tk.refunded")}`
+          : t("bk.tk.cancelled"),
+      );
     } catch {
       setConfirmCancel(false);
       setError(t("bk.tk.err.generic"));

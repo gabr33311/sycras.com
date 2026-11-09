@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/appointments/cancelled")({
         const { data: auth } = await supabaseAdmin.auth.getUser(token);
         if (!auth.user) return Response.json({ status: "failed" }, { status: 401 });
 
-        let body: { appointmentId?: unknown; declined?: unknown } = {};
+        let body: { appointmentId?: unknown; declined?: unknown; refund?: unknown } = {};
         try {
           body = (await request.json()) as typeof body;
         } catch {
@@ -32,11 +32,26 @@ export const Route = createFileRoute("/api/appointments/cancelled")({
           .eq("user_id", auth.user.id)
           .maybeSingle();
         if (!member) return Response.json({ status: "failed" }, { status: 403 });
-        if (!appt.customer_email) return Response.json({ status: "no_email" });
+
+        // A paid deposit goes back, unless the owner chose to keep it (late cancel). Even
+        // when the client left no email.
+        const { refundDeposit } = await import("@/lib/deposit.server");
+        const refund =
+          body.refund === false
+            ? { refunded: false, cents: 0 }
+            : await refundDeposit(appt.id).catch((e: unknown) => {
+                console.error("[deposit] refund on cancel failed", e);
+                return { refunded: false, cents: 0 };
+              });
+        if (!appt.customer_email)
+          return Response.json({ status: "no_email", refunded: refund.refunded });
 
         const { sendCancelledEmail } = await import("@/lib/confirmation-email.server");
-        const sent = await sendCancelledEmail(appt.id, { declined: body.declined === true });
-        return Response.json({ status: sent ? "sent" : "failed" });
+        const sent = await sendCancelledEmail(appt.id, {
+          declined: body.declined === true,
+          refundedCents: refund.refunded ? refund.cents : 0,
+        });
+        return Response.json({ status: sent ? "sent" : "failed", refunded: refund.refunded });
       },
     },
   },

@@ -248,3 +248,32 @@ export async function expireStaleHolds(): Promise<{ finalized: number; expired: 
     .lt("hold_until", new Date(now.getTime() - 86400000).toISOString());
   return { finalized, expired };
 }
+
+/** Gives a paid deposit back (on the business's account). Safe to call twice. */
+export async function refundDeposit(
+  appointmentId: string,
+): Promise<{ refunded: boolean; cents: number }> {
+  const db = await admin();
+  const { data: appt } = await db
+    .from("appointments")
+    .select("id, business_id, deposit_status, deposit_cents, deposit_payment_intent")
+    .eq("id", appointmentId)
+    .maybeSingle();
+  if (!appt || appt.deposit_status !== "paid" || !appt.deposit_payment_intent)
+    return { refunded: false, cents: 0 };
+  const { data: business } = await db
+    .from("businesses")
+    .select("stripe_account_id")
+    .eq("id", appt.business_id)
+    .maybeSingle();
+  if (!business?.stripe_account_id) return { refunded: false, cents: 0 };
+  await stripe().refunds.create(
+    { payment_intent: appt.deposit_payment_intent },
+    { stripeAccount: business.stripe_account_id, idempotencyKey: `deposit-refund-${appt.id}` },
+  );
+  await db
+    .from("appointments")
+    .update({ deposit_status: "refunded", deposit_refunded_at: new Date().toISOString() })
+    .eq("id", appt.id);
+  return { refunded: true, cents: appt.deposit_cents ?? 0 };
+}

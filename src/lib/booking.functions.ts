@@ -446,7 +446,13 @@ export const cancelBookingByToken = createServerFn({ method: "POST" })
       appointmentId: note.appointment_id,
       kind: "cancelled",
     });
-    return { ok: true as const };
+    // Cancelled in time: a paid deposit goes back to the client.
+    const { refundDeposit } = await import("@/lib/deposit.server");
+    const refund = await refundDeposit(appt.id).catch((e: unknown) => {
+      console.error("[deposit] refund on client cancel failed", e);
+      return { refunded: false, cents: 0 };
+    });
+    return { ok: true as const, refundedCents: refund.refunded ? refund.cents : 0 };
   });
 
 /** Loads the appointment behind a still-valid manage token (null when missing/expired). */

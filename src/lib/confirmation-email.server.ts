@@ -36,7 +36,7 @@ type Row = {
  */
 export async function sendCancelledEmail(
   appointmentId: string,
-  opts: { declined?: boolean } = {},
+  opts: { declined?: boolean; refundedCents?: number } = {},
 ): Promise<boolean> {
   const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
   const { data } = await db
@@ -86,6 +86,7 @@ export async function sendCancelledEmail(
           timeZone: tz,
         }).format(d),
         declined: opts.declined ? "1" : undefined,
+        refunded: opts.refundedCents ? euros(opts.refundedCents) : undefined,
         // A paused page cannot take another booking: no button then.
         bookUrl: origin && biz?.slug && !biz.suspended_at ? `${origin}/${biz.slug}` : undefined,
         brandColor: colors.brand,

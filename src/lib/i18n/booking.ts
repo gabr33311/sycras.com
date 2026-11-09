@@ -97,6 +97,7 @@ export const bookingDict: Record<BaseLang, Record<string, string>> = {
     "bk.tk.invalidTitle": "Link inválido",
     "bk.tk.invalidBody": "Esta marcação já não existe ou o link expirou.",
     "bk.tk.cancelled": "Marcação cancelada.",
+    "bk.tk.refunded": "O sinal foi devolvido.",
     "bk.tk.rescheduled": "Marcação reagendada.",
     "bk.tk.title": "A tua marcação",
     "bk.done.pending.body":
@@ -261,6 +262,7 @@ export const bookingDict: Record<BaseLang, Record<string, string>> = {
     "bk.tk.invalidTitle": "Invalid link",
     "bk.tk.invalidBody": "This booking no longer exists or the link has expired.",
     "bk.tk.cancelled": "Booking cancelled.",
+    "bk.tk.refunded": "Your deposit was refunded.",
     "bk.tk.rescheduled": "Booking rescheduled.",
     "bk.tk.title": "Your booking",
     "bk.done.pending.body":
