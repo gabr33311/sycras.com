@@ -102,11 +102,11 @@ export const bookingDict: Record<BaseLang, Record<string, string>> = {
     "bk.dep.refundedTitle": "Sinal de {x} devolvido",
     "bk.dep.kept": "Sinal de {x} retido pelo negócio",
     "bk.dep.delay":
-      "O dinheiro volta para o cartão com que pagaste, mas não é imediato: pode demorar 5 a 10 dias úteis a aparecer, conforme o teu banco.",
+      "O dinheiro volta para o cartão com que pagaste. Normalmente chega em poucos minutos, mas alguns bancos demoram até 10 dias úteis a mostrá-lo.",
     "bk.dep.before":
-      "Se cancelares até {h}h antes, o sinal de {x} é-te devolvido. O dinheiro pode demorar 5 a 10 dias úteis a chegar ao teu cartão.",
+      "Se cancelares até {h}h antes, o sinal de {x} é-te devolvido. Normalmente chega em poucos minutos; alguns bancos demoram até 10 dias úteis.",
     "bk.dep.confirm":
-      "O sinal de {x} é-te devolvido. Pode demorar 5 a 10 dias úteis a aparecer no teu cartão.",
+      "O sinal de {x} é-te devolvido. Normalmente chega em poucos minutos; alguns bancos demoram até 10 dias úteis.",
     "bk.dep.lateKeep": "A menos de {h}h da marcação, o negócio pode ficar com o sinal de {x}.",
     "bk.tk.rescheduled": "Marcação reagendada.",
     "bk.tk.title": "A tua marcação",
@@ -277,11 +277,11 @@ export const bookingDict: Record<BaseLang, Record<string, string>> = {
     "bk.dep.refundedTitle": "{x} deposit refunded",
     "bk.dep.kept": "{x} deposit kept by the business",
     "bk.dep.delay":
-      "The money goes back to the card you paid with, but not instantly: it can take 5 to 10 business days to show up, depending on your bank.",
+      "The money goes back to the card you paid with. It usually arrives within minutes, but some banks take up to 10 business days to show it.",
     "bk.dep.before":
-      "If you cancel up to {h}h before, your {x} deposit is refunded. It can take 5 to 10 business days to reach your card.",
+      "If you cancel up to {h}h before, your {x} deposit is refunded. It usually arrives within minutes; some banks take up to 10 business days.",
     "bk.dep.confirm":
-      "Your {x} deposit will be refunded. It can take 5 to 10 business days to show up on your card.",
+      "Your {x} deposit will be refunded. It usually arrives within minutes; some banks take up to 10 business days.",
     "bk.dep.lateKeep":
       "Less than {h}h before the appointment, the business may keep the {x} deposit.",
     "bk.tk.rescheduled": "Booking rescheduled.",
