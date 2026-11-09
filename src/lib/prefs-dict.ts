@@ -6,6 +6,7 @@ import { appointmentsDict } from "./i18n/appointments";
 import { bookingDict } from "./i18n/booking";
 import { onboardingDict } from "./i18n/onboarding";
 import { commonDict } from "./i18n/common";
+import { landingDict } from "./i18n/landing";
 
 const BASE: Record<BaseLang, Record<string, string>> = {
   pt: {
@@ -144,7 +145,8 @@ const BASE: Record<BaseLang, Record<string, string>> = {
     "home.live.clientAlt": "Página de marcações de uma barbearia, vista pelo cliente",
     "home.live.ownerAlt": "Ecrã Hoje da app SYCRAS com as marcações do dia",
     "home.ba.title": "Chega de marcar por mensagem",
-    "home.ba.body": "De um lado, o WhatsApp às onze da noite. Do outro, o teu dia arrumado sem uma única mensagem.",
+    "home.ba.body":
+      "De um lado, o WhatsApp às onze da noite. Do outro, o teu dia arrumado sem uma única mensagem.",
     "home.ba.before": "Antes",
     "home.ba.after": "Com a SYCRAS",
     "home.ba.hint": "Arrasta o círculo para comparar.",
@@ -313,7 +315,8 @@ const BASE: Record<BaseLang, Record<string, string>> = {
     "home.live.clientAlt": "A barbershop's booking page, as the client sees it",
     "home.live.ownerAlt": "The SYCRAS app's Today screen with the day's bookings",
     "home.ba.title": "No more booking by text message",
-    "home.ba.body": "On one side, WhatsApp at eleven at night. On the other, your day sorted without a single message.",
+    "home.ba.body":
+      "On one side, WhatsApp at eleven at night. On the other, your day sorted without a single message.",
     "home.ba.before": "Before",
     "home.ba.after": "With SYCRAS",
     "home.ba.hint": "Drag the circle to compare.",
@@ -359,6 +362,7 @@ const MODULES = [
   appointmentsDict,
   bookingDict,
   onboardingDict,
+  landingDict,
 ];
 
 const PT: Record<string, string> = Object.assign({}, BASE.pt, ...MODULES.map((m) => m.pt));
