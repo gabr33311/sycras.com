@@ -35,3 +35,15 @@ package-lock.json
 
 # Supabase CLI cache
 supabase/.temp/
+
+# Secrets never go into git. (.env is tracked on purpose: it holds only public keys,
+# the Supabase URL and anon key. Server secrets live only in Vercel.)
+.env.local
+.env.*.local
+.env.production
+.env.development
+*.pem
+*.p12
+*.jks
+*.keystore
+service-account*.json

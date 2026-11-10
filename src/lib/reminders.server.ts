@@ -167,6 +167,11 @@ export async function sendDueReminders(): Promise<{ sent: number; skipped: numbe
   // Not part of the count: help for new owners and the weekly error report.
   await sendOwnerNudges(db, sendTemplateEmail).catch((e) => console.error("[nudge] failed", e));
   await sendTrialEmails(db, sendTemplateEmail).catch((e) => console.error("[trial] failed", e));
+  // Old request counters (rate limiting) are cleared now and then.
+  if (new Date().getUTCMinutes() < 10) {
+    const { cleanupRateLimits } = await import("@/lib/rate-limit.server");
+    await cleanupRateLimits().catch(() => undefined);
+  }
   await sendWeeklyErrorSummary(db, sendTemplateEmail).catch((e) =>
     console.error("[errors] summary failed", e),
   );
@@ -281,7 +286,9 @@ type RebookRow = {
  */
 export async function sendDueRebooks(
   db: Awaited<typeof import("@/integrations/supabase/client.server")>["supabaseAdmin"],
-  sendTemplateEmail: Awaited<typeof import("@/lib/email-templates/send-email")>["sendTemplateEmail"],
+  sendTemplateEmail: Awaited<
+    typeof import("@/lib/email-templates/send-email")
+  >["sendTemplateEmail"],
 ): Promise<number> {
   const origin = appOrigin() ?? "https://sycras.com";
   const now = Date.now();
@@ -311,7 +318,8 @@ export async function sendDueRebooks(
     // Due: between `weeks` and `weeks` + 2 days after the visit (a missed run still sends).
     const due = new Date(appt.ends_at).getTime() + weeks * week;
     if (now < due || now > due + 2 * 86400000) continue;
-    if (!pro.has(appt.business_id)) pro.set(appt.business_id, await businessHasPro(appt.business_id, biz.created_at));
+    if (!pro.has(appt.business_id))
+      pro.set(appt.business_id, await businessHasPro(appt.business_id, biz.created_at));
     if (!pro.get(appt.business_id)) continue;
 
     // Booked again (any later visit, past or future, not cancelled)? Then no email.
@@ -321,7 +329,9 @@ export async function sendDueRebooks(
       .eq("business_id", appt.business_id)
       .gt("starts_at", appt.starts_at)
       .in("status", ["pending", "confirmed", "completed"]);
-    const { count } = await (appt.customer_id ? later.eq("customer_id", appt.customer_id) : later.eq("customer_email", appt.customer_email));
+    const { count } = await (appt.customer_id
+      ? later.eq("customer_id", appt.customer_id)
+      : later.eq("customer_email", appt.customer_email));
     if ((count ?? 0) > 0) continue;
 
     const { error: claimError } = await db
@@ -345,7 +355,11 @@ export async function sendDueRebooks(
       });
       if (res.sent) sent++;
     } catch (e) {
-      await db.from("appointment_reminders").delete().eq("appointment_id", appt.id).eq("kind", "rebook");
+      await db
+        .from("appointment_reminders")
+        .delete()
+        .eq("appointment_id", appt.id)
+        .eq("kind", "rebook");
       console.error("[rebook] send failed", appt.id, e);
     }
   }
@@ -469,48 +483,48 @@ async function sendTrialEmails(db: Db, send: Send): Promise<void> {
       { day: total, template: "trial-ended" },
     ] as const;
     for (const stage of STAGES) {
-    const at = Date.now() - stage.day * 86_400_000;
-    const { data: due } = await db
-      .from("businesses")
-      .select("id, name, slug, created_by")
-      .eq("is_demo", false)
-      .eq("trial_bonus_days", bonus)
-      .is("deleted_at", null)
-      .gte("created_at", new Date(at - WINDOW_MS).toISOString())
-      .lt("created_at", new Date(at).toISOString())
-      .limit(100);
-    for (const biz of due ?? []) {
-      const { data: sub } = await db
-        .from("subscriptions")
-        .select("plan, status")
-        .eq("business_id", biz.id)
-        .maybeSingle();
-      const paying =
-        (sub?.plan === "pro" || sub?.plan === "business") &&
-        ["active", "trialing", "past_due"].includes(sub.status);
-      if (paying) continue;
-      const { data: owner } = await db.auth.admin.getUserById(biz.created_by);
-      const to = owner.user?.email;
-      if (!to) continue;
-      let bookings: string | undefined;
-      if (stage.template === "trial-week") {
-        const { count } = await db
-          .from("appointments")
-          .select("id", { count: "exact", head: true })
-          .eq("business_id", biz.id);
-        bookings = String(count ?? 0);
+      const at = Date.now() - stage.day * 86_400_000;
+      const { data: due } = await db
+        .from("businesses")
+        .select("id, name, slug, created_by")
+        .eq("is_demo", false)
+        .eq("trial_bonus_days", bonus)
+        .is("deleted_at", null)
+        .gte("created_at", new Date(at - WINDOW_MS).toISOString())
+        .lt("created_at", new Date(at).toISOString())
+        .limit(100);
+      for (const biz of due ?? []) {
+        const { data: sub } = await db
+          .from("subscriptions")
+          .select("plan, status")
+          .eq("business_id", biz.id)
+          .maybeSingle();
+        const paying =
+          (sub?.plan === "pro" || sub?.plan === "business") &&
+          ["active", "trialing", "past_due"].includes(sub.status);
+        if (paying) continue;
+        const { data: owner } = await db.auth.admin.getUserById(biz.created_by);
+        const to = owner.user?.email;
+        if (!to) continue;
+        let bookings: string | undefined;
+        if (stage.template === "trial-week") {
+          const { count } = await db
+            .from("appointments")
+            .select("id", { count: "exact", head: true })
+            .eq("business_id", biz.id);
+          bookings = String(count ?? 0);
+        }
+        await send(stage.template, to, {
+          templateData: {
+            businessName: biz.name,
+            bookings,
+            daysLeft: String(total - WEEK_DAY),
+            plansUrl: origin ? `${origin}/plans` : undefined,
+            pageUrl: origin ? `${origin}/${biz.slug}` : undefined,
+          },
+          idempotencyKey: `${stage.template}-${biz.id}`,
+        });
       }
-      await send(stage.template, to, {
-        templateData: {
-          businessName: biz.name,
-          bookings,
-          daysLeft: String(total - WEEK_DAY),
-          plansUrl: origin ? `${origin}/plans` : undefined,
-          pageUrl: origin ? `${origin}/${biz.slug}` : undefined,
-        },
-        idempotencyKey: `${stage.template}-${biz.id}`,
-      });
-    }
     }
   }
 }

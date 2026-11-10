@@ -18,6 +18,19 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
   }
 });
 
+// Too many requests from one network or account: 429 before the route runs (pages are not
+// counted, only API routes and server functions).
+const rateLimitMiddleware = createMiddleware().server(
+  async ({ request, pathname, handlerType, serverFnMeta, next }) => {
+    if (handlerType === "serverFn" || pathname.startsWith("/api/")) {
+      const { rateLimitResponse } = await import("@/lib/rate-limit.server");
+      const blocked = await rateLimitResponse(request, pathname, serverFnMeta?.name);
+      if (blocked) return blocked;
+    }
+    return next();
+  },
+);
+
 // Start installs this automatically when src/start.ts is absent; defining the
 // file opts out, so re-add it explicitly to keep server functions protected
 // from cross-site requests.
@@ -27,5 +40,5 @@ const csrfMiddleware = createCsrfMiddleware({
 
 export const startInstance = createStart(() => ({
   functionMiddleware: [attachSupabaseAuth],
-  requestMiddleware: [errorMiddleware, csrfMiddleware],
+  requestMiddleware: [errorMiddleware, csrfMiddleware, rateLimitMiddleware],
 }));
