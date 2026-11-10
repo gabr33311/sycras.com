@@ -55,7 +55,7 @@ const RULES: Record<string, Rule> = {
 const DEFAULT_RULE: Rule = { max: 300, windowSec: MIN };
 
 /** Never limited: signed by Stripe/RevenueCat or by the cron secret, and retried by them. */
-const EXEMPT = ["/api/stripe/", "/api/revenuecat/", "/api/cron/"];
+const EXEMPT = ["/api/stripe/", "/api/revenuecat/", "/api/cron/", "/api/whatsapp/"];
 
 function clientIp(request: Request): string {
   const h = request.headers;

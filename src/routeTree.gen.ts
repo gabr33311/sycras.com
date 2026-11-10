@@ -55,6 +55,7 @@ import { Route as ApiRemindersTestRouteImport } from './routes/api/reminders/tes
 import { Route as ApiRevenuecatWebhookRouteImport } from './routes/api/revenuecat/webhook'
 import { Route as ApiStripeConnectWebhookRouteImport } from './routes/api/stripe/connect-webhook'
 import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
+import { Route as ApiWhatsappWebhookRouteImport } from './routes/api/whatsapp/webhook'
 import { Route as BookingPayHoldRouteImport } from './routes/booking.pay.$hold'
 
 const IndexRoute = IndexRouteImport.update({
@@ -289,6 +290,11 @@ const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
   path: '/api/stripe/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWhatsappWebhookRoute = ApiWhatsappWebhookRouteImport.update({
+  id: '/api/whatsapp/webhook',
+  path: '/api/whatsapp/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BookingPayHoldRoute = BookingPayHoldRouteImport.update({
   id: '/booking/pay/$hold',
   path: '/booking/pay/$hold',
@@ -341,6 +347,7 @@ export interface FileRoutesByFullPath {
   '/api/revenuecat/webhook': typeof ApiRevenuecatWebhookRoute
   '/api/stripe/connect-webhook': typeof ApiStripeConnectWebhookRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
+  '/api/whatsapp/webhook': typeof ApiWhatsappWebhookRoute
   '/booking/pay/$hold': typeof BookingPayHoldRoute
 }
 export interface FileRoutesByTo {
@@ -389,6 +396,7 @@ export interface FileRoutesByTo {
   '/api/revenuecat/webhook': typeof ApiRevenuecatWebhookRoute
   '/api/stripe/connect-webhook': typeof ApiStripeConnectWebhookRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
+  '/api/whatsapp/webhook': typeof ApiWhatsappWebhookRoute
   '/booking/pay/$hold': typeof BookingPayHoldRoute
 }
 export interface FileRoutesById {
@@ -439,6 +447,7 @@ export interface FileRoutesById {
   '/api/revenuecat/webhook': typeof ApiRevenuecatWebhookRoute
   '/api/stripe/connect-webhook': typeof ApiStripeConnectWebhookRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
+  '/api/whatsapp/webhook': typeof ApiWhatsappWebhookRoute
   '/booking/pay/$hold': typeof BookingPayHoldRoute
 }
 export interface FileRouteTypes {
@@ -489,6 +498,7 @@ export interface FileRouteTypes {
     | '/api/revenuecat/webhook'
     | '/api/stripe/connect-webhook'
     | '/api/stripe/webhook'
+    | '/api/whatsapp/webhook'
     | '/booking/pay/$hold'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -537,6 +547,7 @@ export interface FileRouteTypes {
     | '/api/revenuecat/webhook'
     | '/api/stripe/connect-webhook'
     | '/api/stripe/webhook'
+    | '/api/whatsapp/webhook'
     | '/booking/pay/$hold'
   id:
     | '__root__'
@@ -586,6 +597,7 @@ export interface FileRouteTypes {
     | '/api/revenuecat/webhook'
     | '/api/stripe/connect-webhook'
     | '/api/stripe/webhook'
+    | '/api/whatsapp/webhook'
     | '/booking/pay/$hold'
   fileRoutesById: FileRoutesById
 }
@@ -624,6 +636,7 @@ export interface RootRouteChildren {
   ApiRevenuecatWebhookRoute: typeof ApiRevenuecatWebhookRoute
   ApiStripeConnectWebhookRoute: typeof ApiStripeConnectWebhookRoute
   ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
+  ApiWhatsappWebhookRoute: typeof ApiWhatsappWebhookRoute
   BookingPayHoldRoute: typeof BookingPayHoldRoute
 }
 
@@ -951,6 +964,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/whatsapp/webhook': {
+      id: '/api/whatsapp/webhook'
+      path: '/api/whatsapp/webhook'
+      fullPath: '/api/whatsapp/webhook'
+      preLoaderRoute: typeof ApiWhatsappWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/booking/pay/$hold': {
       id: '/booking/pay/$hold'
       path: '/booking/pay/$hold'
@@ -1029,6 +1049,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRevenuecatWebhookRoute: ApiRevenuecatWebhookRoute,
   ApiStripeConnectWebhookRoute: ApiStripeConnectWebhookRoute,
   ApiStripeWebhookRoute: ApiStripeWebhookRoute,
+  ApiWhatsappWebhookRoute: ApiWhatsappWebhookRoute,
   BookingPayHoldRoute: BookingPayHoldRoute,
 }
 export const routeTree = rootRouteImport

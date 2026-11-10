@@ -28,7 +28,12 @@ export function waNumber(phone: string | null): string | null {
   return /^[0-9]{8,15}$/.test(d) ? d : null;
 }
 
-async function sendTemplate(to: string, template: string, params: string[]): Promise<boolean> {
+/** The message id Meta gives back (it identifies the message in the delivery reports), or null. */
+async function sendTemplate(
+  to: string,
+  template: string,
+  params: string[],
+): Promise<string | null> {
   const res = await fetch(`${GRAPH}/${process.env["WHATSAPP_PHONE_NUMBER_ID"]}/messages`, {
     method: "POST",
     headers: {
@@ -48,9 +53,10 @@ async function sendTemplate(to: string, template: string, params: string[]): Pro
   });
   if (!res.ok) {
     console.error("[whatsapp] send failed", res.status, (await res.text()).slice(0, 300));
-    return false;
+    return null;
   }
-  return true;
+  const out = (await res.json().catch(() => ({}))) as { messages?: { id?: string }[] };
+  return out.messages?.[0]?.id ?? "unknown";
 }
 
 function origin(): string {
@@ -90,7 +96,8 @@ export async function sendWhatsApp(appointmentId: string, kind: WhatsAppKind): P
   } | null;
   const to = waNumber(appt?.customer_phone ?? null);
   const biz = appt?.businesses;
-  if (!appt || !to || !appt.whatsapp_ok || !biz?.whatsapp_reminders || biz.suspended_at) return false;
+  if (!appt || !to || !appt.whatsapp_ok || !biz?.whatsapp_reminders || biz.suspended_at)
+    return false;
   if (appt.status !== "confirmed") return false;
   if (!(await businessHasPro(appt.business_id, biz.created_at))) return false;
 
@@ -120,7 +127,29 @@ export async function sendWhatsApp(appointmentId: string, kind: WhatsAppKind): P
 
   let ok = false;
   try {
-    ok = await sendTemplate(to, TEMPLATES[kind], [firstName, biz.name, appt.service_name, when, link]);
+    const messageId = await sendTemplate(to, TEMPLATES[kind], [
+      firstName,
+      biz.name,
+      appt.service_name,
+      when,
+      link,
+    ]);
+    ok = !!messageId;
+    // Noted, so the delivery report (api/whatsapp/webhook) can be matched to this business.
+    if (messageId) {
+      await db
+        .from("security_events")
+        .insert({
+          kind: "whatsapp_sent",
+          ip_hash: "meta",
+          identifier: messageId,
+          business_id: appt.business_id,
+        })
+        .then(
+          () => undefined,
+          () => undefined,
+        );
+    }
   } catch (e) {
     console.error("[whatsapp] send error", e);
   }
