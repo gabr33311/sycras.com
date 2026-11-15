@@ -1,8 +1,8 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { computeDeposit } from "@/lib/deposit";
-import { Captcha } from "@/components/captcha";
+import { Captcha, CAPTCHA_ON } from "@/components/captcha";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { usePrefs } from "@/lib/prefs";
@@ -187,8 +187,30 @@ function BookPage() {
   const [codeSent, setCodeSent] = useState(false);
   const [code, setCode] = useState("");
   // One-use captcha token (Turnstile); a new one after each try.
-  const [captcha, setCaptcha] = useState<string | null>(null);
+  // The invisible check makes a new one after each try; the button waits for it (a fast
+  // second tap used to go without one and failed with "confirma que não és um robô").
+  const captchaRef = useRef<string | null>(null);
+  const captchaWaiters = useRef<((token: string | null) => void)[]>([]);
   const [captchaKey, setCaptchaKey] = useState(0);
+  const onCaptcha = useCallback((token: string | null) => {
+    captchaRef.current = token;
+    if (token) for (const done of captchaWaiters.current.splice(0)) done(token);
+  }, []);
+  /** The current token, or the next one (up to 12 s; null if none comes). */
+  function freshCaptcha(): Promise<string | null> {
+    if (captchaRef.current) return Promise.resolve(captchaRef.current);
+    return new Promise((resolve) => {
+      const done = (token: string | null) => {
+        clearTimeout(timer);
+        resolve(token);
+      };
+      const timer = setTimeout(() => {
+        captchaWaiters.current = captchaWaiters.current.filter((d) => d !== done);
+        resolve(null);
+      }, 12_000);
+      captchaWaiters.current.push(done);
+    });
+  }
 
   const stepKeys = useMemo<readonly string[]>(
     () =>
@@ -282,7 +304,7 @@ function BookPage() {
     void trackPageView({ data: { businessId: business.id, sessionId: sid } }).catch(() => {});
   }, [business.id]);
 
-  async function submit(opts: { resend?: boolean } = {}) {
+  async function submit(opts: { resend?: boolean; retried?: boolean } = {}): Promise<void> {
     const parsed = makeFormSchema(t).safeParse({ name, phone, email, notes });
     if (!parsed.success) {
       const errs: typeof fieldErrors = {};
@@ -308,6 +330,7 @@ function BookPage() {
     setSubmitError(null);
     setBusy(true);
     try {
+      const captchaToken = withCode || !CAPTCHA_ON ? null : await freshCaptcha();
       const res = await createPublicBooking({
         data: {
           businessId: business.id,
@@ -321,10 +344,14 @@ function BookPage() {
           notes: parsed.data.notes,
           ...(business.whatsapp && whatsapp ? { whatsapp: true } : {}),
           ...(withCode ? { code } : {}),
-          ...(captcha && !withCode ? { captchaToken: captcha } : {}),
+          ...(captchaToken ? { captchaToken } : {}),
         },
       });
-      if (!withCode) setCaptchaKey((k) => k + 1);
+      if (!withCode) {
+        // Used: the check makes a new one for the next try.
+        captchaRef.current = null;
+        setCaptchaKey((k) => k + 1);
+      }
       if (!res.ok) {
         if (res.code === "needs_code") {
           if (opts.resend) toast.success(t("bk.code.resent"));
@@ -343,6 +370,8 @@ function BookPage() {
           return;
         }
         if (res.code === "captcha") {
+          // Once more by itself with a fresh check before bothering the client.
+          if (!opts.retried) return await submit({ ...opts, retried: true });
           setSubmitError(t("auth.err.captcha"));
           return;
         }
@@ -948,7 +977,7 @@ function BookPage() {
               </div>
               {!codeSent && (
                 <div className="w-full lg:order-first">
-                  <Captcha onToken={setCaptcha} resetKey={captchaKey} lang={lang} />
+                  <Captcha onToken={onCaptcha} resetKey={captchaKey} lang={lang} />
                 </div>
               )}
               <FormError message={submitError} />
