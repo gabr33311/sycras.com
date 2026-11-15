@@ -74,10 +74,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "SYCRAS — Marcações online" },
+      { title: "Sycras — Marcações online" },
       { name: "description", content: "Marcações online simples para negócios em Portugal." },
-      { name: "author", content: "SYCRAS" },
-      { property: "og:title", content: "SYCRAS — Marcações online" },
+      { name: "author", content: "Sycras" },
+      { property: "og:title", content: "Sycras — Marcações online" },
       {
         property: "og:description",
         content: "Marcações online simples para negócios em Portugal.",
@@ -86,7 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "theme-color", content: "#f4f7fb" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-title", content: "SYCRAS" },
+      { name: "apple-mobile-web-app-title", content: "Sycras" },
     ],
     links: [
       {
