@@ -484,7 +484,7 @@ function Landing() {
           </a>
           <span className="flex items-center gap-3">
             <LegalLinks />
-            <span>© {new Date().getFullYear()} Sycras · um serviço de Gabriel Pinto</span>
+            <span>© {new Date().getFullYear()} Sycras</span>
           </span>
         </div>
       </footer>
