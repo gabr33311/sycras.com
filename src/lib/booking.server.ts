@@ -462,10 +462,17 @@ export async function hashIp(ip: string): Promise<string> {
  * Cloudflare Turnstile check for the public booking form. Passes when the captcha is
  * not set up (no TURNSTILE_SECRET_KEY), so bookings keep working before it is.
  */
+/** Why the last captcha check failed (Cloudflare's error codes), for the security log. */
+export let lastCaptchaError = "";
+
 export async function captchaPassed(token: string | undefined, ip: string): Promise<boolean> {
+  lastCaptchaError = token ? "" : "no token";
   const secret = process.env["TURNSTILE_SECRET_KEY"];
   if (!secret) return true;
-  if (!token) return false;
+  if (!token) {
+    lastCaptchaError = "no token";
+    return false;
+  }
   try {
     const body = new URLSearchParams({ secret, response: token });
     if (ip && ip !== "unknown") body.set("remoteip", ip);
@@ -473,7 +480,11 @@ export async function captchaPassed(token: string | undefined, ip: string): Prom
       method: "POST",
       body,
     });
-    const out = (await res.json()) as { success?: boolean };
+    const out = (await res.json()) as { success?: boolean; "error-codes"?: string[] };
+    if (out.success !== true) {
+      lastCaptchaError = (out["error-codes"] ?? []).join(",") || "rejected";
+      console.error("[captcha] rejected", lastCaptchaError);
+    }
     return out.success === true;
   } catch (e) {
     // Cloudflare down: let the booking through rather than lose it (rate limits still apply).

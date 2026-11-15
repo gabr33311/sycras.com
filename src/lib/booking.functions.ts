@@ -128,7 +128,13 @@ export const createPublicBooking = createServerFn({ method: "POST" })
 
     // A person, not a script. The step with the emailed code is proven by the code itself.
     if (!data.code && !(await captchaPassed(data.captchaToken, clientIp()))) {
-      await logSecurityEvent("booking_captcha_failed", ipHash, data.phone, data.businessId);
+      const { lastCaptchaError } = await import("./booking.server");
+      await logSecurityEvent(
+        "booking_captcha_failed",
+        ipHash,
+        `${data.phone ?? ""} | ${lastCaptchaError}`.slice(0, 200),
+        data.businessId,
+      );
       return {
         ok: false as const,
         code: "captcha",
