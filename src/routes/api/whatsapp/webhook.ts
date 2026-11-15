@@ -53,10 +53,24 @@ export const Route = createFileRoute("/api/whatsapp/webhook")({
       POST: async ({ request }) => {
         const secret = process.env["WHATSAPP_APP_SECRET"];
         const body = await request.text();
-        if (
-          !secret ||
-          !(await validSignature(body, request.headers.get("x-hub-signature-256"), secret))
-        ) {
+        const signature = request.headers.get("x-hub-signature-256");
+        if (!secret || !(await validSignature(body, signature, secret))) {
+          // Unsigned calls are not Meta: refused without a trace (nobody can fill the table).
+          if (secret && !signature) return new Response("Forbidden", { status: 403 });
+          // Noted (never the secret): a wrong WHATSAPP_APP_SECRET shows up here.
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          await supabaseAdmin
+            .from("security_events")
+            .insert({
+              kind: "whatsapp_webhook_rejected",
+              ip_hash: "meta",
+              identifier: !secret ? "no secret set" : signature ? "signature mismatch" : "unsigned",
+              business_id: null,
+            })
+            .then(
+              () => undefined,
+              () => undefined,
+            );
           return new Response("Forbidden", { status: 403 });
         }
 
@@ -70,9 +84,21 @@ export const Route = createFileRoute("/api/whatsapp/webhook")({
           .flatMap((e) => e.changes ?? [])
           .flatMap((c) => c.value?.statuses ?? [])
           .slice(0, 50);
-        if (!reports.length) return new Response("ok");
-
         const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+        if (!reports.length) {
+          // Signed and valid, but not a delivery report (e.g. Meta's "Test" button, or a reply).
+          const field = (payload.entry ?? [])
+            .flatMap((e) => (e.changes ?? []) as { field?: string }[])
+            .map((c) => c.field ?? "?")
+            .join(",");
+          await db.from("security_events").insert({
+            kind: "whatsapp_webhook_other",
+            ip_hash: "meta",
+            identifier: (field || "empty").slice(0, 200),
+            business_id: null,
+          });
+          return new Response("ok");
+        }
         for (const r of reports) {
           if (!r.id || !r.status) continue;
           const err = r.errors?.[0];
