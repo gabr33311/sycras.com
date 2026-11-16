@@ -224,6 +224,8 @@ function Landing() {
           </div>
         </section>
 
+        {!APP_ON_PLAY && !inApp && <BetaSteps />}
+
         {/* Everything in one app */}
         <section className="border-y border-border bg-muted/40">
           <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -497,18 +499,29 @@ function HeroActions({ inApp }: { inApp: boolean }) {
   const { t } = usePrefs();
   if (inApp || !APP_ON_PLAY) {
     return (
-      <div className="mx-auto mt-8 flex max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center lg:justify-start">
-        <Button asChild size="lg" variant="brand" className="rounded-full">
-          <Link to="/auth" search={REGISTER}>
-            {t("home.cta.create")}
-          </Link>
-        </Button>
-        <Button asChild size="lg" variant="outline" className="rounded-full">
-          <Link to="/auth" search={SIGN_IN}>
-            {t("home.cta.have")}
-          </Link>
-        </Button>
-      </div>
+      <>
+        <div className="mx-auto mt-8 flex max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center lg:justify-start">
+          <Button asChild size="lg" variant="brand" className="rounded-full">
+            <Link to="/auth" search={REGISTER}>
+              {t("home.cta.create")}
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className="rounded-full">
+            <Link to="/auth" search={SIGN_IN}>
+              {t("home.cta.have")}
+            </Link>
+          </Button>
+        </div>
+        {!inApp && (
+          <a
+            href="#beta"
+            className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-brand-ink underline-offset-4 hover:underline"
+          >
+            <PlayMark className="size-4" />
+            {t("lp.beta.link")}
+          </a>
+        )}
+      </>
     );
   }
   return (
@@ -537,6 +550,55 @@ function HeroActions({ inApp }: { inApp: boolean }) {
       </div>
       <p className="mt-3 text-[13px] font-medium text-muted-foreground">{t("home.cta.appHint")}</p>
     </>
+  );
+}
+
+/** The Android closed beta: three numbered steps, each with its own button. */
+const BETA_STEPS = [
+  { n: 1, key: "s1", href: "https://groups.google.com/g/sycras" },
+  { n: 2, key: "s2", href: "https://play.google.com/apps/testing/com.sycras.app" },
+  { n: 3, key: "s3", href: PLAY_STORE_URL },
+] as const;
+
+function BetaSteps() {
+  const { t } = usePrefs();
+  return (
+    <section id="beta" className="scroll-mt-20 px-4 pb-16 sm:px-6 sm:pb-20">
+      <div className="mx-auto max-w-6xl rounded-3xl bg-card p-6 shadow-sm sm:p-10">
+        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+          <PlayMark className="size-4" />
+          {t("lp.beta.eyebrow")}
+        </div>
+        <h2 className="mt-3 font-classic text-3xl font-semibold tracking-tight sm:text-4xl">
+          {t("lp.beta.title")}
+        </h2>
+        <p className="mt-3 max-w-2xl text-base font-medium leading-relaxed text-muted-foreground">
+          {t("lp.beta.body")}
+        </p>
+        <ol className="mt-8 grid gap-4 md:grid-cols-3">
+          {BETA_STEPS.map((s) => (
+            <li key={s.n} className="flex flex-col rounded-2xl bg-muted/50 p-5">
+              <span className="flex size-9 items-center justify-center rounded-full bg-foreground text-sm font-bold text-background">
+                {s.n}
+              </span>
+              <p className="mt-4 text-lg font-bold">{t(`lp.beta.${s.key}.title`)}</p>
+              <p className="mt-1 flex-1 text-sm font-medium leading-relaxed text-muted-foreground">
+                {t(`lp.beta.${s.key}.body`)}
+              </p>
+              <a
+                href={s.href}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-5 inline-flex h-11 items-center justify-center rounded-full bg-foreground px-5 text-sm font-bold text-background transition-transform active:scale-[0.98]"
+              >
+                {t(`lp.beta.${s.key}.cta`)}
+              </a>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-5 text-[13px] font-medium text-muted-foreground">{t("lp.beta.note")}</p>
+      </div>
+    </section>
   );
 }
 

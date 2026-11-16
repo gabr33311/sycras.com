@@ -11,6 +11,25 @@ export const landingDict: Record<BaseLang, Record<string, string>> = {
     "lp.trust.1": "14 dias grátis",
     "lp.trust.2": "Sem cartão",
     "lp.trust.3": "Pronto em 5 minutos",
+    "lp.beta.link": "Tens Android? Experimenta a app (beta)",
+    "lp.beta.eyebrow": "App Android · beta fechada",
+    "lp.beta.title": "Experimenta a app antes de todos",
+    "lp.beta.body":
+      "A app ainda não está na Play Store para toda a gente. Entra na beta em 3 passos (2 minutos) e instala-a já no teu Android.",
+    "lp.beta.s1.title": "Entra no grupo",
+    "lp.beta.s1.body":
+      'Abre o grupo e carrega em "Aderir ao grupo". Usa a mesma conta Google do teu telemóvel.',
+    "lp.beta.s1.cta": "Entrar no grupo",
+    "lp.beta.s2.title": "Aceita o convite",
+    "lp.beta.s2.body":
+      'Carrega em "Tornar-se testador". Se der erro, espera 1 minuto e tenta outra vez.',
+    "lp.beta.s2.cta": "Aceitar o convite",
+    "lp.beta.s3.title": "Instala a app",
+    "lp.beta.s3.body":
+      'Abre no teu telemóvel Android e carrega em "Instalar". Depois entra com a tua conta SYCRAS.',
+    "lp.beta.s3.cta": "Abrir na Play Store",
+    "lp.beta.note":
+      "Só funciona em Android. No iPhone e no computador usas o site, com tudo igual.",
     "lp.chips.title": "Tudo numa só app",
     "lp.chip.page": "Página de marcações",
     "lp.chip.agenda": "Agenda",
@@ -147,6 +166,24 @@ export const landingDict: Record<BaseLang, Record<string, string>> = {
     "lp.trust.1": "14 days free",
     "lp.trust.2": "No card",
     "lp.trust.3": "Ready in 5 minutes",
+    "lp.beta.link": "On Android? Try the app (beta)",
+    "lp.beta.eyebrow": "Android app · closed beta",
+    "lp.beta.title": "Try the app before everyone else",
+    "lp.beta.body":
+      "The app is not on the Play Store for everyone yet. Join the beta in 3 steps (2 minutes) and install it on your Android now.",
+    "lp.beta.s1.title": "Join the group",
+    "lp.beta.s1.body":
+      'Open the group and tap "Join group". Use the same Google account as on your phone.',
+    "lp.beta.s1.cta": "Join the group",
+    "lp.beta.s2.title": "Accept the invite",
+    "lp.beta.s2.body": 'Tap "Become a tester". If it fails, wait a minute and try again.',
+    "lp.beta.s2.cta": "Accept the invite",
+    "lp.beta.s3.title": "Install the app",
+    "lp.beta.s3.body":
+      'Open it on your Android phone and tap "Install". Then sign in with your SYCRAS account.',
+    "lp.beta.s3.cta": "Open in Play Store",
+    "lp.beta.note":
+      "Android only. On iPhone and computers you use the website, with everything the same.",
     "lp.chips.title": "All in one app",
     "lp.chip.page": "Booking page",
     "lp.chip.agenda": "Diary",
