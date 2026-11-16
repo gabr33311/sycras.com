@@ -26,7 +26,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FieldError, FormError } from "@/components/ui-bits";
 import { currentLocale, formatDuration, formatPrice, formatDateLong, initials } from "@/lib/format";
-import { addMonthsClamped, todayIn, zonedToUtc, weekdayOf } from "@/lib/time";
+import { addDays, addMonthsClamped, todayIn, zonedToUtc, weekdayOf } from "@/lib/time";
+import { BRAND_ICONS } from "@/lib/brand-icons";
 import { cn } from "@/lib/utils";
 import { useBrandColor } from "@/lib/brand";
 import { mapsUrl } from "@/lib/maps";
@@ -38,8 +39,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  Globe,
+  Link as LinkIcon,
   Loader2,
-  Instagram,
+  Star,
   MapPin,
   Sparkles,
   Navigation,
@@ -76,25 +79,51 @@ export const Route = createFileRoute("/$slug")({
         { property: "og:description", content: description },
         { property: "og:type", content: "website" },
         // The banner (or logo) shows in WhatsApp / Instagram link previews.
-        ...(b.cover_url || b.logo_url
+        ...(b.logo_url
           ? [
-              { property: "og:image", content: (b.cover_url ?? b.logo_url)! },
-              {
-                name: "twitter:card",
-                content: b.cover_url ? "summary_large_image" : "summary",
-              },
+              { property: "og:image", content: b.logo_url },
+              { name: "twitter:card", content: "summary" },
             ]
           : [{ name: "twitter:card", content: "summary" }]),
         ...(b.seo_indexable ? [] : [{ name: "robots", content: "noindex" }]),
       ],
     };
   },
+  pendingComponent: PageSkeleton,
+  pendingMs: 0,
   errorComponent: () => <ErrorMessage />,
   notFoundComponent: ({ data }) => (
     <NotFoundMessage paused={(data as { paused?: boolean } | undefined)?.paused === true} />
   ),
   component: BookPage,
 });
+
+/** While the page loads: its shape, in grey (never a blank screen). */
+function PageSkeleton() {
+  return (
+    <main className="mx-auto min-h-dvh max-w-2xl px-5 pt-6">
+      <div className="flex items-center gap-4">
+        <Skeleton className="size-[60px] rounded-2xl" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-6 w-2/3 rounded-lg" />
+          <Skeleton className="h-4 w-1/2 rounded-lg" />
+        </div>
+      </div>
+      <div className="mt-4 flex gap-2">
+        {[0, 1, 2].map((i) => (
+          <Skeleton key={i} className="size-12 rounded-xl" />
+        ))}
+      </div>
+      <Skeleton className="mt-4 h-36 w-full rounded-2xl" />
+      <Skeleton className="mt-4 h-20 w-full rounded-2xl" />
+      <div className="mt-6 space-y-2">
+        {[0, 1, 2].map((i) => (
+          <Skeleton key={i} className="h-16 w-full rounded-2xl" />
+        ))}
+      </div>
+    </main>
+  );
+}
 
 function CenteredMessage({ title, body }: { title: string; body: string }) {
   const { t } = usePrefs();
@@ -478,6 +507,28 @@ function BookPage() {
             )}
           </header>
         )}
+
+        {safeIdx === 0 &&
+          bookable &&
+          (staff.length <= 1 || staffId) &&
+          visibleServices.length > 0 && (
+            <NextFree
+              businessId={business.id}
+              serviceId={visibleServices[0]!.id}
+              staffId={staffId}
+              timezone={business.timezone}
+              today={today}
+              isClosedDay={isClosedDay}
+              onPick={(d, t) => {
+                setServiceId(visibleServices[0]!.id);
+                setDate(d);
+                setMonth(d.slice(0, 7));
+                setDayPicked(true);
+                setTime(t);
+                goTo("account");
+              }}
+            />
+          )}
 
         {/* Where the client is in the flow, at a glance. */}
         <div
@@ -885,20 +936,25 @@ function BookPage() {
                     <Label htmlFor="p" className="text-xs font-bold">
                       {t("bk.field.phone")}
                     </Label>
-                    <Input
-                      id="p"
-                      className="h-11"
-                      type="tel"
-                      inputMode="tel"
-                      autoComplete="tel"
-                      aria-invalid={!!fieldErrors.phone}
-                      value={phone}
-                      onChange={(e) => {
-                        setPhone(maskPhonePt(e.target.value));
-                        setFieldErrors((f) => ({ ...f, phone: undefined }));
-                      }}
-                      placeholder="912 345 678"
-                    />
+                    <div className="relative">
+                      <span className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-base text-muted-foreground md:text-sm">
+                        +351
+                      </span>
+                      <Input
+                        id="p"
+                        className="h-11 pl-14"
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        aria-invalid={!!fieldErrors.phone}
+                        value={phone}
+                        onChange={(e) => {
+                          setPhone(maskPhonePt(e.target.value));
+                          setFieldErrors((f) => ({ ...f, phone: undefined }));
+                        }}
+                        placeholder="912 345 678"
+                      />
+                    </div>
                     <FieldError message={fieldErrors.phone} />
                     {business.whatsapp && (
                       <label className="mt-1.5 flex cursor-pointer items-start gap-2.5 rounded-xl border border-border bg-muted/40 p-3 text-sm">
@@ -997,6 +1053,7 @@ function BookPage() {
         )}
 
         <p className="mt-4 text-center text-xs text-muted-foreground lg:hidden">
+          {hoursSummary(business.hours, lang) ? `${hoursSummary(business.hours, lang)} · ` : ""}
           {t("bk.freeCancellation")}
           {business.cancellation_hours}
           {t("bk.freeCancellationAfter")}
@@ -1066,13 +1123,120 @@ function BusinessLogo({ business, className }: { business: PublicBusiness; class
 }
 
 /** First impression of the business: who they are, where, and how to reach them. */
+const WEEKDAY_SHORT = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+type OpenHours = { weekday: number; start: string; end: string }[];
+
+/** Now in the business's time zone: weekday (0 = Sunday) and "HH:MM". */
+function nowIn(tz: string): { weekday: number; hm: string } {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: tz,
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+  const get = (k: string) => parts.find((x) => x.type === k)?.value ?? "";
+  const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(get("weekday"));
+  return { weekday, hm: `${get("hour").replace("24", "00")}:${get("minute")}` };
+}
+
+/** "Aberto · até 19:00", "Fechado · abre às 14:00" or "Fechado hoje · abre seg às 09:00". */
+function openLine(hours: OpenHours, tz: string): { open: boolean; text: string } | null {
+  if (!hours.length) return null;
+  const { weekday, hm } = nowIn(tz);
+  const today = hours
+    .filter((h) => h.weekday === weekday)
+    .sort((a, b) => a.start.localeCompare(b.start));
+  const now = today.find((h) => h.start <= hm && hm < h.end);
+  if (now) return { open: true, text: `até ${now.end}` };
+  const later = today.find((h) => h.start > hm);
+  if (later) return { open: false, text: `abre às ${later.start}` };
+  for (let i = 1; i <= 7; i++) {
+    const d = (weekday + i) % 7;
+    const first = hours
+      .filter((h) => h.weekday === d)
+      .sort((a, b) => a.start.localeCompare(b.start))[0];
+    if (first)
+      return {
+        open: false,
+        text: `abre ${i === 1 ? "amanhã" : WEEKDAY_SHORT[d]} às ${first.start}`,
+      };
+  }
+  return null;
+}
+
+/** The week in one line: "Seg–Sex 09:00–19:00" (or the open days, when they differ). */
+function hoursSummary(hours: OpenHours, _lang?: string): string {
+  if (!hours.length) return "";
+  const days = [...new Set(hours.map((h) => h.weekday))].sort(
+    (a, b) => ((a + 6) % 7) - ((b + 6) % 7),
+  );
+  const start = hours.map((h) => h.start).sort()[0]!;
+  const end = hours
+    .map((h) => h.end)
+    .sort()
+    .at(-1)!;
+  const cap = (d: number) => WEEKDAY_SHORT[d]!.charAt(0).toUpperCase() + WEEKDAY_SHORT[d]!.slice(1);
+  const order = days.map((d) => (d + 6) % 7);
+  const consecutive = order.every((v, i) => i === 0 || v === order[i - 1]! + 1);
+  const label =
+    days.length === 7
+      ? "Todos os dias"
+      : consecutive && days.length > 2
+        ? `${cap(days[0]!)}–${cap(days.at(-1)!)}`
+        : days.map(cap).join(", ");
+  return `${label} ${start}–${end}`;
+}
+
+/** A network's official mark on its colour tile. */
+function SocialTile({ network, url, label }: { network: string; url: string; label: string }) {
+  const n = SOCIAL[network];
+  const brand = n ? BRAND_ICONS[n.icon] : undefined;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={label}
+      className="flex size-12 items-center justify-center rounded-xl transition-transform active:scale-95"
+      style={{ backgroundColor: n?.bg ?? "#3a3a40" }}
+    >
+      {brand ? (
+        <svg viewBox="0 0 24 24" className="size-6" aria-hidden>
+          <path d={brand.path} fill={network === "snapchat" ? "#000" : "#fff"} />
+        </svg>
+      ) : network === "reviews" ? (
+        <Star className="size-6 text-white" />
+      ) : network === "site" ? (
+        <Globe className="size-6 text-white" />
+      ) : (
+        <LinkIcon className="size-6 text-white" />
+      )}
+    </a>
+  );
+}
+
+const SOCIAL: Record<string, { bg: string; icon: string; label: string }> = {
+  instagram: { bg: "#E1306C", icon: "instagram", label: "Instagram" },
+  tiktok: { bg: "#000000", icon: "tiktok", label: "TikTok" },
+  facebook: { bg: "#1877F2", icon: "facebook", label: "Facebook" },
+  whatsapp: { bg: "#25D366", icon: "whatsapp", label: "WhatsApp" },
+  youtube: { bg: "#FF0000", icon: "youtube", label: "YouTube" },
+  x: { bg: "#000000", icon: "x", label: "X" },
+  threads: { bg: "#000000", icon: "threads", label: "Threads" },
+  pinterest: { bg: "#E60023", icon: "pinterest", label: "Pinterest" },
+  snapchat: { bg: "#FFFC00", icon: "snapchat", label: "Snapchat" },
+  reviews: { bg: "#34A853", icon: "", label: "Avaliações" },
+  site: { bg: "#3a3a40", icon: "", label: "Site" },
+  link: { bg: "#3a3a40", icon: "", label: "Link" },
+};
+
+/** The top of the page, compact (image 15): logo, name, open now, contacts, then map and photos. */
 function BusinessHero({
   business,
-  coverClass,
-  onCard = false,
 }: {
   business: PublicBusiness;
-  /** Margins that let the banner reach the edges of its container. */
+  /** Kept for the callers; there is no banner any more. */
   coverClass?: string;
   onCard?: boolean;
 }) {
@@ -1081,99 +1245,198 @@ function BusinessHero({
   const insta = business.instagram?.replace(/^@/, "").trim();
   const contacts = business.show_contacts;
   const map = business.map;
-  // With the map card the separate "Map" chip is not needed.
+  const status = openLine(business.hours, business.timezone);
+  const digits = (business.phone ?? "").replace(/\D/g, "");
+  const wa = digits.length === 9 ? `351${digits}` : digits;
+  const links: { network: string; handle: string; url: string }[] = business.social_links.length
+    ? (business.social_links as { network: string; handle: string; url: string }[])
+    : insta
+      ? [
+          {
+            network: "instagram",
+            handle: insta,
+            url: `https://instagram.com/${encodeURIComponent(insta)}`,
+          },
+        ]
+      : [];
+  const hasWhatsappLink = links.some((l) => l.network === "whatsapp");
   const mapHref =
-    business.show_map === false || map ? null : mapsUrl({ ...business, address: place });
+    business.show_map === false || map
+      ? null
+      : place
+        ? mapsUrl({ ...business, address: place })
+        : null;
   return (
     <header className="animate-enter">
-      {business.cover_url ? (
-        // With a banner: the logo sits on its edge and the name goes below.
-        <div>
-          <div className={cn("h-40 overflow-hidden bg-brand sm:h-44", coverClass)}>
-            <img src={business.cover_url} alt="" className="size-full object-cover" />
-          </div>
-          <BusinessLogo
-            business={business}
-            className={cn(
-              "relative -mt-9 size-[4.5rem] border-4 text-lg",
-              onCard ? "border-card" : "border-background",
-            )}
-          />
-          <h1 className="mt-2 font-display text-[26px] font-bold leading-tight tracking-tight">
+      <div className="flex items-center gap-4">
+        <BusinessLogo business={business} className="size-[60px] text-lg" />
+        <div className="min-w-0 flex-1">
+          <h1 className="font-display text-[24px] font-bold leading-tight tracking-tight">
             {business.name}
           </h1>
-          {business.description && (
-            <p className="mt-1 line-clamp-2 text-[15px] leading-snug text-muted-foreground">
-              {business.description}
-            </p>
-          )}
-        </div>
-      ) : (
-        <div className="flex items-center gap-4">
-          <BusinessLogo business={business} className="size-16 text-lg" />
-          <div className="min-w-0 flex-1">
-            <h1 className="font-display text-[26px] font-bold leading-tight tracking-tight">
-              {business.name}
-            </h1>
-            {business.description && (
-              <p className="mt-1 line-clamp-2 text-[15px] leading-snug text-muted-foreground">
-                {business.description}
-              </p>
+          <p className="mt-0.5 truncate text-sm text-muted-foreground">
+            {status && (
+              <>
+                <span
+                  className={cn(
+                    "font-bold",
+                    status.open ? "text-emerald-600 dark:text-emerald-400" : "text-foreground",
+                  )}
+                >
+                  {status.open ? "Aberto" : "Fechado"}
+                </span>
+                {" · "}
+                {status.text}
+              </>
             )}
-          </div>
+            {business.city ? `${status ? " · " : ""}${business.city}` : ""}
+          </p>
         </div>
-      )}
-      {!map && contacts && place && (
-        <p className="mt-3 flex items-center gap-1.5 truncate text-sm text-muted-foreground">
-          <MapPin className="size-3.5 shrink-0" /> {place}
+      </div>
+      {business.description && (
+        <p className="mt-2 line-clamp-2 text-[15px] leading-snug text-muted-foreground">
+          {business.description}
         </p>
       )}
-      {map && (
-        // The whole card opens the route in Google Maps (the app, on phones).
-        <a
-          href={map.directions}
-          target="_blank"
-          rel="noreferrer"
-          aria-label={`${t("bk.map.go")}: ${map.label}`}
-          className="relative mt-3 block h-32 overflow-hidden rounded-2xl border border-border bg-muted transition-transform active:scale-[0.99] sm:h-36"
-        >
-          <ShopMapTiles lat={map.lat} lng={map.lng} dark={theme === "dark"} />
-          <span className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-black/55 px-3 py-1.5 text-[11px] font-semibold text-white backdrop-blur-sm">
-            <MapPin className="size-3 shrink-0" />
-            <span className="min-w-0 flex-1 truncate">{map.label}</span>
-            <span className="inline-flex shrink-0 items-center gap-1 font-bold">
-              {t("bk.map.go")}
-              <Navigation className="size-3" />
-            </span>
-          </span>
-        </a>
-      )}
-      {business.gallery.length > 0 && <ShopPhotos photos={business.gallery} name={business.name} />}
-      {contacts && (business.phone || insta || mapHref) && (
+
+      {/* Call, WhatsApp and the social networks, as their own icons. */}
+      {contacts && (business.phone || links.length > 0) && (
         <div className="mt-4 flex flex-wrap gap-2">
           {business.phone && (
-            <a href={`tel:${business.phone}`} className={HERO_CHIP}>
-              <Phone className="size-4" /> {t("bk.hero.call")}
-            </a>
-          )}
-          {mapHref && (
-            <a href={mapHref} target="_blank" rel="noreferrer" className={HERO_CHIP}>
-              <MapPin className="size-4" /> {t("bk.hero.map")}
-            </a>
-          )}
-          {insta && (
             <a
-              href={`https://instagram.com/${encodeURIComponent(insta)}`}
+              href={`tel:${business.phone}`}
+              aria-label={t("bk.hero.call")}
+              className="flex size-12 items-center justify-center rounded-xl bg-muted text-foreground transition-transform active:scale-95"
+            >
+              <Phone className="size-5" />
+            </a>
+          )}
+          {business.phone && !hasWhatsappLink && wa.length >= 9 && (
+            <SocialTile network="whatsapp" url={`https://wa.me/${wa}`} label="WhatsApp" />
+          )}
+          {links.map((l, i) => (
+            <SocialTile
+              key={`${l.network}-${i}`}
+              network={l.network}
+              url={l.url}
+              label={SOCIAL[l.network]?.label ?? l.url}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* The map first and largest, then the photos: one strip that slides sideways. */}
+      {(map || business.gallery.length > 0 || mapHref) && (
+        <div className="-mx-5 mt-4 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] lg:mx-0 lg:px-0">
+          {map ? (
+            <a
+              href={map.directions}
               target="_blank"
               rel="noreferrer"
-              className={HERO_CHIP}
+              aria-label={`${t("bk.map.go")}: ${map.label}`}
+              className="relative block h-40 w-[68%] shrink-0 overflow-hidden rounded-2xl bg-muted transition-transform active:scale-[0.99] lg:w-[60%]"
             >
-              <Instagram className="size-4" /> @{insta}
+              <ShopMapTiles lat={map.lat} lng={map.lng} dark={theme === "dark"} />
+              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-3 pb-2.5 pt-6 text-white">
+                <span className="block truncate text-[13px] font-bold">
+                  {business.address || map.label}
+                </span>
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-sky-300">
+                  {t("bk.map.go")} ›
+                </span>
+              </span>
             </a>
+          ) : mapHref ? (
+            <a
+              href={mapHref}
+              target="_blank"
+              rel="noreferrer"
+              className="flex h-40 w-[68%] shrink-0 flex-col justify-end rounded-2xl bg-muted p-3 lg:w-[60%]"
+            >
+              <MapPin className="size-5 text-brand-ink" />
+              <span className="mt-1 block truncate text-[13px] font-bold">{place}</span>
+              <span className="text-xs font-bold text-brand-ink">{t("bk.map.go")} ›</span>
+            </a>
+          ) : null}
+          {business.gallery.length > 0 && (
+            <ShopPhotos photos={business.gallery} name={business.name} />
           )}
         </div>
       )}
     </header>
+  );
+}
+
+/**
+ * "Próximo horário livre: Hoje às 15:30 · Marcar" — the first free time for the first service,
+ * looked up day by day (up to two weeks). Tapping jumps straight to the details step.
+ */
+function NextFree({
+  businessId,
+  serviceId,
+  staffId,
+  timezone,
+  today,
+  isClosedDay,
+  onPick,
+}: {
+  businessId: string;
+  serviceId: string;
+  staffId: string | null;
+  timezone: string;
+  today: string;
+  isClosedDay: (d: string) => boolean;
+  onPick: (date: string, time: string) => void;
+}) {
+  const { data } = useQuery({
+    queryKey: ["next-free", businessId, serviceId, staffId, today],
+    staleTime: 60_000,
+    queryFn: async () => {
+      for (let i = 0; i < 14; i++) {
+        const d = addDays(today, i);
+        if (isClosedDay(d)) continue;
+        const slots = await getAvailableSlots({
+          data: { businessId, serviceId, staffId, date: d },
+        }).catch(() => []);
+        if (slots.length) return { date: d, time: slots[0]!.time };
+      }
+      return null;
+    },
+  });
+  if (!data) return null;
+  const label =
+    data.date === today
+      ? "Hoje"
+      : data.date === addDays(today, 1)
+        ? "Amanhã"
+        : new Intl.DateTimeFormat("pt-PT", {
+            weekday: "long",
+            day: "numeric",
+            month: "short",
+            timeZone: "UTC",
+          })
+            .format(new Date(`${data.date}T12:00:00Z`))
+            .replace(/-feira/, "")
+            .replace(/\./g, "")
+            .replace(/^./, (ch) => ch.toUpperCase());
+  return (
+    <div className="mt-4 flex items-center gap-3 rounded-2xl border border-brand/40 bg-brand/10 px-4 py-3.5">
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-brand-ink">
+          Próximo horário livre
+        </p>
+        <p className="mt-0.5 truncate font-display text-xl font-bold">
+          {label} às {data.time}
+        </p>
+      </div>
+      <Button
+        variant="brand"
+        className="h-11 rounded-xl px-6 font-bold"
+        onClick={() => onPick(data.date, data.time)}
+      >
+        Marcar
+      </Button>
+    </div>
   );
 }
 

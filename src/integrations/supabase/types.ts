@@ -521,6 +521,8 @@ export type Database = {
           trial_bonus_days: number
           whatsapp_reminders: boolean
           review_url: string | null
+          slug_changed_at: string | null
+          social_links: Json
           rebook_weeks: number | null
           loyalty_every: number | null
           loyalty_reward: string | null
@@ -577,6 +579,8 @@ export type Database = {
           trial_bonus_days?: number
           whatsapp_reminders?: boolean
           review_url?: string | null
+          slug_changed_at?: string | null
+          social_links?: Json
           rebook_weeks?: number | null
           loyalty_every?: number | null
           loyalty_reward?: string | null
@@ -633,6 +637,8 @@ export type Database = {
           trial_bonus_days?: number
           whatsapp_reminders?: boolean
           review_url?: string | null
+          slug_changed_at?: string | null
+          social_links?: Json
           rebook_weeks?: number | null
           loyalty_every?: number | null
           loyalty_reward?: string | null

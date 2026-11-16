@@ -47,6 +47,10 @@ export type PublicBusiness = {
   deposit: { mode: "fixed" | "percent"; value: number } | null;
   /** The shop's map card (OpenStreetMap), when the owner shows the map and placed the pin. */
   map: { lat: number; lng: number; directions: string; label: string } | null;
+  /** Opening hours ("09:00"–"19:00") by weekday (0 = Sunday), for "Aberto até 19:00". */
+  hours: { weekday: number; start: string; end: string }[];
+  /** Social networks shown as icons (only when the owner shows contacts). */
+  social_links: { network: string; handle: string; url: string }[];
 };
 
 /** Where the shop is on the map, and the route there (no map service key needed). */
@@ -88,7 +92,7 @@ export type PublicStaff = {
 };
 
 const BUSINESS_FIELDS =
-  "id, slug, name, description, business_type, address, city, website, instagram, logo_url, cover_url, brand_color, timezone, currency, cancellation_hours, slot_interval_minutes, seo_indexable, show_team, show_contacts, booking_horizon_months, latitude, longitude, show_map, verify_bookings, is_demo, whatsapp_reminders";
+  "id, slug, name, description, business_type, address, city, website, instagram, logo_url, cover_url, brand_color, timezone, currency, cancellation_hours, slot_interval_minutes, seo_indexable, show_team, show_contacts, booking_horizon_months, latitude, longitude, show_map, verify_bookings, is_demo, whatsapp_reminders, social_links";
 
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -187,7 +191,7 @@ export async function loadPublicBusiness(slug: string): Promise<{
     Date.now() + ((business.booking_horizon_months ?? 2) + 1) * 31 * 86400000,
   );
   const [{ data: hours }, { data: busyRows }] = await Promise.all([
-    db.from("working_hours").select("weekday").eq("business_id", business.id),
+    db.from("working_hours").select("weekday, start_time, end_time").eq("business_id", business.id),
     db.rpc("public_busy_intervals", {
       _business_id: business.id,
       _from: new Date().toISOString(),
@@ -258,6 +262,23 @@ export async function loadPublicBusiness(slug: string): Promise<{
       cover_url,
       gallery: gallery.filter((u): u is string => !!u),
       map: shopMap(business),
+      hours: (hours ?? []).map((h) => ({
+        weekday: h.weekday as number,
+        start: String(h.start_time).slice(0, 5),
+        end: String(h.end_time).slice(0, 5),
+      })),
+      // Only https links from the list (anything else is dropped).
+      social_links: showContacts
+        ? (Array.isArray(business.social_links) ? business.social_links : [])
+            .filter(
+              (l): l is { network: string; handle: string; url: string } =>
+                !!l &&
+                typeof l === "object" &&
+                typeof (l as { url?: unknown }).url === "string" &&
+                /^https:\/\//.test((l as { url: string }).url),
+            )
+            .slice(0, 12)
+        : [],
       phone: contacts?.phone ?? null,
       email: contacts?.email ?? null,
       whatsapp,
