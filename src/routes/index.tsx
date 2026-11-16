@@ -33,6 +33,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { PrefsToggles } from "@/components/prefs-toggles";
+import { PlayMark } from "@/components/play-mark";
 import { SycrasLogo } from "@/components/sycras-logo";
 import { usePrefs } from "@/lib/prefs";
 import { cn } from "@/lib/utils";
@@ -71,17 +72,6 @@ function useInNativeShell(): boolean {
   return native;
 }
 
-/** The Google Play mark (the coloured triangle), drawn inline. */
-function PlayMark({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 26" className={className} aria-hidden>
-      <path d="M1.2.6 13.6 13 1.2 25.4A2 2 0 0 1 .5 23.9V2.1A2 2 0 0 1 1.2.6Z" fill="#00d7fe" />
-      <path d="m17.8 8.8-4.2 4.2 4.2 4.2 4.8-2.7c1.3-.8 1.3-2.2 0-3Z" fill="#ffce00" />
-      <path d="M13.6 13 1.2 25.4c.5.5 1.3.5 2.1.1l14.5-8.3Z" fill="#ff3a44" />
-      <path d="M13.6 13 17.8 8.8 3.3.5C2.5 0 1.7.1 1.2.6Z" fill="#00f076" />
-    </svg>
-  );
-}
 const SIGN_IN = { mode: undefined, next: undefined } as const;
 
 const ALL_FEATURES = [
@@ -223,8 +213,6 @@ function Landing() {
             </div>
           </div>
         </section>
-
-        {!APP_ON_PLAY && !inApp && <BetaSteps />}
 
         {/* Everything in one app */}
         <section className="border-y border-border bg-muted/40">
@@ -513,13 +501,13 @@ function HeroActions({ inApp }: { inApp: boolean }) {
           </Button>
         </div>
         {!inApp && (
-          <a
-            href="#beta"
+          <Link
+            to="/beta"
             className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-brand-ink underline-offset-4 hover:underline"
           >
             <PlayMark className="size-4" />
             {t("lp.beta.link")}
-          </a>
+          </Link>
         )}
       </>
     );
@@ -550,55 +538,6 @@ function HeroActions({ inApp }: { inApp: boolean }) {
       </div>
       <p className="mt-3 text-[13px] font-medium text-muted-foreground">{t("home.cta.appHint")}</p>
     </>
-  );
-}
-
-/** The Android closed beta: three numbered steps, each with its own button. */
-const BETA_STEPS = [
-  { n: 1, key: "s1", href: "https://groups.google.com/g/sycras" },
-  { n: 2, key: "s2", href: "https://play.google.com/apps/testing/com.sycras.app" },
-  { n: 3, key: "s3", href: PLAY_STORE_URL },
-] as const;
-
-function BetaSteps() {
-  const { t } = usePrefs();
-  return (
-    <section id="beta" className="scroll-mt-20 px-4 pb-16 sm:px-6 sm:pb-20">
-      <div className="mx-auto max-w-6xl rounded-3xl bg-card p-6 shadow-sm sm:p-10">
-        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-          <PlayMark className="size-4" />
-          {t("lp.beta.eyebrow")}
-        </div>
-        <h2 className="mt-3 font-classic text-3xl font-semibold tracking-tight sm:text-4xl">
-          {t("lp.beta.title")}
-        </h2>
-        <p className="mt-3 max-w-2xl text-base font-medium leading-relaxed text-muted-foreground">
-          {t("lp.beta.body")}
-        </p>
-        <ol className="mt-8 grid gap-4 md:grid-cols-3">
-          {BETA_STEPS.map((s) => (
-            <li key={s.n} className="flex flex-col rounded-2xl bg-muted/50 p-5">
-              <span className="flex size-9 items-center justify-center rounded-full bg-foreground text-sm font-bold text-background">
-                {s.n}
-              </span>
-              <p className="mt-4 text-lg font-bold">{t(`lp.beta.${s.key}.title`)}</p>
-              <p className="mt-1 flex-1 text-sm font-medium leading-relaxed text-muted-foreground">
-                {t(`lp.beta.${s.key}.body`)}
-              </p>
-              <a
-                href={s.href}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-5 inline-flex h-11 items-center justify-center rounded-full bg-foreground px-5 text-sm font-bold text-background transition-transform active:scale-[0.98]"
-              >
-                {t(`lp.beta.${s.key}.cta`)}
-              </a>
-            </li>
-          ))}
-        </ol>
-        <p className="mt-5 text-[13px] font-medium text-muted-foreground">{t("lp.beta.note")}</p>
-      </div>
-    </section>
   );
 }
 

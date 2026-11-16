@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BetaRouteImport } from './routes/beta'
 import { Route as CaptchaRouteImport } from './routes/captcha'
 import { Route as EliminarContaRouteImport } from './routes/eliminar-conta'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
@@ -75,6 +76,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BetaRoute = BetaRouteImport.update({
+  id: '/beta',
+  path: '/beta',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CaptchaRoute = CaptchaRouteImport.update({
@@ -305,6 +311,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/auth': typeof AuthRoute
+  '/beta': typeof BetaRoute
   '/captcha': typeof CaptchaRoute
   '/eliminar-conta': typeof EliminarContaRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -354,6 +361,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/auth': typeof AuthRoute
+  '/beta': typeof BetaRoute
   '/captcha': typeof CaptchaRoute
   '/eliminar-conta': typeof EliminarContaRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -405,6 +413,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/$slug': typeof SlugRoute
   '/auth': typeof AuthRoute
+  '/beta': typeof BetaRoute
   '/captcha': typeof CaptchaRoute
   '/eliminar-conta': typeof EliminarContaRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -456,6 +465,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/auth'
+    | '/beta'
     | '/captcha'
     | '/eliminar-conta'
     | '/privacidade'
@@ -505,6 +515,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/auth'
+    | '/beta'
     | '/captcha'
     | '/eliminar-conta'
     | '/privacidade'
@@ -555,6 +566,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/$slug'
     | '/auth'
+    | '/beta'
     | '/captcha'
     | '/eliminar-conta'
     | '/privacidade'
@@ -606,6 +618,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   SlugRoute: typeof SlugRoute
   AuthRoute: typeof AuthRoute
+  BetaRoute: typeof BetaRoute
   CaptchaRoute: typeof CaptchaRoute
   EliminarContaRoute: typeof EliminarContaRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
@@ -668,6 +681,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/beta': {
+      id: '/beta'
+      path: '/beta'
+      fullPath: '/beta'
+      preLoaderRoute: typeof BetaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/captcha': {
@@ -1019,6 +1039,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   SlugRoute: SlugRoute,
   AuthRoute: AuthRoute,
+  BetaRoute: BetaRoute,
   CaptchaRoute: CaptchaRoute,
   EliminarContaRoute: EliminarContaRoute,
   PrivacidadeRoute: PrivacidadeRoute,
