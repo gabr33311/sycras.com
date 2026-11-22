@@ -1,19 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ContactEmail, Entity, LegalPage } from "@/components/legal-page";
-import { LEGAL } from "@/lib/legal";
+import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/privacidade")({
-  head: () => ({
-    meta: [
-      { title: "Política de Privacidade — SYCRAS" },
-      {
-        name: "description",
-        content: "Que dados a SYCRAS trata, para quê, com quem os partilha e os teus direitos.",
-      },
-      // Not indexed until the responsible entity is filled in.
-      ...(LEGAL.ready ? [] : [{ name: "robots", content: "noindex" }]),
-    ],
-  }),
+  // Like the Terms: reachable from everywhere, but out of search results (it carries the NIF).
+  head: () =>
+    seo({
+      title: "Política de Privacidade — SYCRAS",
+      description: "Que dados a SYCRAS trata, para quê, com quem os partilha e os teus direitos.",
+      path: "/privacidade",
+      noindex: true,
+    }),
   component: PrivacyPage,
 });
 

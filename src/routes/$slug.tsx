@@ -17,6 +17,7 @@ import { trackPageView } from "@/lib/analytics.functions";
 import { maskPhonePt } from "@/lib/phone";
 import { isReservedSlug } from "@/lib/reserved-slugs";
 import { LegalLinks } from "@/components/legal-page";
+import { seo } from "@/lib/seo";
 
 import { Button } from "@/components/ui/button";
 import { SycrasLogo } from "@/components/sycras-logo";
@@ -71,23 +72,16 @@ export const Route = createFileRoute("/$slug")({
     const description =
       b.description?.slice(0, 155) ??
       `Escolhe o serviço e o horário e marca online em ${b.name}. Confirmação imediata.`;
-    return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:type", content: "website" },
-        // The banner (or logo) shows in WhatsApp / Instagram link previews.
-        ...(b.logo_url
-          ? [
-              { property: "og:image", content: b.logo_url },
-              { name: "twitter:card", content: "summary" },
-            ]
-          : [{ name: "twitter:card", content: "summary" }]),
-        ...(b.seo_indexable ? [] : [{ name: "robots", content: "noindex" }]),
-      ],
-    };
+    // The first photo (else the cover, else the logo) is the picture in WhatsApp / Instagram previews.
+    const photo = b.gallery[0] ?? b.cover_url ?? null;
+    return seo({
+      title,
+      description,
+      path: `/${b.slug}`,
+      image: photo ?? b.logo_url ?? undefined,
+      smallCard: !photo && !!b.logo_url,
+      noindex: !b.seo_indexable,
+    });
   },
   pendingComponent: PageSkeleton,
   pendingMs: 0,

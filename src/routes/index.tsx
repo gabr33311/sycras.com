@@ -40,24 +40,22 @@ import { usePrefs } from "@/lib/prefs";
 import { cn } from "@/lib/utils";
 import { LegalLinks } from "@/components/legal-page";
 import { APP_ON_PLAY, inNativeShell, PLAY_STORE_URL } from "@/lib/app-store";
+import { DICT } from "@/lib/prefs-dict";
+import { LANDING_FAQ, landingJsonLd, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
   head: () => ({
-    meta: [
-      { title: "SYCRAS — Marcações online para o teu negócio" },
+    ...seo({
+      title: "SYCRAS — Marcações online para o teu negócio",
+      description:
+        "Cria a tua página de marcações em minutos. Agenda, clientes e lembretes num só sítio, feito para negócios em Portugal.",
+      path: "/",
+    }),
+    scripts: [
       {
-        name: "description",
-        content:
-          "Cria a tua página de marcações em minutos. Agenda, clientes e lembretes num só sítio, feito para negócios em Portugal.",
+        type: "application/ld+json",
+        children: JSON.stringify(landingJsonLd((k) => DICT.pt[k] ?? k)),
       },
-      { property: "og:title", content: "SYCRAS — Marcações online para o teu negócio" },
-      {
-        property: "og:description",
-        content:
-          "Página de marcações, agenda e clientes num só sítio. Simples, rápido e feito para Portugal.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Landing,
@@ -415,15 +413,7 @@ function Landing() {
         >
           <SectionTitle>{t("lp.faq.title")}</SectionTitle>
           <Accordion type="single" collapsible className="mt-8">
-            {(
-              [
-                ["home.faq.1.q", "home.faq.1.a"],
-                ["home.faq.2.q", "home.faq.2.a"],
-                ["lp.faq.5.q", "lp.faq.5.a"],
-                ["lp.faq.6.q", "lp.faq.6.a"],
-                ["home.faq.3.q", "home.faq.3.a"],
-              ] as const
-            ).map(([q, a]) => (
+            {LANDING_FAQ.map(([q, a]) => (
               <AccordionItem key={q} value={q}>
                 <AccordionTrigger className="text-[15px] font-bold hover:no-underline">
                   {t(q)}

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
+import { seo } from "@/lib/seo";
 
 import { PlayMark } from "@/components/play-mark";
 import { SycrasLogo } from "@/components/sycras-logo";
@@ -7,15 +8,12 @@ import { PLAY_STORE_URL } from "@/lib/app-store";
 import { usePrefs } from "@/lib/prefs";
 
 export const Route = createFileRoute("/beta")({
-  head: () => ({
-    meta: [
-      { title: "App Android (beta) — SYCRAS" },
-      {
-        name: "description",
-        content: "Instala a app SYCRAS no Android em 3 passos, antes de chegar à Play Store.",
-      },
-    ],
-  }),
+  head: () =>
+    seo({
+      title: "App Android (beta) — SYCRAS",
+      description: "Instala a app SYCRAS no Android em 3 passos, antes de chegar à Play Store.",
+      path: "/beta",
+    }),
   component: BetaPage,
 });
 

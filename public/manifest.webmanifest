@@ -1,6 +1,8 @@
 {
   "name": "SYCRAS — Marcações online",
   "short_name": "SYCRAS",
+  "lang": "pt-PT",
+  "id": "/",
   "description": "Gere marcações, clientes e horários do teu negócio.",
   "start_url": "/today",
   "scope": "/",

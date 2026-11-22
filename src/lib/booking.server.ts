@@ -661,3 +661,21 @@ export async function userIdFromAuthHeader(header?: string | null): Promise<stri
   const { data } = await db.auth.getUser(token);
   return data.user?.id ?? null;
 }
+
+/** Pages for the sitemap: published, live and indexable (the owner can hide one from Google). */
+export async function sitemapPages(): Promise<{ slug: string; updated_at: string | null }[]> {
+  // Same as the page itself: the service key when there is one, else anon + RLS (published pages are public).
+  const db: Awaited<ReturnType<typeof publicDb>> = process.env["SUPABASE_SERVICE_ROLE_KEY"]
+    ? ((await admin()) as unknown as typeof db)
+    : await publicDb();
+  const { data } = await db
+    .from("businesses")
+    .select("slug, updated_at")
+    .eq("is_published", true)
+    .eq("seo_indexable", true)
+    .eq("is_demo", false)
+    .is("deleted_at", null)
+    .is("suspended_at", null)
+    .limit(5000);
+  return (data ?? []) as { slug: string; updated_at: string | null }[];
+}

@@ -1,17 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ContactEmail, LegalPage } from "@/components/legal-page";
+import { seo } from "@/lib/seo";
 
 // Public page (asked by Google Play): how to delete a SYCRAS account and what goes with it.
 export const Route = createFileRoute("/eliminar-conta")({
-  head: () => ({
-    meta: [
-      { title: "Eliminar conta — SYCRAS" },
-      {
-        name: "description",
-        content: "Como eliminar a tua conta SYCRAS e os dados que são apagados.",
-      },
-    ],
-  }),
+  head: () =>
+    seo({
+      title: "Eliminar conta — SYCRAS",
+      description: "Como eliminar a tua conta SYCRAS e os dados que são apagados.",
+      path: "/eliminar-conta",
+    }),
   component: DeleteAccountPage,
 });
 

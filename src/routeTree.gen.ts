@@ -18,6 +18,7 @@ import { Route as CaptchaRouteImport } from './routes/captcha'
 import { Route as EliminarContaRouteImport } from './routes/eliminar-conta'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAppointmentsRouteImport } from './routes/_authenticated/appointments'
@@ -101,6 +102,11 @@ const PrivacidadeRoute = PrivacidadeRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermosRoute = TermosRouteImport.update({
@@ -316,6 +322,7 @@ export interface FileRoutesByFullPath {
   '/eliminar-conta': typeof EliminarContaRoute
   '/privacidade': typeof PrivacidadeRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/appointments': typeof AuthenticatedAppointmentsRoute
@@ -366,6 +373,7 @@ export interface FileRoutesByTo {
   '/eliminar-conta': typeof EliminarContaRoute
   '/privacidade': typeof PrivacidadeRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/appointments': typeof AuthenticatedAppointmentsRoute
@@ -418,6 +426,7 @@ export interface FileRoutesById {
   '/eliminar-conta': typeof EliminarContaRoute
   '/privacidade': typeof PrivacidadeRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/appointments': typeof AuthenticatedAppointmentsRoute
@@ -470,6 +479,7 @@ export interface FileRouteTypes {
     | '/eliminar-conta'
     | '/privacidade'
     | '/reset-password'
+    | '/sitemap.xml'
     | '/termos'
     | '/analytics'
     | '/appointments'
@@ -520,6 +530,7 @@ export interface FileRouteTypes {
     | '/eliminar-conta'
     | '/privacidade'
     | '/reset-password'
+    | '/sitemap.xml'
     | '/termos'
     | '/analytics'
     | '/appointments'
@@ -571,6 +582,7 @@ export interface FileRouteTypes {
     | '/eliminar-conta'
     | '/privacidade'
     | '/reset-password'
+    | '/sitemap.xml'
     | '/termos'
     | '/_authenticated/analytics'
     | '/_authenticated/appointments'
@@ -623,6 +635,7 @@ export interface RootRouteChildren {
   EliminarContaRoute: typeof EliminarContaRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermosRoute: typeof TermosRoute
   ApiReferralRoute: typeof ApiReferralRoute
   ApiSlugRoute: typeof ApiSlugRoute
@@ -716,6 +729,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/termos': {
@@ -1044,6 +1064,7 @@ const rootRouteChildren: RootRouteChildren = {
   EliminarContaRoute: EliminarContaRoute,
   PrivacidadeRoute: PrivacidadeRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermosRoute: TermosRoute,
   ApiReferralRoute: ApiReferralRoute,
   ApiSlugRoute: ApiSlugRoute,
