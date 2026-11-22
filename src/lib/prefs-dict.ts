@@ -68,10 +68,10 @@ const BASE: Record<BaseLang, Record<string, string>> = {
       "Não. Escolhem o serviço e o horário na tua página e deixam o nome e o contacto.",
     "home.faq.2.q": "Posso continuar a aceitar marcações por telefone?",
     "home.faq.2.a":
-      "Sim. Adicionas a marcação na agenda e esse horário deixa de aparecer na página.",
+      "Sim. Adicionas a marcação na agenda em segundos e esse horário deixa logo de aparecer na tua página, por isso nunca há marcações duplicadas.",
     "home.faq.3.q": "E se um cliente quiser cancelar?",
     "home.faq.3.a":
-      "Tu defines até quando se pode cancelar online. Depois desse prazo, o cliente fala contigo.",
+      "Tu defines até quando se pode cancelar online. Dentro desse prazo, o cliente cancela sozinho pelo link da confirmação e o horário fica livre outra vez. Depois disso, fala contigo.",
     "home.faq.4.q": "Funciona no telemóvel?",
     "home.faq.4.a": "Sim. A agenda e a página de marcações funcionam no telemóvel e no computador.",
     "home.final.title": "Pronto em 5 minutos. Sem telefonemas.",

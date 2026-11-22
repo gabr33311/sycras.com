@@ -49,6 +49,9 @@ export const LANDING_FAQ = [
   ["lp.faq.5.q", "lp.faq.5.a"],
   ["lp.faq.6.q", "lp.faq.6.a"],
   ["home.faq.3.q", "home.faq.3.a"],
+  ["lp.faq.7.q", "lp.faq.7.a"],
+  ["lp.faq.8.q", "lp.faq.8.a"],
+  ["lp.faq.9.q", "lp.faq.9.a"],
 ] as const;
 
 /**

@@ -19,7 +19,7 @@ export function PrefsToggles({ className }: { className?: string }) {
         type="button"
         onClick={toggleTheme}
         aria-label={theme === "dark" ? t("ui.prefs.lightMode") : t("ui.prefs.darkMode")}
-        className="flex size-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        className="flex size-11 items-center justify-center rounded-xl text-muted-foreground sm:size-9 transition-colors hover:bg-muted hover:text-foreground"
       >
         {theme === "dark" ? (
           <Sun className="size-4" strokeWidth={2.5} />
@@ -31,8 +31,8 @@ export function PrefsToggles({ className }: { className?: string }) {
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            aria-label={t("ui.prefs.changeLang")}
-            className="flex h-9 items-center gap-1.5 rounded-xl px-2.5 text-xs font-bold uppercase text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label={`${t("ui.prefs.changeLang")} (${current.short})`}
+            className="flex h-11 items-center sm:h-9 gap-1.5 rounded-xl px-2.5 text-xs font-bold uppercase text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <Languages className="size-4" strokeWidth={2.5} />
             {current.short}

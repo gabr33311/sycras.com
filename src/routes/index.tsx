@@ -123,6 +123,13 @@ function Landing() {
 
   return (
     <div className="min-h-screen overflow-x-clip">
+      {/* Keyboard users jump straight past the menu. */}
+      <a
+        href="#conteudo"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-foreground focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-background"
+      >
+        Saltar para o conteúdo
+      </a>
       <header className="sticky top-[var(--sat)] z-30 border-b border-border/60 bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <span className="flex items-center gap-2">
@@ -162,7 +169,7 @@ function Landing() {
         </div>
       </header>
 
-      <main>
+      <main id="conteudo">
         {/* Hero: the promise on the left, the app itself on the right. */}
         <section className="relative">
           <div
@@ -432,7 +439,7 @@ function Landing() {
             <h2 className="mx-auto max-w-2xl font-classic text-4xl font-semibold leading-tight sm:text-5xl">
               {t("lp.final.title")}
             </h2>
-            <p className="mt-4 text-base font-medium text-white/80">{t("lp.final.body")}</p>
+            <p className="mt-4 text-base font-medium text-white">{t("lp.final.body")}</p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 to="/auth"
@@ -575,6 +582,7 @@ function Phone({
         width={640}
         height={1327}
         loading={eager ? "eager" : "lazy"}
+        fetchPriority={eager ? "high" : "auto"}
         decoding="async"
         className="block h-auto w-full rounded-[1.7rem]"
       />

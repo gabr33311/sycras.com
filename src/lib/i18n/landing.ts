@@ -161,11 +161,19 @@ export const landingDict: Record<BaseLang, Record<string, string>> = {
     "lp.faq.title": "Perguntas frequentes",
     "lp.faq.5.q": "Como funciona o sinal contra faltas?",
     "lp.faq.5.a":
-      "Ligas a tua conta de pagamentos uma vez e escolhes o valor. Quem marca online paga o sinal; se aparecer, desconta no preço; se cancelar a tempo, é devolvido sozinho; se faltar, fica contigo. Está incluído no SYCRAS Pro.",
+      "É opcional: só funciona se o ligares. Ligas a tua conta de pagamentos uma vez e escolhes o valor. Quem marca online paga o sinal; se aparecer, desconta no preço; se cancelar a tempo, é devolvido sozinho; se faltar, fica contigo. Está incluído no SYCRAS Pro.",
     "lp.faq.6.q": "Preciso de computador?",
     "lp.faq.6.a":
       "Não. Tudo funciona no telemóvel, na app SYCRAS. Se preferires, também podes gerir tudo pelo site, no computador.",
-
+    "lp.faq.7.q": "O que acontece quando acabam os 14 dias grátis?",
+    "lp.faq.7.a":
+      "Escolhes o plano Pro: 19 € por mês, ou 180 € por ano (15 € por mês). Se não subscreveres, a página deixa de aceitar marcações, mas nada se perde: os teus dados ficam guardados e voltam quando subscreveres.",
+    "lp.faq.8.q": "Posso cancelar quando quiser?",
+    "lp.faq.8.a":
+      "Sim, sem fidelização. Cancelas em Negócio → SYCRAS Pro → Gerir subscrição e continuas com tudo até ao fim do período já pago.",
+    "lp.faq.9.q": "Os dados dos meus clientes estão seguros?",
+    "lp.faq.9.a":
+      "Sim. Ficam em servidores na União Europeia, são tratados segundo o RGPD e nunca são vendidos nem usados para publicidade.",
     "lp.final.title": "A tua próxima marcação pode chegar hoje.",
     "lp.final.body": "14 dias grátis, sem cartão. Cancelas quando quiseres.",
   },
@@ -331,7 +339,15 @@ export const landingDict: Record<BaseLang, Record<string, string>> = {
     "lp.faq.6.q": "Do I need a computer?",
     "lp.faq.6.a":
       "No. Everything works on your phone, in the SYCRAS app. If you prefer, you can also manage it all on the website, on a computer.",
-
+    "lp.faq.7.q": "What happens when the 14 free days end?",
+    "lp.faq.7.a":
+      "You choose the Pro plan: €19 a month, or €180 a year (€15 a month). If you don't subscribe, your page stops taking bookings, but nothing is lost: your data is kept and comes back when you subscribe.",
+    "lp.faq.8.q": "Can I cancel any time?",
+    "lp.faq.8.a":
+      "Yes, no lock-in. Cancel in Business → SYCRAS Pro → Manage subscription and keep everything until the end of the period you've paid for.",
+    "lp.faq.9.q": "Is my clients' data safe?",
+    "lp.faq.9.a":
+      "Yes. It's stored on servers in the European Union, handled under the GDPR, and never sold or used for advertising.",
     "lp.final.title": "Your next booking could come today.",
     "lp.final.body": "14 days free, no card. Cancel any time.",
   },
