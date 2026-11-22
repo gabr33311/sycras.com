@@ -29,9 +29,9 @@ export const Route = createFileRoute("/auth")({
         ? (search["next"] as string)
         : undefined,
   }),
-  head: () => ({
+  head: ({ match }) => ({
     meta: [
-      { title: "Entrar — SYCRAS" },
+      { title: match.search.mode === "register" ? "Criar conta — SYCRAS" : "Entrar — SYCRAS" },
       {
         name: "description",
         content: "Entra na tua conta SYCRAS para gerir marcações, clientes e a tua página pública.",
@@ -77,6 +77,11 @@ function AuthPage() {
   const navigate = useNavigate();
   const { mode: initialMode, next } = Route.useSearch();
   const [mode, setMode] = useState<Mode>(initialMode ?? "login");
+  // The browser tab follows the form: creating an account or signing in.
+  useEffect(() => {
+    document.title =
+      mode === "register" || mode === "verify" ? "Criar conta — SYCRAS" : "Entrar — SYCRAS";
+  }, [mode]);
   const [email, setEmail] = useState("");
 
   // Returns the signed-in user to where they came from, or the pro dashboard.

@@ -13,22 +13,38 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
+import { SycrasLogo } from "@/components/sycras-logo";
 import { PrefsProvider, usePrefs } from "@/lib/prefs";
 import { initNativeShell } from "@/lib/native";
 
+/** A friendly 404 in the site's look: what happened, and two ways on. */
 function NotFoundComponent() {
   const { t } = usePrefs();
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-5">
       <div className="max-w-md text-center">
-        <p className="font-display text-7xl font-bold tracking-tight text-brand">404</p>
-        <h1 className="mt-4 font-display text-2xl font-bold text-foreground">
+        <Link
+          to="/"
+          aria-label="SYCRAS"
+          className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-brand"
+        >
+          <SycrasLogo className="size-8" onColor />
+        </Link>
+        <p className="mt-6 font-display text-6xl font-bold tracking-tight text-foreground">404</p>
+        <h1 className="mt-3 font-display text-2xl font-bold text-foreground">
           {t("ui.notFound.title")}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t("ui.notFound.body")}</p>
-        <div className="mt-6">
-          <Button asChild>
+        <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
+          {t("ui.notFound.body")}
+        </p>
+        <div className="mt-7 flex flex-col justify-center gap-2 sm:flex-row">
+          <Button asChild size="lg" className="rounded-full">
             <Link to="/">{t("ui.notFound.goHome")}</Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className="rounded-full">
+            <Link to="/auth" search={{ mode: "register", next: undefined }}>
+              {t("ui.notFound.create")}
+            </Link>
           </Button>
         </div>
       </div>
@@ -74,10 +90,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Sycras — Marcações online" },
+      { title: "SYCRAS — Marcações online" },
       { name: "description", content: "Marcações online simples para negócios em Portugal." },
-      { name: "author", content: "Sycras" },
-      { property: "og:title", content: "Sycras — Marcações online" },
+      { name: "author", content: "SYCRAS" },
+      { property: "og:title", content: "SYCRAS — Marcações online" },
       {
         property: "og:description",
         content: "Marcações online simples para negócios em Portugal.",
@@ -86,7 +102,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "theme-color", content: "#f4f7fb" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-title", content: "Sycras" },
+      { name: "apple-mobile-web-app-title", content: "SYCRAS" },
     ],
     links: [
       {

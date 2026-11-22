@@ -43,13 +43,13 @@ import { APP_ON_PLAY, inNativeShell, PLAY_STORE_URL } from "@/lib/app-store";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Sycras — Marcações online para o teu negócio" },
+      { title: "SYCRAS — Marcações online para o teu negócio" },
       {
         name: "description",
         content:
           "Cria a tua página de marcações em minutos. Agenda, clientes e lembretes num só sítio, feito para negócios em Portugal.",
       },
-      { property: "og:title", content: "Sycras — Marcações online para o teu negócio" },
+      { property: "og:title", content: "SYCRAS — Marcações online para o teu negócio" },
       {
         property: "og:description",
         content:
@@ -474,7 +474,7 @@ function Landing() {
           </a>
           <span className="flex items-center gap-3">
             <LegalLinks />
-            <span>© {new Date().getFullYear()} Sycras</span>
+            <span>© {new Date().getFullYear()} SYCRAS</span>
           </span>
         </div>
       </footer>

@@ -128,16 +128,23 @@ function PageSkeleton() {
 function CenteredMessage({ title, body }: { title: string; body: string }) {
   const { t } = usePrefs();
   return (
-    <main className="flex min-h-screen items-center justify-center px-6 text-center">
+    <main className="flex min-h-dvh items-center justify-center px-6 text-center">
       <div className="animate-enter max-w-sm">
         <span className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-brand">
           <SycrasLogo className="size-7" onColor />
         </span>
         <h1 className="mt-6 font-display text-2xl font-bold tracking-tight">{title}</h1>
         <p className="mt-2 text-[15px] text-muted-foreground">{body}</p>
-        <Button asChild className="mt-6">
-          <Link to="/">{t("bk.backHome")}</Link>
-        </Button>
+        <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
+          <Button asChild className="rounded-full">
+            <Link to="/">{t("bk.backHome")}</Link>
+          </Button>
+          <Button asChild variant="outline" className="rounded-full">
+            <Link to="/auth" search={{ mode: "register", next: undefined }}>
+              {t("ui.notFound.create")}
+            </Link>
+          </Button>
+        </div>
       </div>
     </main>
   );
@@ -664,8 +671,9 @@ function BookPage() {
                       }}
                       className={cn(
                         "flex min-h-[4.5rem] w-full items-center gap-4 px-4 py-3.5 text-left transition-colors hover:bg-muted/50 lg:rounded-2xl lg:border lg:border-border lg:bg-card lg:px-5 lg:shadow-[var(--shadow-soft)] lg:hover:bg-muted/40 lg:min-h-24 lg:py-4",
-                        serviceId === s.id && "bg-muted/70",
+                        serviceId === s.id && "bg-brand/5 ring-2 ring-inset ring-brand lg:ring-2",
                       )}
+                      aria-pressed={serviceId === s.id}
                     >
                       <span className="min-w-0 flex-1">
                         <span className="block text-[15px] font-bold leading-snug">{s.name}</span>
@@ -674,7 +682,12 @@ function BookPage() {
                             {s.description}
                           </span>
                         )}
-                        <span className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                        {/* Price and time apart: "15 € · 30 min". */}
+                        <span className="mt-1 inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
+                          <span className="font-bold tabular-nums text-foreground">
+                            {formatPrice(s.price_cents, business.currency)}
+                          </span>
+                          <span aria-hidden>·</span>
                           <Clock className="size-3.5" /> {formatDuration(s.duration_minutes)}
                         </span>
                         {business.deposit &&
@@ -697,10 +710,17 @@ function BookPage() {
                           </span>
                         ) : null}
                       </span>
-                      <span className="shrink-0 text-[15px] font-bold tabular-nums">
-                        {formatPrice(s.price_cents, business.currency)}
+                      {/* A clear way to pick it. */}
+                      <span
+                        className={cn(
+                          "shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-bold",
+                          serviceId === s.id
+                            ? "bg-brand text-brand-foreground"
+                            : "border border-border text-foreground",
+                        )}
+                      >
+                        {serviceId === s.id ? t("bk.chosen") : t("bk.choose")}
                       </span>
-                      <ChevronRight className="-ml-2 size-4 shrink-0 text-muted-foreground" />
                     </button>
                   ))}
                 </div>
@@ -1116,7 +1136,13 @@ function BusinessLogo({ business, className }: { business: PublicBusiness; class
           className="size-full object-cover"
         />
       ) : (
-        initials(business.name)
+        // No logo yet: a monogram, in the brand blue with a soft light from the top.
+        <span
+          aria-hidden
+          className="flex size-full items-center justify-center bg-[linear-gradient(145deg,#4d86ff_0%,#2f6bff_45%,#1d4fd6_100%)] font-display tracking-tight shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
+        >
+          {initials(business.name)}
+        </span>
       )}
     </div>
   );
@@ -1185,7 +1211,13 @@ function hoursSummary(hours: OpenHours, _lang?: string): string {
       : consecutive && days.length > 2
         ? `${cap(days[0]!)}–${cap(days.at(-1)!)}`
         : days.map(cap).join(", ");
-  return `${label} ${start}–${end}`;
+  // The days it is closed, said plainly ("Dom fechado"), instead of leaving them out.
+  const closedDays = [1, 2, 3, 4, 5, 6, 0].filter((d) => !days.includes(d));
+  const closedText =
+    closedDays.length > 0 && closedDays.length <= 2
+      ? ` · ${closedDays.map(cap).join(", ")} fechado`
+      : "";
+  return `${label} ${start}–${end}${closedText}`;
 }
 
 /** A network's official mark on its colour tile. */
@@ -1245,7 +1277,13 @@ function BusinessHero({
   const insta = business.instagram?.replace(/^@/, "").trim();
   const contacts = business.show_contacts;
   const map = business.map;
-  const status = openLine(business.hours, business.timezone);
+  // The example page never says "Fechado": it should always look ready to book.
+  const status = business.is_demo
+    ? (() => {
+        const st = openLine(business.hours, business.timezone);
+        return st?.open ? st : null;
+      })()
+    : openLine(business.hours, business.timezone);
   const digits = (business.phone ?? "").replace(/\D/g, "");
   const wa = digits.length === 9 ? `351${digits}` : digits;
   const links: { network: string; handle: string; url: string }[] = business.social_links.length

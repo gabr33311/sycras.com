@@ -57,7 +57,7 @@ export const Route = createFileRoute("/_authenticated/profile")({
   validateSearch: z.object({ section: z.enum(SECTION_IDS).optional() }),
   head: () => ({
     meta: [
-      { title: "Gestão — SYCRAS" },
+      { title: "Negócio — SYCRAS" },
       {
         name: "description",
         content: "Business, services, team, hours and stats in one place.",

@@ -19,8 +19,10 @@ export const commonDict: Record<BaseLang, Record<string, string>> = {
     "ui.call": "Ligar",
     "ui.analytics.title": "Relatórios",
     "ui.analytics.subtitle": "Os últimos 30 dias do teu negócio.",
-    "ui.notFound.title": "Página não encontrada",
-    "ui.notFound.body": "A página que procuras não existe ou foi movida.",
+    "ui.notFound.title": "Esta página não existe",
+    "ui.notFound.body":
+      "O link pode estar errado ou a página mudou de nome. Se procuravas um negócio, confirma o nome com ele.",
+    "ui.notFound.create": "Criar a minha página",
     "ui.notFound.goHome": "Voltar ao início",
     "ui.error.page.title": "Esta página não carregou",
     "ui.error.page.body":
@@ -57,7 +59,7 @@ export const commonDict: Record<BaseLang, Record<string, string>> = {
     "dock.passHint": "Desliza para cima ou mantém premido para o QR",
     "dock.whatsapp": "Enviar no WhatsApp",
     "dock.whatsappMsg": "Olá! Podes agendar o teu horário aqui:",
-    "nav.manage": "Gestão",
+    "nav.manage": "Negócio",
   },
   en: {
     "ui.loading": "Loading…",
@@ -77,9 +79,10 @@ export const commonDict: Record<BaseLang, Record<string, string>> = {
     "ui.call": "Call",
     "ui.analytics.title": "Reports",
     "ui.analytics.subtitle": "Your business over the last 30 days.",
-    "ui.notFound.title": "Page not found",
+    "ui.notFound.title": "This page doesn't exist",
     "ui.notFound.body": "The page you're looking for doesn't exist or has been moved.",
     "ui.notFound.goHome": "Go home",
+    "ui.notFound.create": "Create my page",
     "ui.error.page.title": "This page didn't load",
     "ui.error.page.body":
       "Something went wrong on our end. You can try refreshing or head back home.",

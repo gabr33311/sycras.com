@@ -51,8 +51,8 @@ const Week = ({ businessName, bookings, daysLeft, pageUrl }: Props) => {
           : `A página ${businessName ? `de ${businessName} ` : ""}está pronta, mas ainda não recebeu marcações. Põe o link na bio do Instagram e envia-o aos teus clientes habituais por WhatsApp.`}
       </Text>
       <Text style={text}>
-        Ainda tens {daysLeft ?? "9"} dias grátis. Dica: em Gestão → Marcações escolhes se aprovas cada pedido ou se
-        ficam logo confirmados.
+        Ainda tens {daysLeft ?? "9"} dias grátis. Dica: em Negócio → Regras e sinal escolhes se
+        aprovas cada pedido ou se ficam logo confirmados.
       </Text>
       {pageUrl && (
         <Button href={pageUrl} style={button}>
@@ -67,8 +67,8 @@ const Ending = ({ businessName, plansUrl }: Props) => (
   <Shell preview="Faltam 3 dias do teu SYCRAS Pro grátis">
     <Heading style={h1}>Faltam 3 dias</Heading>
     <Text style={text}>
-      O teu período grátis {businessName ? `de ${businessName} ` : ""}acaba daqui a 3 dias. Para a tua
-      página continuar a receber marcações, subscreve o SYCRAS Pro: {PRICE}.
+      O teu período grátis {businessName ? `de ${businessName} ` : ""}acaba daqui a 3 dias. Para a
+      tua página continuar a receber marcações, subscreve o SYCRAS Pro: {PRICE}.
     </Text>
     <Text style={text}>
       Se subscreveres agora, a primeira cobrança só acontece no fim do período grátis.

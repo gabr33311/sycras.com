@@ -9,10 +9,10 @@ import { usePrefs } from "@/lib/prefs";
 export const Route = createFileRoute("/beta")({
   head: () => ({
     meta: [
-      { title: "App Android (beta) — Sycras" },
+      { title: "App Android (beta) — SYCRAS" },
       {
         name: "description",
-        content: "Instala a app Sycras no Android em 3 passos, antes de chegar à Play Store.",
+        content: "Instala a app SYCRAS no Android em 3 passos, antes de chegar à Play Store.",
       },
     ],
   }),
@@ -33,7 +33,7 @@ function BetaPage() {
     <div className="min-h-dvh bg-background">
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-5 py-4">
-          <Link to="/" className="flex items-center gap-2.5" aria-label="Sycras">
+          <Link to="/" className="flex items-center gap-2.5" aria-label="SYCRAS">
             <span className="flex size-9 items-center justify-center rounded-xl bg-brand">
               <SycrasLogo className="size-5" onColor />
             </span>

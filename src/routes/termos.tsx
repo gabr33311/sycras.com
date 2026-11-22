@@ -84,9 +84,9 @@ function TermsPage() {
             método de pagamento indicado ou, quando subscrita na app para Android, pela Google Play.
           </li>
           <li>
-            Podes cancelar a qualquer momento em Gestão → Plano → Gerir subscrição e faturas (ou na
-            Google Play, se subscreveste na app). O cancelamento produz efeitos no fim do período já
-            pago; não há reembolso de períodos parciais, salvo quando a lei o exija.
+            Podes cancelar a qualquer momento em Negócio → SYCRAS Pro → Gerir subscrição e faturas
+            (ou na Google Play, se subscreveste na app). O cancelamento produz efeitos no fim do
+            período já pago; não há reembolso de períodos parciais, salvo quando a lei o exija.
           </li>
           <li>
             Sem subscrição ativa no fim do período experimental, ou se um pagamento falhar e não for

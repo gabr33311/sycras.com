@@ -28,7 +28,10 @@ function DeleteAccountPage() {
       <section>
         <h2>Na app para telemóvel</h2>
         <ol>
-          <li>Abre a SYCRAS e vai a Gestão → Definições.</li>
+          <li>
+            Abre a app SYCRAS, vai ao separador Negócio (o último em baixo) e toca na roda dentada,
+            no canto de cima.
+          </li>
           <li>Em Conta, toca em &quot;Eliminar conta&quot;.</li>
           <li>Escreve ELIMINAR e toca em &quot;Eliminar para sempre&quot;.</li>
         </ol>
@@ -42,7 +45,7 @@ function DeleteAccountPage() {
             <Link to="/auth" search={{ mode: undefined, next: undefined }}>
               sycras.com
             </Link>{" "}
-            e abre Gestão → Definições.
+            e abre Negócio → Definições.
           </li>
           <li>Em Conta, carrega em &quot;Eliminar conta&quot;.</li>
           <li>Escreve ELIMINAR e confirma.</li>

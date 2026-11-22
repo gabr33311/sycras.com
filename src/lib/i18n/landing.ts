@@ -54,7 +54,7 @@ export const landingDict: Record<BaseLang, Record<string, string>> = {
       "Todas as marcações, dia a dia, com cores por estado. Mudar uma hora é arrastar com o dedo.",
     "lp.agenda.1": "Toca num espaço livre para marcar; mantém premido para bloquear",
     "lp.agenda.2": "Salta para qualquer dia ou mês com o calendário",
-    "lp.agenda.3": "Marca as tuas folgas e férias, os clientes não conseguem marcar nesses dias.",
+    "lp.agenda.3": "Marca as tuas folgas e férias: nesses dias ninguém consegue marcar.",
 
     "lp.share.kicker": "A tua página",
     "lp.share.title": "A tua página de marcações, pronta a partilhar.",
@@ -111,7 +111,7 @@ export const landingDict: Record<BaseLang, Record<string, string>> = {
     "lp.new.body":
       "Nova marcação em três passos: quem, que serviço e quando. A app só mostra horas livres, por isso nunca marcas por cima.",
 
-    "lp.manage.kicker": "Gestão",
+    "lp.manage.kicker": "Negócio",
     "lp.manage.title": "O teu negócio, arrumado.",
     "lp.manage.body":
       "Serviços, preços, equipa, horários, folgas e regras de marcação, tudo num só sítio. Muda no telemóvel e a página atualiza logo.",
