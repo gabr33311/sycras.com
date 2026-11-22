@@ -18,6 +18,7 @@ import { SycrasLogo } from "@/components/sycras-logo";
 import { cn } from "@/lib/utils";
 import { usePrefs } from "@/lib/prefs";
 import { LegalLinks } from "@/components/legal-page";
+import { TrialIncludes } from "@/components/trial-includes";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -129,14 +130,18 @@ function AuthPage() {
       )}
       {mode === "mfa" && <SecondStep onDone={() => goAfterAuth()} />}
       {mode === "register" && (
-        <RegisterForm
-          email={email}
-          setEmail={setEmail}
-          redirectTo={redirectTo}
-          onLogin={() => setMode("login")}
-          onSent={() => setMode("verify")}
-          onDone={() => goAfterAuth("/onboarding")}
-        />
+        <>
+          <RegisterForm
+            email={email}
+            setEmail={setEmail}
+            redirectTo={redirectTo}
+            onLogin={() => setMode("login")}
+            onSent={() => setMode("verify")}
+            onDone={() => goAfterAuth("/onboarding")}
+          />
+          {/* What the 14 free days include, and what only the paid Pro has (as in the Terms). */}
+          <TrialIncludes compact className="mt-6 rounded-2xl border border-border p-4" />
+        </>
       )}
       {mode === "verify" && (
         <VerifyCode
@@ -150,7 +155,7 @@ function AuthPage() {
         <ForgotForm email={email} setEmail={setEmail} onBack={() => setMode("login")} />
       )}
       <p className="mt-6 text-center text-xs text-muted-foreground">
-        {t("auth.terms")} <LegalLinks className="font-semibold" />
+        {t("auth.terms")} <LegalLinks className="font-semibold" newTab />
       </p>
     </AuthShell>
   );

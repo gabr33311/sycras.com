@@ -31,8 +31,8 @@ function PrivacyPage() {
       <section>
         <h2>1. Quem é o responsável</h2>
         <p>
-          O responsável pelo tratamento dos dados das contas SYCRAS é <Entity />. Para qualquer
-          questão sobre privacidade, contacta <ContactEmail />.
+          O responsável pelo tratamento dos dados das contas SYCRAS é <Entity withNif />. Para
+          qualquer questão sobre privacidade, contacta <ContactEmail />.
         </p>
         <p>
           Quando um cliente faz uma marcação num negócio que usa a SYCRAS, o{" "}
@@ -115,6 +115,11 @@ function PrivacyPage() {
             <strong>Obrigação legal:</strong> para guardar os registos de faturação exigidos por
             lei.
           </li>
+          <li>
+            <strong>Consentimento:</strong> para as notificações no telemóvel (que só recebes se as
+            autorizares) e para emails de novidades, se um dia os subscreveres. Podes retirar o
+            consentimento a qualquer momento, sem afetar o que foi feito antes.
+          </li>
         </ul>
       </section>
 
@@ -142,8 +147,23 @@ function PrivacyPage() {
             <strong>Google Firebase</strong>: envio das notificações para o telemóvel.
           </li>
           <li>
-            <strong>OpenStreetMap</strong>: mapa e pesquisa de moradas quando um negócio escolhe a
-            localização da loja. Só é enviado o texto pesquisado.
+            <strong>Meta (WhatsApp Business)</strong>: quando um negócio liga os lembretes por
+            WhatsApp, a SYCRAS envia ao cliente, pela API oficial do WhatsApp, a mensagem de
+            lembrete (nome, serviço, dia e hora da marcação) para o número de telemóvel indicado na
+            marcação.
+          </li>
+          <li>
+            <strong>Cloudflare Turnstile</strong>: verificação contra robôs no formulário público de
+            marcação.
+          </li>
+          <li>
+            <strong>OpenStreetMap, OpenFreeMap, GeoAPI.pt e Photon</strong>: mapa e pesquisa de
+            moradas quando um negócio escolhe a localização da loja. Só é enviado o texto
+            pesquisado.
+          </li>
+          <li>
+            <strong>Esri (ArcGIS)</strong>: imagens de satélite do mapa na página dos negócios. Só é
+            pedida a zona do mapa a mostrar.
           </li>
           <li>
             <strong>Google Maps</strong>: só quando alguém carrega em "Ver no mapa"; abre o Google
@@ -182,8 +202,13 @@ function PrivacyPage() {
         <h2>7. Cookies e armazenamento no navegador</h2>
         <p>
           A SYCRAS não usa cookies de publicidade nem de rastreio. Guardamos no teu navegador apenas
-          o necessário para a app funcionar: a sessão iniciada e preferências como o tema, o idioma
-          e a cor da app.
+          o necessário para a app funcionar: a sessão iniciada, o tema, o idioma, a vista do mapa
+          (normal ou satélite) e se fechaste um aviso.
+        </p>
+        <p>
+          Quando alguém abre a página de um negócio, guardamos no separador do navegador um número
+          aleatório da visita, apagado quando o separador fecha, só para contar cada visita uma vez
+          nas estatísticas desse negócio. Não identifica a pessoa.
         </p>
         <p>
           Para sabermos que páginas são visitadas, usamos estatísticas anónimas do Vercel Web

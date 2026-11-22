@@ -35,6 +35,7 @@ import {
 import { PrefsToggles } from "@/components/prefs-toggles";
 import { PlayMark } from "@/components/play-mark";
 import { SycrasLogo } from "@/components/sycras-logo";
+import { TrialIncludes } from "@/components/trial-includes";
 import { usePrefs } from "@/lib/prefs";
 import { cn } from "@/lib/utils";
 import { LegalLinks } from "@/components/legal-page";
@@ -401,6 +402,8 @@ function Landing() {
                 badge={t("home.pricing.noCard")}
                 features={PLAN_FEATURES.map(t)}
               />
+              {/* The trial, said plainly: what is in it and what is only in the paid Pro. */}
+              <TrialIncludes className="mt-6 rounded-3xl border border-border bg-card p-5" />
             </div>
           </div>
         </section>
@@ -472,8 +475,24 @@ function Landing() {
           <a href="mailto:suporte@sycras.com" className="transition-colors hover:text-foreground">
             suporte@sycras.com
           </a>
-          <span className="flex items-center gap-3">
+          <span className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
             <LegalLinks />
+            <a
+              href="https://www.livroreclamacoes.pt"
+              target="_blank"
+              rel="noreferrer"
+              className="underline-offset-4 hover:underline"
+            >
+              Livro de Reclamações
+            </a>
+            <a
+              href="https://www.consumidor.gov.pt/parceiros/sistema-de-defesa-do-consumidor/entidades-de-resolucao-alternativa-de-litigios-de-consumo.aspx"
+              target="_blank"
+              rel="noreferrer"
+              className="underline-offset-4 hover:underline"
+            >
+              Resolução de litígios
+            </a>
             <span>© {new Date().getFullYear()} SYCRAS</span>
           </span>
         </div>

@@ -23,7 +23,8 @@ export function Entity({ withNif = false }: { withNif?: boolean }) {
     <>
       <Fill value={LEGAL.entity} label="nome do responsável" />
       {withNif && LEGAL.nif ? `, NIF ${LEGAL.nif}` : ""}
-      {LEGAL.address ? `, com morada em ${LEGAL.address}` : ""}
+      {", com morada em "}
+      <Fill value={LEGAL.address} label="PREENCHER: morada" />
     </>
   );
 }
@@ -75,20 +76,30 @@ export function LegalPage({ title, children }: { title: string; children: ReactN
   );
 }
 
-/** "Termos · Privacidade" links; nothing until the legal details are filled in. */
-export function LegalLinks({ className }: { className?: string }) {
+/**
+ * "Termos · Privacidade · Eliminar conta" links; nothing until the legal details are filled in.
+ * `newTab` opens them in a new tab (on the sign-up form, so nothing typed is lost).
+ */
+export function LegalLinks({
+  className,
+  newTab = false,
+}: {
+  className?: string;
+  newTab?: boolean;
+}) {
   if (!LEGAL.ready) return null;
+  const tab = newTab ? { target: "_blank", rel: "noreferrer" } : {};
   return (
     <span className={className}>
-      <Link to="/termos" className="underline-offset-4 hover:underline">
+      <Link to="/termos" className="underline-offset-4 hover:underline" {...tab}>
         Termos
       </Link>
       {" · "}
-      <Link to="/privacidade" className="underline-offset-4 hover:underline">
+      <Link to="/privacidade" className="underline-offset-4 hover:underline" {...tab}>
         Privacidade
       </Link>
       {" · "}
-      <Link to="/eliminar-conta" className="underline-offset-4 hover:underline">
+      <Link to="/eliminar-conta" className="underline-offset-4 hover:underline" {...tab}>
         Eliminar conta
       </Link>
     </span>

@@ -14,5 +14,5 @@ export const LEGAL = {
   /** Contact for legal and privacy requests. */
   email: "privacidade@sycras.com" as string | null,
   /** Last time the texts changed (shown on the pages). */
-  updated: "17 de outubro de 2026",
+  updated: "22 de novembro de 2026",
 };

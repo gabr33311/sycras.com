@@ -72,8 +72,10 @@ function TermsPage() {
           </li>
           <li>
             Algumas funcionalidades são exclusivas do plano Pro pago e não fazem parte do período
-            experimental: lembretes automáticos por email aos clientes, pedidos de avaliação depois
-            da visita, bloqueio de clientes e estatísticas completas.
+            experimental: lembretes automáticos aos clientes (por email e WhatsApp), o sinal
+            opcional contra faltas, pedidos de avaliação depois da visita, bloqueio de clientes e
+            estatísticas completas. Esta lista aparece também nos preços e no registo, antes de
+            criares conta.
           </li>
           <li>
             Depois desse período, para continuar a usar a SYCRAS é necessário o plano Pro: 19 € por
