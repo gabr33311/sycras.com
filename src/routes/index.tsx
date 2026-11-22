@@ -38,7 +38,16 @@ import { SycrasLogo } from "@/components/sycras-logo";
 import { TrialIncludes } from "@/components/trial-includes";
 import { usePrefs } from "@/lib/prefs";
 import { cn } from "@/lib/utils";
-import { LegalLinks } from "@/components/legal-page";
+import {
+  BillingToggle,
+  FounderNote,
+  LANDING_NAV,
+  MobileMenu,
+  NoShowCalculator,
+  SiteFooter,
+  Testimonials,
+  WhoFor,
+} from "@/components/landing-sections";
 import { APP_ON_PLAY, inNativeShell, PLAY_STORE_URL } from "@/lib/app-store";
 import { DICT } from "@/lib/prefs-dict";
 import { LANDING_FAQ, landingJsonLd, seo } from "@/lib/seo";
@@ -120,6 +129,7 @@ const PLAN_FEATURES = [
 function Landing() {
   const { t } = usePrefs();
   const inApp = useInNativeShell();
+  const [yearly, setYearly] = useState(false);
 
   return (
     <div className="min-h-screen overflow-x-clip">
@@ -141,15 +151,11 @@ function Landing() {
             </span>
           </span>
           <nav className="hidden items-center gap-7 text-sm font-semibold text-muted-foreground md:flex">
-            <a href="#funcionalidades" className="transition-colors hover:text-foreground">
-              {t("home.nav.features")}
-            </a>
-            <a href="#precos" className="transition-colors hover:text-foreground">
-              {t("home.nav.pricing")}
-            </a>
-            <a href="#perguntas" className="transition-colors hover:text-foreground">
-              {t("home.nav.faq")}
-            </a>
+            {LANDING_NAV.map((l) => (
+              <a key={l.href} href={l.href} className="transition-colors hover:text-foreground">
+                {t(l.key)}
+              </a>
+            ))}
           </nav>
           <div className="flex min-w-0 items-center gap-1 sm:gap-2">
             <PrefsToggles />
@@ -165,6 +171,7 @@ function Landing() {
                 {t("home.cta.start")}
               </Link>
             </Button>
+            <MobileMenu />
           </div>
         </div>
       </header>
@@ -236,6 +243,26 @@ function Landing() {
                 </li>
               ))}
             </ul>
+          </div>
+        </section>
+
+        {/* Three steps */}
+        <section id="como-funciona" className="scroll-mt-20 border-y border-border bg-muted/40">
+          <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-24">
+            <SectionTitle>{t("lp.steps.title")}</SectionTitle>
+            <ol className="mt-10 grid gap-4 md:grid-cols-3">
+              {[1, 2, 3].map((n) => (
+                <li key={n} className="rounded-3xl bg-card p-6 shadow-[var(--shadow-soft)]">
+                  <span className="flex size-10 items-center justify-center rounded-full bg-brand font-display text-lg font-bold text-white">
+                    {n}
+                  </span>
+                  <h3 className="mt-4 text-lg font-bold">{t(`lp.steps.${n}.title`)}</h3>
+                  <p className="mt-1.5 text-sm font-medium leading-relaxed text-muted-foreground">
+                    {t(`lp.steps.${n}.body`)}
+                  </p>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
 
@@ -372,37 +399,24 @@ function Landing() {
           </ul>
         </section>
 
-        {/* Three steps */}
-        <section className="border-y border-border bg-muted/40">
-          <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-24">
-            <SectionTitle>{t("lp.steps.title")}</SectionTitle>
-            <ol className="mt-10 grid gap-4 md:grid-cols-3">
-              {[1, 2, 3].map((n) => (
-                <li key={n} className="rounded-3xl bg-card p-6 shadow-[var(--shadow-soft)]">
-                  <span className="flex size-10 items-center justify-center rounded-full bg-brand font-display text-lg font-bold text-white">
-                    {n}
-                  </span>
-                  <h3 className="mt-4 text-lg font-bold">{t(`lp.steps.${n}.title`)}</h3>
-                  <p className="mt-1.5 text-sm font-medium leading-relaxed text-muted-foreground">
-                    {t(`lp.steps.${n}.body`)}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
+        {/* Who it is for, then what no-shows cost (with the visitor's own numbers). */}
+        <WhoFor title={(c, sub) => <SectionTitle sub={sub}>{c}</SectionTitle>} />
+        <NoShowCalculator title={(c, sub) => <SectionTitle sub={sub}>{c}</SectionTitle>} />
 
         {/* Pricing */}
         <section id="precos" className="scroll-mt-20">
           <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24">
             <SectionTitle sub={t("home.pricing.body")}>{t("home.pricing.title")}</SectionTitle>
-            <div className="mx-auto mt-10 max-w-md">
+            <div className="mt-8">
+              <BillingToggle yearly={yearly} onChange={setYearly} />
+            </div>
+            <div className="mx-auto mt-6 max-w-md">
               <PlanCard
                 pro
                 name="SYCRAS Pro"
                 desc={t("home.pricing.desc")}
                 price={t("home.pricing.free")}
-                after={t("home.pricing.after")}
+                after={t(yearly ? "lp.price.after.y" : "lp.price.after.m")}
                 note={t("home.pricing.value")}
                 badge={t("home.pricing.noCard")}
                 features={PLAN_FEATURES.map(t)}
@@ -412,6 +426,8 @@ function Landing() {
             </div>
           </div>
         </section>
+
+        <Testimonials />
 
         {/* Questions */}
         <section
@@ -432,6 +448,8 @@ function Landing() {
             ))}
           </Accordion>
         </section>
+
+        <FounderNote />
 
         {/* Final call */}
         <section className="px-4 pb-16 sm:px-6 sm:pb-24">
@@ -465,35 +483,7 @@ function Landing() {
 
       <StickyStart />
 
-      <footer className="border-t border-border pb-24 md:pb-0">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-8 text-sm font-medium text-muted-foreground sm:flex-row sm:px-6">
-          <span className="font-bold tracking-[0.14em] text-foreground">SYCRAS</span>
-          <span>{t("home.footer")}</span>
-          <a href="mailto:suporte@sycras.com" className="transition-colors hover:text-foreground">
-            suporte@sycras.com
-          </a>
-          <span className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-            <LegalLinks />
-            <a
-              href="https://www.livroreclamacoes.pt"
-              target="_blank"
-              rel="noreferrer"
-              className="underline-offset-4 hover:underline"
-            >
-              Livro de Reclamações
-            </a>
-            <a
-              href="https://www.consumidor.gov.pt/parceiros/sistema-de-defesa-do-consumidor/entidades-de-resolucao-alternativa-de-litigios-de-consumo.aspx"
-              target="_blank"
-              rel="noreferrer"
-              className="underline-offset-4 hover:underline"
-            >
-              Resolução de litígios
-            </a>
-            <span>© {new Date().getFullYear()} SYCRAS</span>
-          </span>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
@@ -814,7 +804,7 @@ function StickyStart() {
   );
 }
 
-function SectionTitle({ children, sub }: { children: ReactNode; sub?: string }) {
+function SectionTitle({ children, sub }: { children: ReactNode; sub?: string | undefined }) {
   return (
     <div className="text-center">
       <h2 className="text-balance-tight font-classic text-4xl font-semibold tracking-[-0.01em] sm:text-5xl">
