@@ -75,7 +75,7 @@ export function MobileMenu() {
               </Link>
             </Button>
             <Button asChild variant="brand" size="lg" className="rounded-full">
-              <Link to="/auth" search={REGISTER}>
+              <Link to="/auth" search={REGISTER} data-track="cta_menu">
                 {t("home.cta.start")}
               </Link>
             </Button>
@@ -240,6 +240,7 @@ export function BillingToggle({
       type="button"
       role="radio"
       aria-checked={yearly === on}
+      data-track={on ? "billing_yearly" : "billing_monthly"}
       onClick={() => onChange(on)}
       className={cn(
         "flex h-11 items-center gap-2 rounded-full px-5 text-sm font-bold transition-colors",

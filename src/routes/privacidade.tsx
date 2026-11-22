@@ -210,6 +210,10 @@ function PrivacyPage() {
         <p>
           Para sabermos que páginas são visitadas, usamos estatísticas anónimas do Vercel Web
           Analytics: não usam cookies, não identificam pessoas e não seguem ninguém entre sites.
+          Contamos também, da mesma forma anónima, alguns cliques (por exemplo, em "Criar a minha
+          página") e quantas contas são criadas. Se chegaste por um link de uma campanha, guardamos
+          no separador do navegador a origem desse link (por exemplo, "instagram") e o site de onde
+          vieste, apagados quando o separador fecha, só para saber que campanhas trazem registos.
         </p>
       </section>
 

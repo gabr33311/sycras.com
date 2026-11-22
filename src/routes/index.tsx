@@ -51,6 +51,7 @@ import {
 import { APP_ON_PLAY, inNativeShell, PLAY_STORE_URL } from "@/lib/app-store";
 import { DICT } from "@/lib/prefs-dict";
 import { LANDING_FAQ, landingJsonLd, seo } from "@/lib/seo";
+import { captureUtm, trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -130,6 +131,17 @@ function Landing() {
   const { t } = usePrefs();
   const inApp = useInNativeShell();
   const [yearly, setYearly] = useState(false);
+  // Counts clicks on anything tagged data-track (anonymous, no cookies), plus where the visit came from.
+  useEffect(() => {
+    captureUtm();
+    const onClick = (e: MouseEvent) => {
+      const el = (e.target as HTMLElement | null)?.closest<HTMLElement>("[data-track]");
+      if (el?.dataset["track"])
+        trackEvent(el.dataset["track"], { href: el.getAttribute("href") ?? "" });
+    };
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+  }, []);
 
   return (
     <div className="min-h-screen overflow-x-clip">
@@ -167,7 +179,7 @@ function Landing() {
               {t("home.signin")}
             </Link>
             <Button asChild size="sm" className="shrink-0 rounded-full">
-              <Link to="/auth" search={REGISTER}>
+              <Link to="/auth" search={REGISTER} data-track="cta_header">
                 {t("home.cta.start")}
               </Link>
             </Button>
@@ -311,6 +323,7 @@ function Landing() {
               <Link
                 to="/$slug"
                 params={{ slug: DEMO_SLUG }}
+                data-track="demo_click"
                 className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-brand-ink underline-offset-4 hover:underline"
               >
                 {t("home.demo")} <ArrowRight className="size-4" />
@@ -462,6 +475,7 @@ function Landing() {
               <Link
                 to="/auth"
                 search={REGISTER}
+                data-track="cta_final"
                 className="inline-flex h-12 items-center justify-center rounded-full bg-white px-7 text-base font-bold text-brand-ink shadow-sm transition-transform active:scale-[0.98]"
               >
                 {t("home.cta.create")}
@@ -496,7 +510,7 @@ function HeroActions({ inApp }: { inApp: boolean }) {
       <>
         <div className="mx-auto mt-8 flex max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center lg:justify-start">
           <Button asChild size="lg" variant="brand" className="rounded-full">
-            <Link to="/auth" search={REGISTER}>
+            <Link to="/auth" search={REGISTER} data-track="cta_hero">
               {t("home.cta.create")}
             </Link>
           </Button>
@@ -509,6 +523,7 @@ function HeroActions({ inApp }: { inApp: boolean }) {
         {!inApp && (
           <Link
             to="/beta"
+            data-track="beta_click"
             className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-brand-ink underline-offset-4 hover:underline"
           >
             <PlayMark className="size-4" />
@@ -525,6 +540,7 @@ function HeroActions({ inApp }: { inApp: boolean }) {
           href={PLAY_STORE_URL}
           target="_blank"
           rel="noreferrer"
+          data-track="play_click"
           aria-label={t("home.cta.play")}
           className="inline-flex h-12 items-center justify-center gap-3 rounded-full bg-foreground px-6 text-background shadow-sm transition-transform active:scale-[0.98] sm:min-w-56"
         >
@@ -793,7 +809,7 @@ function StickyStart() {
       )}
     >
       <Button asChild size="lg" variant="brand" className="w-full">
-        <Link to="/auth" search={REGISTER}>
+        <Link to="/auth" search={REGISTER} data-track="cta_sticky">
           {t("home.cta.create")}
         </Link>
       </Button>
@@ -878,7 +894,7 @@ function PlanCard({
         </p>
       )}
       <Button asChild size="lg" variant={pro ? "default" : "outline"} className="mt-7">
-        <Link to="/auth" search={REGISTER}>
+        <Link to="/auth" search={REGISTER} data-track="cta_pricing">
           {t(pro ? "home.cta.start" : "home.cta.create")}
         </Link>
       </Button>

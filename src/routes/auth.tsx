@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { usePrefs } from "@/lib/prefs";
 import { LegalLinks } from "@/components/legal-page";
 import { TrialIncludes } from "@/components/trial-includes";
+import { trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -136,8 +137,14 @@ function AuthPage() {
             setEmail={setEmail}
             redirectTo={redirectTo}
             onLogin={() => setMode("login")}
-            onSent={() => setMode("verify")}
-            onDone={() => goAfterAuth("/onboarding")}
+            onSent={() => {
+              trackEvent("signup_code_sent");
+              setMode("verify");
+            }}
+            onDone={() => {
+              trackEvent("signup_completed");
+              goAfterAuth("/onboarding");
+            }}
           />
           {/* What the 14 free days include, and what only the paid Pro has (as in the Terms). */}
           <TrialIncludes compact className="mt-6 rounded-2xl border border-border p-4" />
@@ -148,7 +155,10 @@ function AuthPage() {
           email={email}
           redirectTo={redirectTo}
           onChangeEmail={() => setMode("register")}
-          onDone={() => goAfterAuth("/onboarding")}
+          onDone={() => {
+            trackEvent("signup_completed");
+            goAfterAuth("/onboarding");
+          }}
         />
       )}
       {mode === "forgot" && (
