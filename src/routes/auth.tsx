@@ -44,13 +44,9 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-const PASSWORD_RULES = [
-  { label: "onb.auth.rule.min", test: (v: string) => v.length >= 8 },
-  { label: "onb.auth.rule.upper", test: (v: string) => /[A-Z]/.test(v) },
-  { label: "onb.auth.rule.lower", test: (v: string) => /[a-z]/.test(v) },
-  { label: "onb.auth.rule.number", test: (v: string) => /[0-9]/.test(v) },
-  { label: "onb.auth.rule.symbol", test: (v: string) => /[^A-Za-z0-9]/.test(v) },
-];
+// One simple rule: long enough (easy to remember, hard to guess). Passwords from known data
+// breaches are refused separately (isBreachedPassword), which matters more than symbols.
+const PASSWORD_RULES = [{ label: "onb.auth.rule.min", test: (v: string) => v.length >= 10 }];
 const emailSchema = z.string().trim().email().max(255);
 /** Length of the confirmation code in the email (Supabase default). */
 const CODE_LENGTH = 6;

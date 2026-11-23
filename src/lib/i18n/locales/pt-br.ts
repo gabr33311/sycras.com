@@ -764,7 +764,7 @@ export const ptBR: Record<string, string> = {
   "onb.auth.err.password.number": "A senha precisa de um número.",
   "onb.auth.err.password.symbol": "A senha precisa de um símbolo (ex.: !?@#).",
   "onb.auth.err.email": "Digite um e-mail válido.",
-  "onb.auth.rule.min": "Pelo menos 8 caracteres",
+  "onb.auth.rule.min": "Pelo menos 10 caracteres",
   "onb.auth.rule.upper": "Uma letra maiúscula",
   "onb.auth.rule.lower": "Uma letra minúscula",
   "onb.auth.rule.number": "Um número",

@@ -773,7 +773,7 @@ export const fr: Record<string, string> = {
   "onb.auth.err.password.number": "Le mot de passe doit contenir un chiffre.",
   "onb.auth.err.password.symbol": "Le mot de passe doit contenir un symbole (ex. : !?@#).",
   "onb.auth.err.email": "Saisissez un e-mail valide.",
-  "onb.auth.rule.min": "Au moins 8 caractères",
+  "onb.auth.rule.min": "Au moins 10 caractères",
   "onb.auth.rule.upper": "Une majuscule",
   "onb.auth.rule.lower": "Une minuscule",
   "onb.auth.rule.number": "Un chiffre",

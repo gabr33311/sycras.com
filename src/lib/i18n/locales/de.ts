@@ -771,7 +771,7 @@ export const de: Record<string, string> = {
   "onb.auth.err.password.number": "Das Passwort braucht eine Zahl.",
   "onb.auth.err.password.symbol": "Das Passwort braucht ein Sonderzeichen (z. B. !?@#).",
   "onb.auth.err.email": "Gib eine gültige E-Mail ein.",
-  "onb.auth.rule.min": "Mindestens 8 Zeichen",
+  "onb.auth.rule.min": "Mindestens 10 Zeichen",
   "onb.auth.rule.upper": "Ein Großbuchstabe",
   "onb.auth.rule.lower": "Ein Kleinbuchstabe",
   "onb.auth.rule.number": "Eine Zahl",

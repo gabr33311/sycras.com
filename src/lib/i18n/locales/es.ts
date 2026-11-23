@@ -763,7 +763,7 @@ export const es: Record<string, string> = {
   "onb.auth.err.password.number": "La contraseña necesita un número.",
   "onb.auth.err.password.symbol": "La contraseña necesita un símbolo (p. ej.: !?@#).",
   "onb.auth.err.email": "Introduce un email válido.",
-  "onb.auth.rule.min": "Al menos 8 caracteres",
+  "onb.auth.rule.min": "Al menos 10 caracteres",
   "onb.auth.rule.upper": "Una mayúscula",
   "onb.auth.rule.lower": "Una minúscula",
   "onb.auth.rule.number": "Un número",

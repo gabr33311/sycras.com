@@ -29,8 +29,8 @@ const COPY = {
     newPass: "Nova palavra-passe",
     confirm: "Confirmar palavra-passe",
     submit: "Guardar palavra-passe",
-    rules: "Mínimo 8 caracteres, com maiúscula, minúscula e número.",
-    weak: "A palavra-passe tem de ter 8 caracteres, maiúscula, minúscula e número.",
+    rules: "Mínimo 10 caracteres.",
+    weak: "A palavra-passe tem de ter pelo menos 10 caracteres.",
     breached: "Esta palavra-passe apareceu em fugas de dados de outros sites. Escolhe outra.",
     mismatch: "As palavras-passe não coincidem.",
     noSession: "Link inválido ou expirado. Pede um novo email de reposição.",
@@ -44,8 +44,8 @@ const COPY = {
     newPass: "New password",
     confirm: "Confirm password",
     submit: "Save password",
-    rules: "At least 8 characters, with uppercase, lowercase and a number.",
-    weak: "Password needs 8 characters, uppercase, lowercase and a number.",
+    rules: "At least 10 characters.",
+    weak: "Password needs at least 10 characters.",
     breached: "This password appeared in data breaches on other sites. Choose another one.",
     mismatch: "Passwords do not match.",
     noSession: "Invalid or expired link. Request a new reset email.",
@@ -59,8 +59,8 @@ const COPY = {
     newPass: "Nova senha",
     confirm: "Confirmar senha",
     submit: "Salvar senha",
-    rules: "Mínimo de 8 caracteres, com maiúscula, minúscula e número.",
-    weak: "A senha precisa ter 8 caracteres, maiúscula, minúscula e número.",
+    rules: "Mínimo de 10 caracteres.",
+    weak: "A senha precisa ter pelo menos 10 caracteres.",
     breached: "Esta senha apareceu em vazamentos de dados de outros sites. Escolha outra.",
     mismatch: "As senhas não coincidem.",
     noSession: "Link inválido ou expirado. Peça um novo e-mail de redefinição.",
@@ -74,8 +74,8 @@ const COPY = {
     newPass: "Nueva contraseña",
     confirm: "Confirmar contraseña",
     submit: "Guardar contraseña",
-    rules: "Mínimo 8 caracteres, con mayúscula, minúscula y número.",
-    weak: "La contraseña debe tener 8 caracteres, mayúscula, minúscula y número.",
+    rules: "Mínimo 10 caracteres.",
+    weak: "La contraseña debe tener al menos 10 caracteres.",
     breached: "Esta contraseña apareció en filtraciones de datos de otros sitios. Elige otra.",
     mismatch: "Las contraseñas no coinciden.",
     noSession: "Enlace no válido o caducado. Pide un nuevo email de recuperación.",
@@ -89,9 +89,10 @@ const COPY = {
     newPass: "Nouveau mot de passe",
     confirm: "Confirmer le mot de passe",
     submit: "Enregistrer le mot de passe",
-    rules: "8 caractères minimum, avec majuscule, minuscule et chiffre.",
-    weak: "Le mot de passe doit contenir 8 caractères, une majuscule, une minuscule et un chiffre.",
-    breached: "Ce mot de passe est apparu dans des fuites de données d'autres sites. Choisissez-en un autre.",
+    rules: "10 caractères minimum.",
+    weak: "Le mot de passe doit contenir au moins 10 caractères.",
+    breached:
+      "Ce mot de passe est apparu dans des fuites de données d'autres sites. Choisissez-en un autre.",
     mismatch: "Les mots de passe ne correspondent pas.",
     noSession: "Lien invalide ou expiré. Demandez un nouvel e-mail de réinitialisation.",
     done: "Mot de passe mis à jour.",
@@ -104,8 +105,8 @@ const COPY = {
     newPass: "Nuova password",
     confirm: "Conferma password",
     submit: "Salva password",
-    rules: "Minimo 8 caratteri, con maiuscola, minuscola e numero.",
-    weak: "La password deve avere 8 caratteri, una maiuscola, una minuscola e un numero.",
+    rules: "Minimo 10 caratteri.",
+    weak: "La password deve avere almeno 10 caratteri.",
     breached: "Questa password è comparsa in fughe di dati di altri siti. Scegline un'altra.",
     mismatch: "Le password non coincidono.",
     noSession: "Link non valido o scaduto. Richiedi una nuova email di reimpostazione.",
@@ -119,8 +120,8 @@ const COPY = {
     newPass: "Neues Passwort",
     confirm: "Passwort bestätigen",
     submit: "Passwort speichern",
-    rules: "Mindestens 8 Zeichen, mit Groß- und Kleinbuchstaben und einer Zahl.",
-    weak: "Das Passwort braucht 8 Zeichen, Groß- und Kleinbuchstaben und eine Zahl.",
+    rules: "Mindestens 10 Zeichen.",
+    weak: "Das Passwort braucht mindestens 10 Zeichen.",
     breached: "Dieses Passwort tauchte in Datenlecks anderer Seiten auf. Wähle ein anderes.",
     mismatch: "Die Passwörter stimmen nicht überein.",
     noSession: "Ungültiger oder abgelaufener Link. Fordere eine neue E-Mail zum Zurücksetzen an.",
@@ -131,7 +132,7 @@ const COPY = {
 } as const;
 
 function strong(v: string) {
-  return v.length >= 8 && /[A-Z]/.test(v) && /[a-z]/.test(v) && /[0-9]/.test(v);
+  return v.length >= 10;
 }
 
 function ResetPasswordPage() {
