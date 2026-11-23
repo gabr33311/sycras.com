@@ -22,7 +22,6 @@ const SIGN_IN = { mode: undefined, next: undefined } as const;
 
 /** The homepage sections, in the order of the menu. */
 export const LANDING_NAV = [
-  { href: "#como-funciona", key: "lp.nav.how" },
   { href: "#funcionalidades", key: "home.nav.features" },
   { href: "#precos", key: "home.nav.pricing" },
   { href: "#perguntas", key: "home.nav.faq" },
@@ -223,6 +222,72 @@ export function NoShowCalculator({
         </p>
       </div>
     </section>
+  );
+}
+
+/** The same calculator as a card, to sit next to the price (no section of its own). */
+export function CalculatorCard() {
+  const { t } = usePrefs();
+  const [noShows, setNoShows] = useState(4);
+  const [price, setPrice] = useState(15);
+  const lost = noShows * price;
+  return (
+    <div className="flex h-full flex-col rounded-3xl bg-card p-6 shadow-[var(--shadow-soft)] sm:p-8">
+      <h3 className="text-lg font-bold">{t("lp.calc.title")}</h3>
+      <p className="mt-1 text-sm font-medium text-muted-foreground">{t("lp.calc.sub")}</p>
+      <div className="mt-5 space-y-3">
+        <Range
+          label={t("lp.calc.noshows")}
+          value={noShows}
+          min={0}
+          max={30}
+          step={1}
+          onChange={setNoShows}
+          show={String(noShows)}
+        />
+        <Range
+          label={t("lp.calc.price")}
+          value={price}
+          min={5}
+          max={150}
+          step={5}
+          onChange={setPrice}
+          show={euro(price)}
+        />
+      </div>
+      <div className="mt-5 rounded-2xl bg-foreground p-5 text-center text-background">
+        <p className="text-[11px] font-bold uppercase tracking-[0.16em] opacity-70">
+          {t("lp.calc.lost")}
+        </p>
+        <p className="mt-1 text-4xl font-bold tabular-nums tracking-[-0.03em]" aria-live="polite">
+          {euro(lost)}
+        </p>
+        <p className="mt-1 text-sm font-semibold opacity-80">
+          {t("lp.calc.year").replace("{x}", euro(lost * 12))}
+        </p>
+      </div>
+      <p className="mt-4 text-sm font-medium leading-relaxed text-muted-foreground">
+        {t("lp.calc.pro")}
+      </p>
+    </div>
+  );
+}
+
+/** The kinds of business, as one row of small chips (under the hero). */
+export function WhoChips() {
+  const { t } = usePrefs();
+  return (
+    <ul className="flex flex-wrap justify-center gap-2 lg:justify-start">
+      {WHO.map((w) => (
+        <li
+          key={w.key}
+          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[13px] font-semibold"
+        >
+          <w.icon className="size-3.5 text-brand-ink" />
+          {t(w.key)}
+        </li>
+      ))}
+    </ul>
   );
 }
 
