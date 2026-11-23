@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
+import { PrefsToggles } from "@/components/prefs-toggles";
 import { Button } from "@/components/ui/button";
 import { usePrefs } from "@/lib/prefs";
 import { cn } from "@/lib/utils";
@@ -58,7 +59,7 @@ export function MobileMenu() {
             {LANDING_NAV.map((l) => (
               <li key={l.href}>
                 <a
-                  href={l.href}
+                  href={l.href.replace("#", "#m-")}
                   onClick={() => setOpen(false)}
                   className="flex h-12 items-center border-b border-border/60 text-base font-bold"
                 >
@@ -67,6 +68,10 @@ export function MobileMenu() {
               </li>
             ))}
           </ul>
+          <div className="mt-3 flex items-center justify-between border-b border-border/60 pb-3">
+            <span className="text-sm font-semibold text-muted-foreground">{t("lp.nav.prefs")}</span>
+            <PrefsToggles />
+          </div>
           <div className="mt-4 grid grid-cols-2 gap-2">
             <Button asChild variant="outline" size="lg" className="rounded-full">
               <Link to="/auth" search={SIGN_IN}>
@@ -226,14 +231,19 @@ export function NoShowCalculator({
 }
 
 /** The same calculator as a card, to sit next to the price (no section of its own). */
-export function CalculatorCard() {
+export function CalculatorCard({ bare = false }: { bare?: boolean }) {
   const { t } = usePrefs();
   const [noShows, setNoShows] = useState(4);
   const [price, setPrice] = useState(15);
   const lost = noShows * price;
   return (
-    <div className="flex h-full flex-col rounded-3xl bg-card p-6 shadow-[var(--shadow-soft)] sm:p-8">
-      <h3 className="text-lg font-bold">{t("lp.calc.title")}</h3>
+    <div
+      className={cn(
+        "flex h-full flex-col",
+        bare ? "px-5 pb-5" : "rounded-3xl bg-card p-6 shadow-[var(--shadow-soft)] sm:p-8",
+      )}
+    >
+      {!bare && <h3 className="text-lg font-bold">{t("lp.calc.title")}</h3>}
       <p className="mt-1 text-sm font-medium text-muted-foreground">{t("lp.calc.sub")}</p>
       <div className="mt-5 space-y-3">
         <Range
@@ -274,14 +284,20 @@ export function CalculatorCard() {
 }
 
 /** The kinds of business, as one row of small chips (under the hero). */
-export function WhoChips() {
+export function WhoChips({ wrap = false }: { wrap?: boolean }) {
   const { t } = usePrefs();
   return (
-    <ul className="flex flex-wrap justify-center gap-2 lg:justify-start">
+    <ul
+      className={cn(
+        wrap
+          ? "flex flex-wrap justify-center gap-2"
+          : "-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 lg:justify-start",
+      )}
+    >
       {WHO.map((w) => (
         <li
           key={w.key}
-          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[13px] font-semibold"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[13px] font-semibold"
         >
           <w.icon className="size-3.5 text-brand-ink" />
           {t(w.key)}
@@ -377,27 +393,27 @@ export function FounderNote() {
 }
 
 /** The footer: three short columns and the year. No owner details here (only in the legal pages). */
-export function SiteFooter() {
+export function SiteFooter({ anchor = "#" }: { anchor?: string }) {
   const { t } = usePrefs();
   const head = "text-[11px] font-bold uppercase tracking-[0.16em] text-foreground";
   const link = "underline-offset-4 hover:text-foreground hover:underline";
   return (
     <footer className="border-t border-border pb-28 md:pb-0">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 text-sm font-medium text-muted-foreground sm:grid-cols-2 sm:px-6 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 text-center text-sm font-medium text-muted-foreground sm:grid-cols-2 sm:px-6 sm:text-left lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>
           <span className="font-bold tracking-[0.14em] text-foreground">SYCRAS</span>
-          <p className="mt-2 max-w-xs">{t("home.footer")}</p>
+          <p className="mx-auto mt-2 max-w-xs sm:mx-0">{t("home.footer")}</p>
         </div>
         <div>
           <p className={head}>{t("lp.foot.product")}</p>
           <ul className="mt-3 space-y-2.5">
             <li>
-              <a href="#funcionalidades" className={link}>
+              <a href={`${anchor}funcionalidades`} className={link}>
                 {t("home.nav.features")}
               </a>
             </li>
             <li>
-              <a href="#precos" className={link}>
+              <a href={`${anchor}precos`} className={link}>
                 {t("home.nav.pricing")}
               </a>
             </li>
@@ -417,7 +433,7 @@ export function SiteFooter() {
           <p className={head}>{t("lp.foot.help")}</p>
           <ul className="mt-3 space-y-2.5">
             <li>
-              <a href="#perguntas" className={link}>
+              <a href={`${anchor}perguntas`} className={link}>
                 {t("home.nav.faq")}
               </a>
             </li>
@@ -470,7 +486,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-border">
-        <p className="mx-auto max-w-6xl px-4 py-5 text-xs font-medium text-muted-foreground sm:px-6">
+        <p className="mx-auto max-w-6xl px-4 py-5 text-center text-xs font-medium text-muted-foreground sm:px-6 sm:text-left">
           © {new Date().getFullYear()} SYCRAS
         </p>
       </div>

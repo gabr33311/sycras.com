@@ -33,7 +33,7 @@ export function Phone({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-[2.2rem] border-[7px] border-neutral-900 bg-neutral-900 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.45)] dark:border-neutral-700",
+        "overflow-hidden rounded-[1.5rem] border-[5px] border-neutral-900 bg-neutral-900 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.45)] dark:border-neutral-700",
         className,
       )}
     >
@@ -45,7 +45,7 @@ export function Phone({
         loading={eager ? "eager" : "lazy"}
         fetchPriority={eager ? "high" : "auto"}
         decoding="async"
-        className="block h-auto w-full rounded-[1.7rem]"
+        className="block h-auto w-full rounded-[1.15rem]"
       />
     </div>
   );
@@ -155,7 +155,9 @@ function RemindersVisual() {
   );
 }
 
-type Tab = {
+export type Tab = {
+  /** The screenshot, when the visual is a phone (the phone pages size it themselves). */
+  shot?: string;
   id: string;
   icon: typeof Sun;
   /** Prefix of the texts: `${key}.kicker`, `.title`, `.body`, `.1`…`.3`. */
@@ -173,15 +175,17 @@ const phone = (src: string) => () => (
  * All the features in one block: a row of tabs and, for each, a short text and the real screen.
  * Replaces the long list of sections (one screen of scroll instead of ten).
  */
-export function FeatureTabs({ demoSlug }: { demoSlug: string }) {
+export function useFeatures(demoSlug: string): Tab[] {
   const { t } = usePrefs();
-  const tabs: Tab[] = [
+  return [
     {
       id: "pagina",
       icon: Globe,
       key: "lp.share",
       points: 3,
       visual: () => <BrowserShot />,
+      // Phones show the page as clients see it on their phone.
+      shot: "/landing/v2/pagina.webp",
       extra: (
         <Link
           to="/$slug"
@@ -199,6 +203,7 @@ export function FeatureTabs({ demoSlug }: { demoSlug: string }) {
       key: "lp.agenda",
       points: 3,
       visual: phone("/landing/v2/agenda.webp"),
+      shot: "/landing/v2/agenda.webp",
     },
     {
       id: "clientes",
@@ -206,6 +211,7 @@ export function FeatureTabs({ demoSlug }: { demoSlug: string }) {
       key: "lp.clients",
       points: 3,
       visual: phone("/landing/v2/cliente.webp"),
+      shot: "/landing/v2/cliente.webp",
     },
     {
       id: "lembretes",
@@ -221,8 +227,14 @@ export function FeatureTabs({ demoSlug }: { demoSlug: string }) {
       key: "lp.stats",
       points: 2,
       visual: phone("/landing/v2/estatisticas.webp"),
+      shot: "/landing/v2/estatisticas.webp",
     },
   ];
+}
+
+export function FeatureTabs({ demoSlug }: { demoSlug: string }) {
+  const { t } = usePrefs();
+  const tabs = useFeatures(demoSlug);
   const [active, setActive] = useState(tabs[0]!.id);
   const tab = tabs.find((x) => x.id === active) ?? tabs[0]!;
 
@@ -291,6 +303,74 @@ export function FeatureTabs({ demoSlug }: { demoSlug: string }) {
           </ul>
           {tab.extra}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Phones: the same features as cards that slide sideways with a finger (like stories),
+ * each with the real screen on top and two short lines. The dots say where you are.
+ */
+export function FeatureCarousel({ demoSlug }: { demoSlug: string }) {
+  const { t } = usePrefs();
+  const items = useFeatures(demoSlug);
+  const [index, setIndex] = useState(0);
+  return (
+    <div>
+      <div
+        className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none]"
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          const card = el.firstElementChild as HTMLElement | null;
+          if (!card) return;
+          setIndex(Math.round(el.scrollLeft / (card.offsetWidth + 12)));
+        }}
+      >
+        {items.map((x) => (
+          <article
+            key={x.id}
+            className="w-[84%] shrink-0 snap-center overflow-hidden rounded-3xl border border-border bg-card"
+          >
+            <div className="relative flex h-[300px] items-start justify-center overflow-hidden bg-muted/60 px-4 pt-5">
+              <div className="w-full">{x.visual()}</div>
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card to-transparent"
+              />
+            </div>
+            <div className="p-5 pt-3">
+              <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-brand-ink">
+                <x.icon className="size-3.5" />
+                {t(`${x.key}.kicker`).split("·").pop()?.trim()}
+              </p>
+              <h3 className="mt-2 text-xl font-bold leading-snug">{t(`${x.key}.title`)}</h3>
+              <ul className="mt-3 space-y-2">
+                {[1, 2].map((n) => (
+                  <li
+                    key={n}
+                    className="flex items-start gap-2 text-sm font-medium leading-snug text-muted-foreground"
+                  >
+                    <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-brand" />
+                    {t(`${x.key}.${n}`)}
+                  </li>
+                ))}
+              </ul>
+              {x.extra}
+            </div>
+          </article>
+        ))}
+      </div>
+      <div className="mt-4 flex justify-center gap-1.5" aria-hidden>
+        {items.map((x, i) => (
+          <span
+            key={x.id}
+            className={cn(
+              "h-1.5 rounded-full transition-all duration-300",
+              i === index ? "w-5 bg-foreground" : "w-1.5 bg-border",
+            )}
+          />
+        ))}
       </div>
     </div>
   );

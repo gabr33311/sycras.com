@@ -1417,3 +1417,34 @@ select,
     scroll-behavior: smooth;
   }
 }
+
+/* Phones, homepage: full-screen pages that snap into place one swipe at a time (like TikTok).
+   The sticky header (4rem) is left out of each page. */
+@media (max-width: 767.98px) {
+  html:has(.snap-page) {
+    scroll-snap-type: y mandatory;
+    /* No rubber-band bounce at the ends, so the page never jumps back. */
+    overscroll-behavior-y: none;
+    scroll-padding-top: 4rem;
+  }
+  .snap-page {
+    scroll-snap-align: start;
+    /* One swipe = one page, however hard or fast the swipe: never skip a page. */
+    scroll-snap-stop: always;
+  }
+}
+
+/* Phone homepage: each full-screen page enters like the menu (fade up), one line after another,
+   every time it comes into view. Only once the script is running (data-anim), so the page is
+   never blank before that. */
+[data-anim] [data-page] > * {
+  opacity: 0;
+}
+[data-anim] [data-page][data-shown] > * {
+  animation: app-fade-up 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+[data-anim] [data-page][data-shown] > :nth-child(2) { animation-delay: 50ms; }
+[data-anim] [data-page][data-shown] > :nth-child(3) { animation-delay: 100ms; }
+[data-anim] [data-page][data-shown] > :nth-child(4) { animation-delay: 150ms; }
+[data-anim] [data-page][data-shown] > :nth-child(5) { animation-delay: 200ms; }
+[data-anim] [data-page][data-shown] > :nth-child(n + 6) { animation-delay: 250ms; }
