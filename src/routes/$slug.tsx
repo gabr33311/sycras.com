@@ -12,6 +12,7 @@ import {
   getAvailableSlots,
   createPublicBooking,
   isPagePaused,
+  joinWaitlist,
 } from "@/lib/booking.functions";
 import { trackPageView } from "@/lib/analytics.functions";
 import { maskPhonePt } from "@/lib/phone";
@@ -843,6 +844,15 @@ function BookPage() {
                         <CalendarDays className="size-5 text-muted-foreground" />
                         <p className="text-sm font-bold">{t("bk.noSlots.title")}</p>
                         <p className="text-sm text-muted-foreground">{t("bk.noSlots.body")}</p>
+                        {serviceId && (
+                          <WaitlistForm
+                            key={`${serviceId}-${staffId ?? ""}-${date}`}
+                            businessId={business.id}
+                            serviceId={serviceId}
+                            staffId={staffId}
+                            date={date}
+                          />
+                        )}
                         <button
                           type="button"
                           onClick={() => {
@@ -1662,5 +1672,81 @@ function SlotGroup({
         ))}
       </div>
     </div>
+  );
+}
+
+/**
+ * On a full day: "tell me if a time opens". Only an email; one message when it happens,
+ * nothing else (see waitlist.server.ts).
+ */
+function WaitlistForm({
+  businessId,
+  serviceId,
+  staffId,
+  date,
+}: {
+  businessId: string;
+  serviceId: string;
+  staffId: string | null;
+  date: string;
+}) {
+  const { t } = usePrefs();
+  const [email, setEmail] = useState("");
+  const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  if (state === "done") {
+    return (
+      <p className="mt-2 rounded-xl bg-muted px-4 py-3 text-sm font-semibold" role="status">
+        {t("bk.wait.done")}
+      </p>
+    );
+  }
+  return (
+    <form
+      className="mt-3 w-full max-w-sm space-y-2 text-left"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        if (!/^S+@S+.S+$/.test(email.trim())) {
+          setState("error");
+          return;
+        }
+        setState("sending");
+        try {
+          const res = await joinWaitlist({
+            data: { businessId, serviceId, staffId, date, email: email.trim() },
+          });
+          setState(res.ok ? "done" : "error");
+        } catch {
+          setState("error");
+        }
+      }}
+    >
+      <Label htmlFor="wait-email" className="text-sm font-bold">
+        {t("bk.wait.title")}
+      </Label>
+      <div className="flex gap-2">
+        <Input
+          id="wait-email"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          placeholder={t("bk.wait.placeholder")}
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (state === "error") setState("idle");
+          }}
+          className="h-11"
+        />
+        <Button type="submit" className="h-11 shrink-0 rounded-xl" disabled={state === "sending"}>
+          {t("bk.wait.cta")}
+        </Button>
+      </div>
+      {state === "error" && (
+        <p className="text-xs font-semibold text-destructive" role="alert">
+          {t("bk.wait.error")}
+        </p>
+      )}
+      <p className="text-xs text-muted-foreground">{t("bk.wait.note")}</p>
+    </form>
   );
 }

@@ -71,6 +71,10 @@ function PrivacyPage() {
           <li>
             Marcações (serviço, data, hora, estado) e notas que o cliente ou o negócio escrevam.
           </li>
+          <li>
+            Lista de espera: o email de quem pede para ser avisado quando abrir uma vaga num dia
+            cheio, com o dia e o serviço. Serve só para enviar esse aviso, uma vez.
+          </li>
         </ul>
         <p>
           <strong>Dados técnicos:</strong> para evitar abusos (por exemplo, marcações falsas em
@@ -192,6 +196,7 @@ function PrivacyPage() {
             Códigos de confirmação enviados por email antes de uma marcação: válidos 10 minutos e
             apagados no dia seguinte.
           </li>
+          <li>Lista de espera: apagada quando o dia em causa passa.</li>
         </ul>
       </section>
 

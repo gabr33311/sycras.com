@@ -31,7 +31,19 @@ export const Route = createFileRoute("/api/cron/reminders")({
             console.error("[cron reminders] deposit sweep failed", e);
             return 0;
           });
-          return Response.json({ ...email, whatsapp: whatsapp.sent, holds, refunds });
+          // A day that was full got a free time: tell whoever asked to be told.
+          const { notifyWaitlist } = await import("@/lib/waitlist.server");
+          const waitlist = await notifyWaitlist().catch((e) => {
+            console.error("[cron reminders] waitlist failed", e);
+            return { notified: 0 };
+          });
+          return Response.json({
+            ...email,
+            whatsapp: whatsapp.sent,
+            holds,
+            refunds,
+            waitlist: waitlist.notified,
+          });
         } catch (e) {
           console.error("[cron reminders] failed", e);
           return Response.json({ error: "Failed" }, { status: 500 });

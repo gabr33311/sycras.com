@@ -109,6 +109,30 @@ export const getAvailableSlots = createServerFn({ method: "GET" })
     return slots.map((s) => ({ time: s.time }));
   });
 
+const waitlistSchema = z.object({
+  businessId: z.string().uuid(),
+  serviceId: z.string().uuid(),
+  staffId: z.string().uuid().nullable(),
+  date: z.string().regex(/^d{4}-d{2}-d{2}$/),
+  email: z.string().trim().email().max(160),
+});
+
+/** "Tell me if a time opens": the client's email for one full day. */
+export const joinWaitlist = createServerFn({ method: "POST" })
+  .validator((d: unknown) => waitlistSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { hashIp } = await import("./booking.server");
+    const { joinWaitlist: join } = await import("./waitlist.server");
+    return join({
+      businessId: data.businessId,
+      serviceId: data.serviceId,
+      staffId: data.staffId,
+      day: data.date,
+      email: data.email,
+      ipHash: await hashIp(clientIp()),
+    });
+  });
+
 export const createPublicBooking = createServerFn({ method: "POST" })
   .validator((d: unknown) => bookingSchema.parse(d))
   .handler(async ({ data }) => {
