@@ -23,8 +23,8 @@ export function Entity({ withNif = false }: { withNif?: boolean }) {
     <>
       <Fill value={LEGAL.entity} label="nome do responsável" />
       {withNif && LEGAL.nif ? `, NIF ${LEGAL.nif}` : ""}
-      {", com morada em "}
-      <Fill value={LEGAL.address} label="PREENCHER: morada" />
+      {/* The address only once there is one (LEGAL.address); never a placeholder on the live site. */}
+      {LEGAL.address ? `, com morada em ${LEGAL.address}` : ""}
     </>
   );
 }
