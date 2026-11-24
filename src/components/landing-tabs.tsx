@@ -13,7 +13,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { usePrefs } from "@/lib/prefs";
 import { cn } from "@/lib/utils";
@@ -47,6 +47,53 @@ export function Phone({
         decoding="async"
         className="block h-auto w-full rounded-[1.15rem]"
       />
+    </div>
+  );
+}
+
+/**
+ * 14 seconds of the real app (a booking confirmed, the agenda, a new booking), silent and looping.
+ * People who asked for less motion see the still picture instead.
+ */
+export function AppVideo({ className, label }: { className?: string; label: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      v.pause();
+      return;
+    }
+    void v.play().catch(() => {});
+  }, []);
+  return (
+    <video
+      ref={ref}
+      src="/landing/v2/app.mp4"
+      poster="/landing/v2/app-poster.webp"
+      width={480}
+      height={994}
+      muted
+      loop
+      playsInline
+      autoPlay
+      preload="metadata"
+      aria-label={label}
+      className={className}
+    />
+  );
+}
+
+/** The video inside the same phone frame as the screenshots. */
+export function PhoneVideo({ label, className }: { label: string; className?: string }) {
+  return (
+    <div
+      className={cn(
+        "overflow-hidden rounded-[1.5rem] border-[5px] border-neutral-900 bg-neutral-900 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.45)] dark:border-neutral-700",
+        className,
+      )}
+    >
+      <AppVideo label={label} className="block h-auto w-full rounded-[1.15rem]" />
     </div>
   );
 }

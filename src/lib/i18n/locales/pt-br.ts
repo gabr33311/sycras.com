@@ -21,6 +21,7 @@ export const ptBR: Record<string, string> = {
   "ui.notFound.body": "A página que você procura não existe ou foi movida.",
   "ui.notFound.goHome": "Voltar ao início",
   "ui.notFound.create": "Criar minha página",
+  "lp.try": "Experimente como cliente",
   "lp.price.month": "/mês",
   "lp.price.trial": "Primeiro, 14 dias grátis · sem cartão",
   "lp.price.note.m": "Cancele quando quiser.",

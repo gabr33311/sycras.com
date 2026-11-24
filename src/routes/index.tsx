@@ -24,7 +24,7 @@ import {
   Testimonials,
   WhoChips,
 } from "@/components/landing-sections";
-import { FeatureTabs, Phone } from "@/components/landing-tabs";
+import { FeatureTabs, Phone, PhoneVideo } from "@/components/landing-tabs";
 import { MobileLanding } from "@/components/landing-mobile";
 import { APP_ON_PLAY, inNativeShell, PLAY_STORE_URL } from "@/lib/app-store";
 import { DICT } from "@/lib/prefs-dict";
@@ -177,7 +177,7 @@ function Landing() {
                 (never over the screen); on phones they sit under it, side by side. */}
               <div className="mx-auto w-full max-w-[290px] sm:max-w-[300px] lg:max-w-[330px]">
                 <div className="relative max-h-[430px] overflow-hidden sm:max-h-none sm:overflow-visible">
-                  <Phone src="/landing/v2/diario.webp" alt={t("lp.diario.title")} eager />
+                  <PhoneVideo label={t("lp.diario.title")} />
                   <div
                     aria-hidden
                     className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background to-transparent sm:hidden"
@@ -369,8 +369,8 @@ function HeroActions({ inApp }: { inApp: boolean }) {
             variant="outline"
             className="hidden rounded-full sm:inline-flex"
           >
-            <Link to="/auth" search={SIGN_IN}>
-              {t("home.cta.have")}
+            <Link to="/$slug" params={{ slug: DEMO_SLUG }} data-track="demo_hero">
+              {t("lp.try")}
             </Link>
           </Button>
         </div>

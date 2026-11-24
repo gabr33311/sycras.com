@@ -21,6 +21,7 @@ export const fr: Record<string, string> = {
   "ui.notFound.body": "La page que vous cherchez n’existe pas ou a été déplacée.",
   "ui.notFound.goHome": "Retour à l’accueil",
   "ui.notFound.create": "Créer ma page",
+  "lp.try": "Essaie en tant que client",
   "lp.price.month": "/mois",
   "lp.price.trial": "D'abord 14 jours gratuits · sans carte",
   "lp.price.note.m": "Résiliable à tout moment.",

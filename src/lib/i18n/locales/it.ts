@@ -21,6 +21,7 @@ export const it: Record<string, string> = {
   "ui.notFound.body": "La pagina che cerchi non esiste o è stata spostata.",
   "ui.notFound.goHome": "Torna alla home",
   "ui.notFound.create": "Crea la mia pagina",
+  "lp.try": "Provalo come cliente",
   "lp.price.month": "/mese",
   "lp.price.trial": "Prima 14 giorni gratis · senza carta",
   "lp.price.note.m": "Disdici quando vuoi.",

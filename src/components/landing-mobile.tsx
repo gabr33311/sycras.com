@@ -14,7 +14,7 @@ import {
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { BillingToggle, CalculatorCard } from "@/components/landing-sections";
-import { useFeatures } from "@/components/landing-tabs";
+import { AppVideo, useFeatures } from "@/components/landing-tabs";
 import { PlayMark } from "@/components/play-mark";
 import { TrialIncludes } from "@/components/trial-includes";
 import {
@@ -122,7 +122,10 @@ function Trio() {
         className={cn(frame, "left-1/2 z-10 h-[94%] -translate-x-1/2 -translate-y-1/2")}
         style={{ aspectRatio: "640 / 1327" }}
       >
-        {img("/landing/v2/diario.webp", t("lp.diario.title"))}
+        <AppVideo
+          label={t("lp.diario.title")}
+          className="block h-full w-full rounded-[0.7rem] object-cover object-top"
+        />
       </div>
     </div>
   );
@@ -270,7 +273,15 @@ export function MobileLanding({
             {t("home.cta.create")}
           </Link>
         </Button>
-        <ul className="mt-2.5 flex flex-wrap justify-center gap-x-3 gap-y-1 text-[12px] font-semibold text-muted-foreground">
+        <Link
+          to="/$slug"
+          params={{ slug: "exemplo" }}
+          data-track="demo_hero"
+          className="mt-2 inline-flex shrink-0 items-center gap-1 text-[14px] font-bold text-brand-ink"
+        >
+          {t("lp.try")} →
+        </Link>
+        <ul className="mt-2 flex flex-wrap justify-center gap-x-3 gap-y-1 text-[12px] font-semibold text-muted-foreground">
           {(["lp.trust.1", "lp.trust.2", "lp.trust.3"] as const).map((k) => (
             <li key={k} className="flex items-center gap-1">
               <Check className="size-3.5 text-brand-ink" strokeWidth={2.6} />

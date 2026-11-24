@@ -152,6 +152,7 @@ export const landingDict: Record<BaseLang, Record<string, string>> = {
 
     "lp.nav.how": "Como funciona",
     "lp.nav.menu": "Abrir menu",
+    "lp.try": "Experimenta como cliente",
     "lp.price.month": "/mês",
     "lp.price.trial": "Primeiro, 14 dias grátis · sem cartão",
     "lp.price.note.m": "Cancelas quando quiseres.",
@@ -370,6 +371,7 @@ export const landingDict: Record<BaseLang, Record<string, string>> = {
 
     "lp.nav.how": "How it works",
     "lp.nav.menu": "Open menu",
+    "lp.try": "Try it as a client",
     "lp.price.month": "/month",
     "lp.price.trial": "First 14 days free · no card",
     "lp.price.note.m": "Cancel any time.",
